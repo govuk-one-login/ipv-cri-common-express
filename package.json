@@ -28,6 +28,7 @@
   "homepage": "https://github.com/alphagov/di-ipv-cri-common-express#readme",
   "packageManager": "yarn@2.4.3",
   "devDependencies": {
+    "axios": "0.26.1",
     "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
     "eslint": "7.30.0",
