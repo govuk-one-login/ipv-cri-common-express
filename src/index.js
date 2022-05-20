@@ -1,2 +1,4 @@
-// eslint-disable-next-line no-console
-console.log("Hello world");
+module.exports = {
+  lib: require("./lib"),
+  routes: require("./routes"),
+};
