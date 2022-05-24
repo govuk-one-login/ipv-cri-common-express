@@ -4,8 +4,8 @@
   "description": "User interface for the Identity Proofing and Verification (IPV) system within the GDS digital identity platform, GOV.UK Sign In.",
   "main": "src/index.js",
   "engines": {
-    "node": "16.13.1",
-    "yarn": "1.22.17"
+    "node": "16.*",
+    "yarn": "1.*"
   },
   "scripts": {
     "start": "node index.js",
