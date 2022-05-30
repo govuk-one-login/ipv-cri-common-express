@@ -35,6 +35,8 @@ module.exports = {
         });
 
         req.session.tokenId = apiResponse?.data["session_id"];
+        req.session.authParams.state = apiResponse?.data?.state;
+        req.session.authParams.redirect_uri = apiResponse?.data?.redirect_uri;
       }
       return next();
     } catch (error) {
