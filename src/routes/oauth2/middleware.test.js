@@ -135,12 +135,14 @@ describe("oauth middleware", () => {
 
         expect(req.axios.post).to.have.been.calledWith("/api/authorize", {
           request: exampleJwt,
-          ...req.session.authParams,
+          client_id: req.session.authParams.client_id,
         });
       });
 
       context("with API result", () => {
         beforeEach(async () => {
+          response.data.state = "rAnd0m-i5ed_STring";
+          response.data.redirect_uri = "http://example.org:9001/callback";
           req.axios.post = sinon.fake.returns(response);
 
           await middleware.initSessionWithJWT(req, res, next);
@@ -150,6 +152,15 @@ describe("oauth middleware", () => {
           expect(req.session.tokenId).to.equal("abc1234");
         });
 
+        it("should save 'state' into req.session.authParams", () => {
+          expect(req.session.authParams.state).to.equal("rAnd0m-i5ed_STring");
+        });
+
+        it("should save 'redirect_uri' into req.session.authParams", () => {
+          expect(req.session.authParams.redirect_uri).to.equal(
+            "http://example.org:9001/callback"
+          );
+        });
         it("should call next", function () {
           expect(next).to.have.been.called;
         });
