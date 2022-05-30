@@ -197,7 +197,7 @@ describe("oauth middleware", () => {
         authParams: {
           client_id: clientId,
           authorization_code: code,
-          redirect_url: redirect,
+          redirect_uri: redirect,
           state,
         },
       };
@@ -232,7 +232,7 @@ describe("oauth middleware", () => {
     });
 
     it("should call next with URL error if redirect_uri not present", async () => {
-      delete req.session.authParams.redirect_url;
+      delete req.session.authParams.redirect_uri;
 
       await middleware.redirectToCallback(req, res, next);
 
