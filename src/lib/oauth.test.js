@@ -10,12 +10,12 @@ describe("oauth lib", () => {
       data = {};
     });
 
-    it("should save 'redirect_url' to sessionModel", () => {
+    it("should save 'redirect_uri' to sessionModel", () => {
       data.redirect_uri = "http://example.net";
 
       addOAuthPropertiesToSession({ authParams, data });
 
-      expect(authParams.redirect_url).to.equal(data.redirect_uri);
+      expect(authParams.redirect_uri).to.equal(data.redirect_uri);
     });
 
     it("should save 'state' to sessionModel", () => {
@@ -52,9 +52,9 @@ describe("oauth lib", () => {
     let authParams;
     let redirectUrl;
 
-    it("should throw an error if redirect_url is not valid", () => {
+    it("should throw an error if redirect_uri is not valid", () => {
       authParams = {
-        redirect_url: "not-a-valid-url",
+        redirect_uri: "not-a-valid-url",
       };
 
       expect(() => buildRedirectUrl({ authParams }))
@@ -62,9 +62,9 @@ describe("oauth lib", () => {
         .with.property("code", "ERR_INVALID_URL");
     });
 
-    it("should use the redirect_url if valid", () => {
+    it("should use the redirect_uri if valid", () => {
       authParams = {
-        redirect_url: "http://example.org",
+        redirect_uri: "http://example.org",
       };
 
       buildRedirectUrl({ authParams });
@@ -73,7 +73,7 @@ describe("oauth lib", () => {
     context("with an authorization_code", () => {
       beforeEach(() => {
         authParams = {
-          redirect_url: "http://example.org",
+          redirect_uri: "http://example.org",
           authorization_code: "1234",
           state: "STATE",
           client_id: "client",
@@ -109,7 +109,7 @@ describe("oauth lib", () => {
           };
 
           authParams = {
-            redirect_url: "http://example.org",
+            redirect_uri: "http://example.org",
             error,
           };
         });

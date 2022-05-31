@@ -1,6 +1,6 @@
 module.exports = {
   addOAuthPropertiesToSession: ({ authParams, data } = {}) => {
-    authParams.redirect_url = data.redirect_uri;
+    authParams.redirect_uri = data.redirect_uri;
     authParams.state = data.state;
 
     if (!data.code) {
@@ -16,7 +16,7 @@ module.exports = {
   },
   buildRedirectUrl: ({ authParams }) => {
     const authCode = authParams.authorization_code;
-    const url = authParams.redirect_url;
+    const url = authParams.redirect_uri;
     const state = authParams.state;
 
     let redirectUrl = new URL(url);
