@@ -46,7 +46,7 @@ module.exports = {
 
   retrieveAuthorizationCode: async (req, res, next) => {
     if (!req.session?.tokenId) {
-      return next(new Error("Missing session_id"));
+      return next(new Error("Missing session-id"));
     }
 
     if (!req.session?.authParams?.client_id) {
@@ -76,7 +76,7 @@ module.exports = {
           scope: "openid",
         },
         headers: {
-          session_id: req.session.tokenId,
+          "session-id": req.session.tokenId,
         },
       });
 
