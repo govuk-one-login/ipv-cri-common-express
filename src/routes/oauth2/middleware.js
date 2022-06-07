@@ -81,7 +81,7 @@ module.exports = {
       });
 
       req.session.authParams.authorization_code =
-        authCode.data?.authorizationCode;
+        authCode.data?.authorizationCode?.value;
 
       return next();
     } catch (e) {

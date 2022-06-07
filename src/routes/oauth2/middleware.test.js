@@ -201,7 +201,9 @@ describe("oauth middleware", () => {
 
       response = {
         data: {
-          authorizationCode: "auth000",
+          authorizationCode: {
+            value: "auth000",
+          },
         },
       };
     });
