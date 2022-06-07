@@ -49,24 +49,39 @@ module.exports = {
       return next(new Error("Missing session_id"));
     }
 
+    if (!req.session?.authParams?.client_id) {
+      return next(new Error("Missing client_id"));
+    }
+
+    if (!req.session?.authParams?.state) {
+      return next(new Error("Missing state"));
+    }
+
+    if (!req.session?.authParams?.redirect_uri) {
+      return next(new Error("Missing redirect_uri"));
+    }
+
     const authorizationPath = req.app.get("API.PATHS.AUTHORIZATION");
     if (!authorizationPath) {
       return next(new Error("Missing API.PATHS.AUTHORIZATION value"));
     }
 
     try {
-      const authCode = await req.axios.post(
-        authorizationPath,
-        {},
-        {
-          headers: {
-            session_id: req.session.tokenId,
-          },
-        }
-      );
+      const authCode = await req.axios.get(authorizationPath, {
+        params: {
+          client_id: req.session.authParams.client_id,
+          state: req.session.authParams.state,
+          redirect_uri: req.session.authParams.redirect_uri,
+          response_type: "code",
+          scope: "openid",
+        },
+        headers: {
+          session_id: req.session.tokenId,
+        },
+      });
 
       req.session.authParams.authorization_code =
-        authCode.data?.authorization_code;
+        authCode.data?.authorizationCode;
 
       return next();
     } catch (e) {

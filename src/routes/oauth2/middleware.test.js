@@ -192,12 +192,16 @@ describe("oauth middleware", () => {
 
       req.session = {
         tokenId: "abc123",
-        authParams: {},
+        authParams: {
+          client_id: "test_client",
+          state: "sT@t3",
+          redirect_uri: "http://example.net/",
+        },
       };
 
       response = {
         data: {
-          authorization_code: "auth000",
+          authorizationCode: "auth000",
         },
       };
     });
@@ -212,6 +216,42 @@ describe("oauth middleware", () => {
           sinon.match
             .instanceOf(Error)
             .and(sinon.match.has("message", "Missing session_id"))
+        );
+      });
+
+      it("should call next with an error when req.session.authParams.client_id is missing", async () => {
+        delete req.session.authParams.client_id;
+
+        await middleware.retrieveAuthorizationCode(req, res, next);
+
+        expect(next).to.have.been.calledWith(
+          sinon.match
+            .instanceOf(Error)
+            .and(sinon.match.has("message", "Missing client_id"))
+        );
+      });
+
+      it("should call next with an error when req.session.authParams.redirect_uri is missing", async () => {
+        delete req.session.authParams.redirect_uri;
+
+        await middleware.retrieveAuthorizationCode(req, res, next);
+
+        expect(next).to.have.been.calledWith(
+          sinon.match
+            .instanceOf(Error)
+            .and(sinon.match.has("message", "Missing redirect_uri"))
+        );
+      });
+
+      it("should call next with an error when req.session.authParams.client_id is missing", async () => {
+        delete req.session.authParams.client_id;
+
+        await middleware.retrieveAuthorizationCode(req, res, next);
+
+        expect(next).to.have.been.calledWith(
+          sinon.match
+            .instanceOf(Error)
+            .and(sinon.match.has("message", "Missing client_id"))
         );
       });
 
@@ -241,16 +281,21 @@ describe("oauth middleware", () => {
       it("should call axios with the correct parameters", async function () {
         await middleware.retrieveAuthorizationCode(req, res, next);
 
-        expect(req.axios.post).to.have.been.calledWith(
-          "/api/authorize",
-          {},
-          { headers: { session_id: req.session.tokenId } }
-        );
+        expect(req.axios.get).to.have.been.calledWith("/api/authorize", {
+          params: {
+            client_id: req.session.authParams.client_id,
+            redirect_uri: req.session.authParams.redirect_uri,
+            response_type: "code",
+            scope: "openid",
+            state: req.session.authParams.state,
+          },
+          headers: { session_id: req.session.tokenId },
+        });
       });
 
       context("with API result", () => {
         beforeEach(async () => {
-          req.axios.post = sinon.fake.returns(response);
+          req.axios.get = sinon.fake.returns(response);
 
           await middleware.retrieveAuthorizationCode(req, res, next);
         });
@@ -266,7 +311,7 @@ describe("oauth middleware", () => {
 
       context("with API error", () => {
         beforeEach(async () => {
-          req.axios.post = sinon.fake.throws(new Error("API error"));
+          req.axios.get = sinon.fake.throws(new Error("API error"));
 
           await middleware.retrieveAuthorizationCode(req, res, next);
         });
