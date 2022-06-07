@@ -21,15 +21,15 @@ module.exports = {
       return next(new Error("Missing client_id"));
     }
 
-    const authorizePath = req.app.get("API.PATHS.AUTHORIZE");
-    if (!authorizePath) {
-      return next(new Error("Missing API.PATHS.AUTHORIZE value"));
+    const sessionPath = req.app.get("API.PATHS.SESSION");
+    if (!sessionPath) {
+      return next(new Error("Missing API.PATHS.SESSION value"));
     }
 
     const requestJWT = req.jwt;
     try {
       if (requestJWT) {
-        const apiResponse = await req.axios.post(authorizePath, {
+        const apiResponse = await req.axios.post(sessionPath, {
           request: req.jwt,
           client_id: req.session.authParams.client_id,
         });

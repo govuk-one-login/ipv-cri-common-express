@@ -109,15 +109,13 @@ describe("oauth middleware", () => {
         );
       });
 
-      it("should call next with an error when API.PATHS.AUTHORIZE is missing", async () => {
+      it("should call next with an error when API.PATHS.SESSION is missing", async () => {
         await middleware.initSessionWithJWT(req, res, next);
 
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
-            .and(
-              sinon.match.has("message", "Missing API.PATHS.AUTHORIZE value")
-            )
+            .and(sinon.match.has("message", "Missing API.PATHS.SESSION value"))
         );
       });
     });
@@ -127,7 +125,7 @@ describe("oauth middleware", () => {
         req.app = {
           get: sinon.stub(),
         };
-        req.app.get.withArgs("API.PATHS.AUTHORIZE").returns("/api/authorize");
+        req.app.get.withArgs("API.PATHS.SESSION").returns("/api/authorize");
       });
 
       it("should call axios with the correct parameters", async function () {
