@@ -215,7 +215,7 @@ describe("oauth middleware", () => {
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing session_id"))
+            .and(sinon.match.has("message", "Missing session-id"))
         );
       });
 
@@ -289,7 +289,7 @@ describe("oauth middleware", () => {
             scope: "openid",
             state: req.session.authParams.state,
           },
-          headers: { session_id: req.session.tokenId },
+          headers: { "session-id": req.session.tokenId },
         });
       });
 
