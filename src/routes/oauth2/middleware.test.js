@@ -182,6 +182,106 @@ describe("oauth middleware", () => {
     });
   });
 
+  describe("retrieveAuthorizationCode", () => {
+    let response;
+
+    beforeEach(() => {
+      req.app = {
+        get: sinon.stub(),
+      };
+
+      req.session = {
+        tokenId: "abc123",
+        authParams: {},
+      };
+
+      response = {
+        data: {
+          authorization_code: "auth000",
+        },
+      };
+    });
+
+    context("with missing properties", () => {
+      it("should call next with an error when req.session.tokenId is missing", async () => {
+        delete req.session.tokenId;
+
+        await middleware.retrieveAuthorizationCode(req, res, next);
+
+        expect(next).to.have.been.calledWith(
+          sinon.match
+            .instanceOf(Error)
+            .and(sinon.match.has("message", "Missing session_id"))
+        );
+      });
+
+      it("should call next with an error when API.PATHS.AUTHORIZATION is missing", async () => {
+        await middleware.retrieveAuthorizationCode(req, res, next);
+
+        expect(next).to.have.been.calledWith(
+          sinon.match
+            .instanceOf(Error)
+            .and(
+              sinon.match.has(
+                "message",
+                "Missing API.PATHS.AUTHORIZATION value"
+              )
+            )
+        );
+      });
+    });
+
+    context("on authorization request", () => {
+      beforeEach(() => {
+        req.app.get
+          .withArgs("API.PATHS.AUTHORIZATION")
+          .returns("/api/authorize");
+      });
+
+      it("should call axios with the correct parameters", async function () {
+        await middleware.retrieveAuthorizationCode(req, res, next);
+
+        expect(req.axios.post).to.have.been.calledWith(
+          "/api/authorize",
+          {},
+          { headers: { session_id: req.session.tokenId } }
+        );
+      });
+
+      context("with API result", () => {
+        beforeEach(async () => {
+          req.axios.post = sinon.fake.returns(response);
+
+          await middleware.retrieveAuthorizationCode(req, res, next);
+        });
+
+        it("should save 'authorization_code' into req.session.authParams", () => {
+          expect(req.session.authParams.authorization_code).to.equal("auth000");
+        });
+
+        it("should call next", function () {
+          expect(next).to.have.been.calledWith();
+        });
+      });
+
+      context("with API error", () => {
+        beforeEach(async () => {
+          req.axios.post = sinon.fake.throws(new Error("API error"));
+
+          await middleware.retrieveAuthorizationCode(req, res, next);
+        });
+
+        it("should call next with error", () => {
+          expect(next).to.have.been.calledWith(
+            sinon.match
+              .instanceOf(Error)
+              .and(sinon.match.has("message", "API error"))
+          );
+        });
+      });
+    });
+  });
+
   describe("redirectToCallback", () => {
     let redirect, state, clientId, code;
 

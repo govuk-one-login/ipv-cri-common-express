@@ -8,6 +8,7 @@ const {
   initSessionWithJWT,
   redirectToEntryPoint,
   addJWTToRequest,
+  retrieveAuthorizationCode,
 } = require("./middleware");
 
 router.get(
@@ -17,6 +18,6 @@ router.get(
   initSessionWithJWT,
   redirectToEntryPoint
 );
-router.get("/callback", redirectToCallback);
+router.get("/callback", retrieveAuthorizationCode, redirectToCallback);
 
 module.exports = router;
