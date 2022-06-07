@@ -44,6 +44,36 @@ module.exports = {
     }
   },
 
+  retrieveAuthorizationCode: async (req, res, next) => {
+    if (!req.session?.tokenId) {
+      return next(new Error("Missing session_id"));
+    }
+
+    const authorizationPath = req.app.get("API.PATHS.AUTHORIZATION");
+    if (!authorizationPath) {
+      return next(new Error("Missing API.PATHS.AUTHORIZATION value"));
+    }
+
+    try {
+      const authCode = await req.axios.post(
+        authorizationPath,
+        {},
+        {
+          headers: {
+            session_id: req.session.tokenId,
+          },
+        }
+      );
+
+      req.session.authParams.authorization_code =
+        authCode.data?.authorization_code;
+
+      return next();
+    } catch (e) {
+      return next(e);
+    }
+  },
+
   redirectToCallback: async (req, res, next) => {
     try {
       const redirectUrl = buildRedirectUrl({
