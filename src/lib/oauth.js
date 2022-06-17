@@ -11,7 +11,7 @@ module.exports = {
 
       authParams.error = error;
     } else {
-      authParams.authorization_code = data.code;
+      authParams.authorization_code = data.code?.value || data.code;
     }
   },
   buildRedirectUrl: ({ authParams }) => {
