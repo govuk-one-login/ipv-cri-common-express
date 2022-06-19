@@ -30,7 +30,7 @@
   "devDependencies": {
     "axios": "0.26.1",
     "cfenv": "1.2.4",
-    "chai": "4.3.4",
+    "chai": "4.3.6",
     "chai-as-promised": "7.1.1",
     "eslint": "7.30.0",
     "eslint-config-prettier": "8.5.0",
