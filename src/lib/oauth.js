@@ -15,8 +15,8 @@ module.exports = {
     }
   },
   buildRedirectUrl: ({ authParams }) => {
-    const authCode = authParams.authorization_code;
-    const url = authParams.redirect_uri;
+    const authCode = authParams?.authorization_code;
+    const url = authParams?.redirect_uri;
     const state = authParams.state;
 
     let redirectUrl = new URL(url);
@@ -28,6 +28,7 @@ module.exports = {
 
       redirectUrl.searchParams.append("error", errorCode);
       redirectUrl.searchParams.append("error_description", errorDescription);
+      redirectUrl.searchParams.append("state", state);
     } else {
       redirectUrl.searchParams.append("client_id", authParams.client_id);
       redirectUrl.searchParams.append("state", state);

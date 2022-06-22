@@ -48,7 +48,7 @@ describe("oauth lib", () => {
     });
   });
 
-  describe("buildRedirectUrl", () => {
+  describe.only("buildRedirectUrl", () => {
     let authParams;
     let redirectUrl;
 
@@ -62,12 +62,145 @@ describe("oauth lib", () => {
         .with.property("code", "ERR_INVALID_URL");
     });
 
-    it("should use the redirect_uri if valid", () => {
+    it.skip("should use the redirect_uri if valid", () => {
       authParams = {
         redirect_uri: "http://example.org",
       };
 
       buildRedirectUrl({ authParams });
+    });
+
+    context.only("with an authCode and valid redirect_uri", () => {
+      beforeEach(() => {
+        authParams = {
+          redirect_uri: "http://example.org",
+          state: "state",
+          client_id: "1",
+          authorization_code: "ABADCAFE",
+          error: {
+            code: "err01",
+            description: "description",
+          },
+        };
+      });
+
+      it("should build a url with client_id, state and code", () => {
+        const url = buildRedirectUrl({ authParams });
+
+        expect(url.toString()).to.equal(
+          "?client_id=1&state=undefined&code=ABADCAFE"
+        );
+      });
+      it("should build a url with missing client_id");
+      it("should build a url with missing state");
+      it("should build a url with missing code");
+    });
+
+    context.only("with an error and valid redirect_uri", () => {
+      let authParams;
+
+      beforeEach(() => {
+        authParams = {
+          redirect_uri: "http://example.org",
+          state: "state",
+          error: {
+            code: "err01",
+            description: "description",
+          },
+        };
+      });
+      it("should build a url with error, error_description and state", () => {
+        const url = buildRedirectUrl({ authParams });
+
+        expect(url.toString()).to.equal(
+          "http://example.org/?error=err01&error_description=description&state=state"
+        );
+      });
+      it("should build a url with missing error code", () => {
+        delete authParams.error.code;
+        const url = buildRedirectUrl({ authParams });
+
+        expect(url.toString()).to.equal(
+          "http://example.org/?error=err01&error_description=description&state=state"
+        );
+      });
+      it("should build a url with error message", () => {
+        delete authParams.error.description;
+        authParams.error.message = "message";
+
+        const url = buildRedirectUrl({ authParams });
+
+        expect(url.toString()).to.equal(
+          "http://example.org/?error=err01&error_description=description&state=state"
+        );
+      });
+      it("should build a url with missing error_description", () => {
+        delete authParams.error.description;
+
+        const url = buildRedirectUrl({ authParams });
+
+        expect(url.toString()).to.equal(
+          "http://example.org/?error=err01&error_description=description&state=state"
+        );
+      });
+
+      it("should build a url with missing state", () => {
+        delete authParams.state;
+
+        const url = buildRedirectUrl({ authParams });
+
+        expect(url.toString()).to.equal(
+          "http://example.org/?error=err01&error_description=description"
+        );
+      });
+    });
+
+    context("without an authCode an error", () => {
+      it("should build a url with error, error_description and state", () => {
+        const url = buildRedirectUrl({
+          redirect_uri: "http://example.org",
+          error: {
+            code: "err01",
+            error_description: "description",
+            state: "state",
+          },
+        });
+
+        expect(url).to.be("http://example.org");
+      });
+      it("should build a url with missing error", () => {
+        const url = buildRedirectUrl({
+          redirect_uri: "http://example.org",
+          error: {
+            error_description: "description",
+            state: "state",
+          },
+        });
+
+        expect(url).to.be("http://example.org");
+      });
+      it("should build a url with missing error_description", () => {
+        const url = buildRedirectUrl({
+          redirect_uri: "http://example.org",
+          error: {
+            code: "err01",
+            state: "state",
+          },
+        });
+
+        expect(url).to.be("http://example.org");
+      });
+      it("should build a url with missing state", () => {
+        const url = buildRedirectUrl({
+          redirect_uri: "http://example.org",
+          error: {
+            code: "err01",
+            error_description: "description",
+          },
+        });
+
+        expect(url).to.be("http://example.org");
+      });
     });
 
     context("with an authorization_code", () => {
