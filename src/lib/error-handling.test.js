@@ -21,7 +21,7 @@ describe("error-handling", () => {
       authParams: { redirect_uri: "http://example.org" },
     };
 
-    oAuthStub.buildRedirectUrl = sinon.fake();
+    oAuthStub.buildRedirectUrl = sinon.stub();
   });
 
   describe("redirectAsErrorToCallback", () => {
@@ -126,7 +126,7 @@ describe("error-handling", () => {
       });
     });
 
-    context.skip("with default Error object", () => {
+    context("with default Error object", () => {
       beforeEach(async () => {
         err = new Error("error message");
 
@@ -144,13 +144,36 @@ describe("error-handling", () => {
     });
 
     context("with valid redirect url", () => {
-      it("should call res.redirect with url");
-      it("should not call next");
+      beforeEach(async () => {
+        err = new Error("error message");
+        oAuthStub.buildRedirectUrl.returns("http://example.org");
+        await redirectAsErrorToCallback(err, req, res, next);
+      });
+
+      it("should call res.redirect with redirect_uri", () => {
+        expect(res.redirect).to.have.been.calledWith("http://example.org");
+      });
+
+      it("should not call next", () => {
+        expect(next).not.to.have.been.called;
+      });
     });
 
     context("with invalid redirect url", () => {
-      it("should not call res.redirect");
-      it("should call next with err");
+      beforeEach(async () => {
+        err = new Error("error message");
+        req.session.authParams.redirect_uri = "not-a-url";
+        oAuthStub.buildRedirectUrl.throws("parse error");
+
+        await redirectAsErrorToCallback(err, req, res, next);
+      });
+
+      it("should not call res.redirect", () => {
+        expect(res.redirect).not.to.have.been.called;
+      });
+      it("should call next with err", () => {
+        expect(next).to.have.been.calledWith(err);
+      });
     });
   });
 });
