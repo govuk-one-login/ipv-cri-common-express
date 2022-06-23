@@ -17,9 +17,9 @@
 {% block beforeContent %}
   {{ govukPhaseBanner({
     tag: {
-      text: "beta"
+      text: translate("govuk.phaseBanner.tag")
     },
-    html: 'This is a new service – your <a class="govuk-link" rel="noopener" target="_blank" href="https://signin.account.gov.uk/contact-us">feedback (opens in new tab)</a> will help us to improve it.'
+    html: translate("govuk.phaseBanner.content")
   }) }}
 
   {% block backLink %}
@@ -33,38 +33,9 @@
   {% endblock %}
 {% endblock %}
 
+{% set footerNavItems = translate("govuk.footerNavItems") %}
 {% block footer %}
-  {{ govukFooter({
-    meta: {
-      items: [
-        {
-          href: "/accessibility-statement",
-          attributes: { target: "_blank" },
-          text: 'general.footer.accessibilityStatement.linkText' | translate
-        },
-        {
-          href: "https://www.gov.uk/help/cookies",
-          attributes: { target: "_blank" },
-          text: 'general.footer.cookies.linkText' | translate
-        },
-        {
-          href: "/terms-and-conditions",
-          attributes: { target: "_blank" },
-          text: 'general.footer.terms.linkText' | translate
-        },
-        {
-          href: "/privacy-notice",
-          attributes: { target: "_blank" },
-          text: 'general.footer.privacy.linkText' | translate
-        },
-        {
-          href: "/contact-us?supportType=PUBLIC",
-          attributes: { target: "_blank" },
-          text: 'general.footer.support.linkText' | translate
-        }
-      ]
-    }
-  }) }}
+  {{ govukFooter( footerNavItems ) }}
 {% endblock %}
 
 {% block bodyEnd %}
