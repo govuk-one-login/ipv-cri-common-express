@@ -23,7 +23,16 @@ describe("axios", () => {
     };
     req.app.get.withArgs("API.BASE_URL").returns("http://example.net");
 
-    axiosClient = {};
+    axiosClient = {
+      interceptors: {
+        request: {
+          use: sinon.stub(),
+        },
+        response: {
+          use: sinon.stub(),
+        },
+      },
+    };
 
     axiosStub.create = sinon.fake.returns(axiosClient);
   });

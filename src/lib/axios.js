@@ -1,5 +1,7 @@
 const axios = require("axios");
 
+const logger = require("hmpo-logger");
+
 module.exports = function (req, res, next) {
   const baseURL = req.app.get("API.BASE_URL");
 
@@ -9,6 +11,13 @@ module.exports = function (req, res, next) {
 
   req.axios = axios.create({
     baseURL,
+  });
+
+  // Add a request interceptor
+  req.axios.interceptors.request.use(function (config) {
+    logger.get().info("API request", { config, req });
+
+    return config;
   });
 
   if (req.scenarioIDHeader && req.axios?.defaults?.headers?.common) {
