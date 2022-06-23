@@ -30,8 +30,11 @@ module.exports = {
       redirectUrl.searchParams.append("error_description", errorDescription);
     } else {
       redirectUrl.searchParams.append("client_id", authParams.client_id);
-      redirectUrl.searchParams.append("state", state);
       redirectUrl.searchParams.append("code", authCode);
+    }
+
+    if (state) {
+      redirectUrl.searchParams.append("state", state);
     }
 
     return redirectUrl;

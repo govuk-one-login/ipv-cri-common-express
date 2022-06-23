@@ -78,26 +78,39 @@ describe("oauth lib", () => {
           state: "STATE",
           client_id: "client",
         };
-
-        redirectUrl = buildRedirectUrl({ authParams });
       });
 
       it("should add authorization_code", () => {
+        redirectUrl = buildRedirectUrl({ authParams });
+
         expect(redirectUrl.searchParams.get("code")).to.equal(
           authParams.authorization_code
         );
       });
       it("should add client_id", () => {
+        redirectUrl = buildRedirectUrl({ authParams });
+
         expect(redirectUrl.searchParams.get("client_id")).to.equal(
           authParams.client_id
         );
       });
-      it("should add state", () => {
+      it("should add state if available", () => {
+        redirectUrl = buildRedirectUrl({ authParams });
+
         expect(redirectUrl.searchParams.get("state")).to.equal(
           authParams.state
         );
       });
+
+      it("should not add state if not available", () => {
+        delete authParams.state;
+
+        redirectUrl = buildRedirectUrl({ authParams });
+
+        expect(redirectUrl.searchParams.get("state")).to.be.null;
+      });
     });
+
     context("without an authorization_code", () => {
       describe("with an error object", () => {
         let error;
@@ -133,6 +146,18 @@ describe("oauth lib", () => {
           expect(redirectUrl.searchParams.get("error_description")).to.equal(
             error.message
           );
+        });
+        it("should add state if available", () => {
+          redirectUrl = buildRedirectUrl({
+            authParams: { state: "state-prop", ...authParams },
+          });
+
+          expect(redirectUrl.searchParams.get("state")).to.equal("state-prop");
+        });
+        it("should not add state if not available", () => {
+          redirectUrl = buildRedirectUrl({ authParams });
+
+          expect(redirectUrl.searchParams.get("state")).to.be.null;
         });
       });
       describe("without an error object", () => {});
