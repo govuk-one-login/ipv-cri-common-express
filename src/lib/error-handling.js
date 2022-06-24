@@ -30,7 +30,7 @@ module.exports = {
 
       return res.redirect(redirectUrl.toString());
     } catch (e) {
-      return next(e);
+      return next(err);
     }
   },
 };
