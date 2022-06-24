@@ -354,7 +354,7 @@ describe("oauth middleware", () => {
       await middleware.redirectToCallback(req, res, next);
 
       expect(res.redirect).to.have.been.calledWith(
-        `${redirect}?client_id=${clientId}&state=${state}&code=${code}`
+        `${redirect}?client_id=${clientId}&code=${code}&state=${state}`
       );
     });
 
@@ -372,7 +372,7 @@ describe("oauth middleware", () => {
       await middleware.redirectToCallback(req, res, next);
 
       expect(res.redirect).to.have.been.calledWith(
-        `${redirect}?error=${errorCode}&error_description=${description}`
+        `${redirect}?error=${errorCode}&error_description=${description}&state=${state}`
       );
     });
 
