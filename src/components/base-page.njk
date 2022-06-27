@@ -5,7 +5,9 @@
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 
 {% block header %}
-  {% block cookieBanner %}{% endblock %}
+    {% block cookieBanner %}
+        {% include 'banner.njk' %}
+    {% endblock %}
 
   {% block govukHeader %}
     {{ govukHeader({
@@ -40,5 +42,9 @@
 
 {% block bodyEnd %}
   {% block scripts %}
+    <script type="text/javascript" src="/public/javascripts/cookies.js"></script>
+    <script type="text/javascript" src="/public/javascripts/application.js"></script>
+    <script type="text/javascript" src="/public/javascripts/all.js"></script>
+    <script type="text/javascript" {% if cspNonce %} nonce='{{ cspNonce }}{%  endif %} %}'>window.GOVSignIn.appInit("{{ gtmId }}", "{{ analyticsCookieDomain }}", "{{ gtmJourney }}")</script>
   {% endblock %}
 {% endblock %}
