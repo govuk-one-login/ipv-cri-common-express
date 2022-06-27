@@ -5,7 +5,7 @@ module.exports = {
       styleSrc: ["'self'"],
       scriptSrc: [
         "'self'",
-        (req) => `'nonce-${req.app.get("APP.GTM.SCRIPT_NONCE")}'`,
+        (req) => `'nonce-${req.app.get("APP.CSP_NONCE")}'`,
         "'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='",
         "https://www.googletagmanager.com",
         "https://www.google-analytics.com",
