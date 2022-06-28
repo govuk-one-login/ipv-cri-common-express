@@ -1,3 +1,5 @@
+const { generateNonce } = require("./strings");
+
 module.exports = {
   contentSecurityPolicy: {
     directives: {
@@ -5,7 +7,10 @@ module.exports = {
       styleSrc: ["'self'"],
       scriptSrc: [
         "'self'",
-        (req) => `'nonce-${req.app.get("APP.GTM.SCRIPT_NONCE")}'`,
+        (req, res) => {
+          res.locals.cspNonce = res.locals.cspNonce || generateNonce();
+          return `'nonce-${res.locals.cspNonce}'`;
+        },
         "'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='",
         "https://www.googletagmanager.com",
         "https://www.google-analytics.com",
@@ -17,6 +22,7 @@ module.exports = {
         "https://www.googletagmanager.com",
         "https://www.google-analytics.com",
       ],
+      formAction: ["*"],
       objectSrc: ["'none'"],
       connectSrc: ["'self'", "https://www.google-analytics.com"],
     },
