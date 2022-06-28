@@ -22,6 +22,7 @@ module.exports = {
         "https://www.googletagmanager.com",
         "https://www.google-analytics.com",
       ],
+      formAction: ["*"],
       objectSrc: ["'none'"],
       connectSrc: ["'self'", "https://www.google-analytics.com"],
     },
