@@ -92,7 +92,7 @@ var cookies = function (trackingId, analyticsCookieDomain, journey) {
       },
       {
         'event': "progEvent",
-        'ProgrammeName': '{DI - PYI}'
+        'ProgrammeName': 'DI - PYI'
       },
     ];
 
