@@ -49,6 +49,7 @@
     "sinon-chai": "3.7.0"
   },
   "dependencies": {
-    "hmpo-logger": "6.1.1"
+    "hmpo-logger": "6.1.1",
+    "i18next-fs-backend": "^1.1.5"
   }
 }
