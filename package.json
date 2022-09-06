@@ -1,6 +1,6 @@
 {
   "name": "di-ipv-cri-common-express",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "User interface for the Identity Proofing and Verification (IPV) system within the GDS digital identity platform, GOV.UK Sign In.",
   "main": "src/index.js",
   "engines": {
@@ -49,6 +49,7 @@
     "sinon-chai": "3.7.0"
   },
   "dependencies": {
-    "hmpo-logger": "6.1.1"
+    "hmpo-logger": "6.1.1",
+    "i18next-fs-backend": "^1.1.5"
   }
 }
