@@ -1,0 +1,16 @@
+root:
+  field1: "im field1"
+  field2: "im filed2"
+  array1:
+   - "value1"
+   - "value2"
+   - "value3"
+  array2:
+   - "value1"
+   - "value2"
+  nest:
+    nest2:
+      nest3: "check"
+  empty:
+  empty2: null
+  empty3:

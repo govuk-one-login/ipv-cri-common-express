@@ -1,0 +1,9 @@
+root:
+  field1: "im field1"
+  array1:
+   - "value1"
+   - "value2"
+   - "value3"
+  nest:
+    nest2:
+      nest3: "diff"

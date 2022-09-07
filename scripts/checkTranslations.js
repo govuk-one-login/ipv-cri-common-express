@@ -6,25 +6,28 @@ const Backend = require("i18next-fs-backend");
 
 const SCRIPT_NAME = "TRANSLATION CHECK -";
 
-const foundLanguages = readdirSync(join(__dirname, "../../../src/locales")).filter(
+const fileLoc = process.argv[2] ? process.argv[2] : "../../../src/locales";
+
+const foundLanguages = readdirSync(join(__dirname, fileLoc)).filter(
   (fileName) => {
-    const joinedPath = join(join(__dirname, "../../../src/locales"), fileName);
+    const joinedPath = join(join(__dirname, fileLoc), fileName);
     const isDirectory = lstatSync(joinedPath).isDirectory();
     return isDirectory;
   }
 );
 
-const foundNamespaces = readdirSync(
-  join(__dirname, "../../../src/locales/en")
-).reduce((collection, fileName) => {
-  const joinedPath = join(join(__dirname, "../../../src/locales/en"), fileName);
-  const isFile = lstatSync(joinedPath).isFile();
-  if (isFile) {
-    collection.push(parse(fileName).name);
-  }
+const foundNamespaces = readdirSync(join(__dirname, `${fileLoc}/en`)).reduce(
+  (collection, fileName) => {
+    const joinedPath = join(join(__dirname, `${fileLoc}/en`), fileName);
+    const isFile = lstatSync(joinedPath).isFile();
+    if (isFile) {
+      collection.push(parse(fileName).name);
+    }
 
-  return collection;
-}, []);
+    return collection;
+  },
+  []
+);
 
 // set up i18next on the backedn with saveMissing set to true.
 i18next.use(Backend).init({
@@ -35,7 +38,7 @@ i18next.use(Backend).init({
   ns: foundNamespaces,
   defaultNS: "default",
   backend: {
-    loadPath: join(__dirname, "../../../src/locales/{{lng}}/{{ns}}.yml"),
+    loadPath: join(__dirname, `${fileLoc}/{{lng}}/{{ns}}.yml`),
   },
   saveMissingTo: "current",
 });
