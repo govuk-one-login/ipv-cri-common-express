@@ -46,8 +46,20 @@ function compareContent(set1, set2, parent) {
   const issues = [];
   const warnings = [];
   for (const key of Object.keys(set1)) {
-    const set1Field = set1[key];
-    const set2Field = set2[key];
+    let set1Field = set1[key];
+    let set2Field = set2[key];
+
+    // Thankful for the poor JS null/undefined system.
+    // Null = field exists but no value.
+    // undefined = field does not exist...
+    // This should catch where we have empty "hint" fields.
+    if (set1Field === null && set1Field !== undefined) {
+      set1Field = "_";
+    }
+
+    if (set2Field === null && set1Field !== undefined) {
+      set2Field = "_";
+    }
 
     if (!set2Field) {
       // example:
