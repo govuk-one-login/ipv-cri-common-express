@@ -87,4 +87,52 @@ describe("axios", () => {
         .undefined;
     });
   });
+
+  context("with 'x-forwarded-for'", () => {
+    it("should add x-forwarded-for to axios headers", () => {
+      axiosClient.defaults = { headers: { common: {} } };
+
+      req.headers["forwarded"] =
+        "for=192.0.2.0;host=subdomain.example.gov.uk;proto=http";
+
+      axios(req, res, next);
+
+      expect(req.axios.defaults.headers.common["x-forwarded-for"]).to.equal(
+        "192.0.2.0"
+      );
+    });
+  });
+
+  context("without 'x-forwarded-for'", () => {
+    it("should not x-forwarded-for to axios headers", () => {
+      delete req.headers["forwarded"];
+
+      axios(req, res, next);
+
+      expect(req.axios?.defaults?.headers?.common?.["x-forwarded-for"]).to.be
+        .undefined;
+    });
+    it("should not x-forwarded-for to axios headers while header is null", () => {
+      delete axiosClient.defaults;
+      req.headers["forwarded"] = null;
+
+      axios(req, res, next);
+
+      expect(req.axios?.defaults?.headers?.common?.["x-forwarded-for"]).to.be
+        .undefined;
+    });
+  });
+
+  context("without defaults'", () => {
+    it("should not x-forwarded-for to axios headers", () => {
+      delete axiosClient.defaults;
+      req.headers["forwarded"] =
+        "for=192.0.2.0;host=subdomain.example.gov.uk;proto=http";
+
+      axios(req, res, next);
+
+      expect(req.axios?.defaults?.headers?.common?.["x-forwarded-for"]).to.be
+        .undefined;
+    });
+  });
 });
