@@ -77,6 +77,7 @@ module.exports = {
         },
         headers: {
           "session-id": req.session.tokenId,
+          session_id: req.session.tokenId,
         },
       });
 

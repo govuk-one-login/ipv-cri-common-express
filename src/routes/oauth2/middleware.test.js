@@ -291,7 +291,10 @@ describe("oauth middleware", () => {
             scope: "openid",
             state: req.session.authParams.state,
           },
-          headers: { "session-id": req.session.tokenId },
+          headers: {
+            "session-id": req.session.tokenId,
+            session_id: req.session.tokenId,
+          },
         });
       });
 
