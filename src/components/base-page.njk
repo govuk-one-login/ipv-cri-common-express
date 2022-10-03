@@ -40,7 +40,11 @@
 
 {% set footerNavItems = translate("govuk.footerNavItems") %}
 {% block footer %}
-  {{ govukFooter( footerNavItems ) }}
+  {{ govukFooter( {
+      navigation:footerNavItems,
+      contentLicence: translate("govuk.contentLicence"),
+      copyright: translate("govuk.copyright")
+  } ) }}
 {% endblock %}
 
 {% block bodyEnd %}
