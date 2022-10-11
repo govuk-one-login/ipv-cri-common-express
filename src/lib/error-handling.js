@@ -13,10 +13,15 @@ module.exports = {
     let redirect_uri = req.session.authParams.redirect_uri;
 
     if (err.isAxiosError) {
-      const oauthError = err?.response?.data?.oauth_error;
+      const errorResponse = err?.response?.data;
 
-      error.code = oauthError?.error || error.code;
-      error.description = oauthError?.error_description || error.description;
+      error.code =
+        errorResponse?.oauth_error?.error || errorResponse?.code || error.code;
+      error.description =
+        errorResponse?.oauth_error?.error_description ||
+        errorResponse?.message ||
+        error.description;
+
       redirect_uri = err?.response?.data?.redirect_uri || redirect_uri;
     }
 
