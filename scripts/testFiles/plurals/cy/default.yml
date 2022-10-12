@@ -1,0 +1,7 @@
+root:
+  valueWithCount_zero: "{{ count }} value"
+  valueWithCount_one: "{{ count }} values"
+  valueWithCount_two: "{{ count }} values"
+  valueWithCount_few: "{{ count }} values"
+  valueWithCount_many: "{{ count }} values"
+  valueWithCount_other: "{{ count }} values"

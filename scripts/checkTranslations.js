@@ -4,6 +4,8 @@ const { readdirSync, lstatSync } = require("fs");
 const i18next = require("i18next");
 const Backend = require("i18next-fs-backend");
 
+const differenceWith = require("lodash.differencewith");
+
 const SCRIPT_NAME = "TRANSLATION CHECK -";
 
 const fileLoc = process.argv[2] ? process.argv[2] : "../../../src/locales";
@@ -46,28 +48,36 @@ i18next.use(Backend).init({
 // --------.-----------
 
 function compareContent(set1, set2, parent) {
-  const issues = [];
-  const warnings = [];
+  let issues = [];
+  let warnings = [];
+
+  let differences = differenceWith(
+    Object.keys(set1),
+    Object.keys(set2),
+    (arrVal, othVal) => {
+      return arrVal.split("_")[0] === othVal.split("_")[0];
+    }
+  );
+
+  console.log(differences);
+  differences.map((difference) => {
+    issues.push(`Missing ${parent ? parent + "." : ""}${difference}`);
+  });
+
   for (const key of Object.keys(set1)) {
     let set1Field = set1[key];
     let set2Field = set2[key];
 
-    // Thankful for the poor JS null/undefined system.
-    // Null = field exists but no value.
-    // undefined = field does not exist...
-    // This should catch where we have empty "hint" fields.
+    // // Thankful for the poor JS null/undefined system.
+    // // Null = field exists but no value.
+    // // undefined = field does not exist...
+    // // This should catch where we have empty "hint" fields.
     if (set1Field === null && set1Field !== undefined) {
       set1Field = "_";
     }
 
     if (set2Field === null && set1Field !== undefined) {
       set2Field = "_";
-    }
-
-    if (!set2Field) {
-      // example:
-      issues.push(`Missing ${parent ? parent + "." : ""}${key}`);
-      continue;
     }
 
     if (Array.isArray(set1Field)) {
