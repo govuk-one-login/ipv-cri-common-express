@@ -62,4 +62,16 @@ describe("checkTranslation", () => {
 
     expect(successMessage).to.be.true;
   });
+
+  it("should pass plurals with no errors", async () => {
+    const output = await exec(
+      "node ./scripts/checkTranslations.js ./testFiles/plurals"
+    );
+    const stout = output.stdout.split("/n");
+    const successMessage = !!stout.filter((val) =>
+      val.includes("Translation files look good")
+    );
+
+    expect(successMessage).to.be.true;
+  });
 });
