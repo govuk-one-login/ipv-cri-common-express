@@ -1,6 +1,6 @@
 {
   "name": "di-ipv-cri-common-express",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "description": "User interface for the Identity Proofing and Verification (IPV) system within the GDS digital identity platform, GOV.UK Sign In.",
   "main": "src/index.js",
   "engines": {
