@@ -38,12 +38,12 @@
   {% endblock %}
 {% endblock %}
 
-{% set footerNavItems = translate("govuk.footerNavItems") %}
+{% set footerNavItems = translate("govuk.footerNavItems", { returnObjects: true }) %}
 {% block footer %}
   {{ govukFooter( {
-      navigation:footerNavItems,
-      contentLicence: translate("govuk.contentLicence"),
-      copyright: translate("govuk.copyright")
+      meta:footerNavItems.meta,
+      contentLicence: translate("govuk.contentLicence", { returnObjects: true }),
+      copyright: translate("govuk.copyright", { returnObjects: true })
   } ) }}
 {% endblock %}
 

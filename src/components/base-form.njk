@@ -38,9 +38,13 @@
   {% endblock %}
 {% endblock %}
 
-{% set footerNavItems = translate("govuk.footerNavItems") %}
+{% set footerNavItems = translate("govuk.footerNavItems", { returnObjects: true }) %}
 {% block footer %}
-  {{ govukFooter( footerNavItems ) }}
+  {{ govukFooter( {
+      meta:footerNavItems.meta,
+      contentLicence: translate("govuk.contentLicence", { returnObjects: true }),
+      copyright: translate("govuk.copyright", { returnObjects: true })
+  } ) }}
 {% endblock %}
 
 {% block bodyEnd %}
