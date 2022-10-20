@@ -2,6 +2,8 @@ const axios = require("axios");
 
 const logger = require("hmpo-logger");
 
+const userIpAddress = require("./user-ip-address");
+
 module.exports = function (req, res, next) {
   const baseURL = req.app.get("API.BASE_URL");
 
@@ -22,6 +24,13 @@ module.exports = function (req, res, next) {
 
   if (req.scenarioIDHeader && req.axios?.defaults?.headers?.common) {
     req.axios.defaults.headers.common["x-scenario-id"] = req.scenarioIDHeader;
+  }
+
+  if (req?.headers["forwarded"] && req.axios?.defaults?.headers?.common) {
+    const ipAddress = userIpAddress(req.headers["forwarded"]);
+    if (ipAddress) {
+      req.axios.defaults.headers.common["x-forwarded-for"] = ipAddress;
+    }
   }
 
   next();

@@ -53,6 +53,7 @@
     "i18next-fs-backend": "^1.1.5",
     "i18next-http-middleware": "3.2.1",
     "i18next-sync-fs-backend": "1.1.1",
-    "lodash.differencewith": "4.5.0"
+    "lodash.differencewith": "4.5.0",
+    "lodash.frompairs": "4.0.1"
   }
 }
