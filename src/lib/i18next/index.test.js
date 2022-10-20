@@ -17,7 +17,7 @@ describe("i18next", () => {
 
   beforeEach(() => {
     router = { use: sinon.stub() };
-    config = { key: "value" };
+    config = { debug: true, secure: false, cookieDomain: "sub.domain.local" };
 
     setI18n({ router, config });
   });
