@@ -5,12 +5,10 @@ let i18next;
 let i18NextSyncFsBackend;
 let i18NextHttpMiddleware;
 let defaultConfig;
+let configure;
 
 defaultConfig = {
   supportedLngs: ["en", "cy"],
-  detection: {
-    order: ["querystring", "cookie"],
-  },
 };
 
 i18next = {
@@ -23,17 +21,24 @@ i18NextHttpMiddleware = {
   handle: sinon.stub().returns("instantiated handler"),
 };
 
+configure = {
+  configure: sinon.stub().returns(defaultConfig),
+};
+
 i18NextSyncFsBackend = sinon.stub();
 
 handler = proxyquire("./handler", {
   i18next,
   "i18next-sync-fs-backend": i18NextSyncFsBackend,
   "i18next-http-middleware": i18NextHttpMiddleware,
-  "./default-config": defaultConfig,
+  "./configure": configure,
 });
 describe("handler", () => {
   beforeEach(() => {
     i18next.init.reset();
+    configure.configure.reset();
+
+    configure.configure.returns(defaultConfig);
   });
 
   it("should call i18next.use with backend", () => {
@@ -60,19 +65,26 @@ describe("handler", () => {
     expect(i18next.init).to.have.been.calledWithExactly(defaultConfig);
   });
 
-  it("should call init with config from params", () => {
+  it("should call configure with config from params", () => {
     handler.handler({
-      detection: {
-        order: ["cookie"],
-      },
+      debug: true,
+      secure: true,
+      cookieDomain: "subdomain.local",
     });
 
-    expect(i18next.init).to.have.been.calledWithExactly({
-      supportedLngs: ["en", "cy"],
-      detection: {
-        order: ["cookie"],
-      },
+    expect(configure.configure).to.have.been.calledWithExactly({
+      debug: true,
+      secure: true,
+      cookieDomain: "subdomain.local",
     });
+  });
+  it("should call init with result from configure", () => {
+    handler.handler({
+      secure: true,
+      cookieDomain: "subdomain.local",
+    });
+
+    expect(i18next.init).to.have.been.calledWithExactly(defaultConfig);
   });
 
   it("should call i18nextMiddleware.handle with options", () => {

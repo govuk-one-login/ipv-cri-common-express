@@ -1,5 +1,5 @@
 const defaultConfig = {
-  debug: true,
+  // debug: false - set i18next with debug
   initImmediate: false,
   returnObjects: true,
   supportedLngs: ["en", "cy"],
@@ -15,11 +15,14 @@ const defaultConfig = {
   },
   saveMissingTo: "current",
   detection: {
+    lookupCookie: "lng",
+    lookupQuerystring: "lng",
     order: ["querystring", "cookie"],
     caches: ["cookie"],
-    cookieMinutes: 160,
-    lookupQuerystring: "lng",
-    lookupCookie: "lng",
+    ignoreCase: true,
+    cookieSecure: true,
+    // cookieDomain: "" - domain to use for i18next lang cookie
+    cookieSameSite: "",
   },
 };
 

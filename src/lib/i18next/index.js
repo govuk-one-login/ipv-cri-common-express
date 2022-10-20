@@ -1,8 +1,8 @@
 const { handler } = require("./handler");
 const { replaceTranslate } = require("./replace-translate");
 
-const setI18n = ({ router, config }) => {
-  router.use(handler(config));
+const setI18n = ({ router, config: { cookieDomain, debug, secure } }) => {
+  router.use(handler({ cookieDomain, debug, secure }));
   router.use(replaceTranslate);
 };
 
