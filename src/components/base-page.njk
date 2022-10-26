@@ -30,7 +30,7 @@
   {% block backLink %}
     {% if backLink %}
       {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
-      <span id="back">{{ govukBackLink({
+      <span id="back" role="navigation" aria-label="back">{{ govukBackLink({
         text: translate("govuk.backLink"),
         href: backLink
       }) }}</span>
