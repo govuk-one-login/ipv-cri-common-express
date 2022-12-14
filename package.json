@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "hmpo-logger": "6.1.1",
-    "i18next": "21.10.0",
+    "i18next": "22.4.5",
     "i18next-fs-backend": "^1.1.5",
     "i18next-http-middleware": "3.2.1",
     "i18next-sync-fs-backend": "1.1.1",
