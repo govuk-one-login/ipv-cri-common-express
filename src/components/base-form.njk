@@ -4,16 +4,20 @@
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 
+{%- block pageTitle %}
+    {{- (translate("govuk.error", { default: "Error" }) + ": ") if errorlist.length }}{{ hmpoTitle | safe }}{{ " – " + govukServiceName | safe if govukServiceName !== " " }} – GOV.UK
+{%- endblock %}
+
 {% block header %}
-    {% block cookieBanner %}
-        {% include 'banner.njk' %}
-    {% endblock %}
+  {% block cookieBanner %}
+    {% include 'banner.njk' %}
+  {% endblock %}
 
   {% block govukHeader %}
     {{ govukHeader({
       homepageUrl: "https://www.gov.uk"
     }) }}
-  {%  endblock %}
+  {% endblock %}
 {% endblock %}
 
 {% block beforeContent %}
@@ -31,9 +35,9 @@
     {% if backLink %}
       {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
       <span id="back">{{ govukBackLink({
-        text: translate("govuk.backLink"),
-        href: backLink
-      }) }}</span>
+          text: translate("govuk.backLink"),
+          href: backLink
+        }) }}</span>
     {% endif %}
   {% endblock %}
 {% endblock %}
@@ -41,9 +45,9 @@
 {% set footerNavItems = translate("govuk.footerNavItems", { returnObjects: true }) %}
 {% block footer %}
   {{ govukFooter( {
-      meta:footerNavItems.meta,
-      contentLicence: translate("govuk.contentLicence", { returnObjects: true }),
-      copyright: translate("govuk.copyright", { returnObjects: true })
+    meta:footerNavItems.meta,
+    contentLicence: translate("govuk.contentLicence", { returnObjects: true }),
+    copyright: translate("govuk.copyright", { returnObjects: true })
   } ) }}
 {% endblock %}
 
@@ -52,6 +56,7 @@
     <script type="text/javascript" src="/public/javascripts/cookies.js"></script>
     <script type="text/javascript" src="/public/javascripts/all.js"></script>
     <script type="text/javascript" src="/public/javascripts/application.js"></script>
-    <script type="text/javascript" {% if cspNonce %} nonce='{{ cspNonce }}{%  endif %}'>window.GOVSignIn.appInit("{{ gtmId }}", "{{ analyticsCookieDomain }}", "{{ gtmJourney }}")</script>
+    <script type="text/javascript" {% if cspNonce %}
+            nonce='{{ cspNonce }}{% endif %}'>window.GOVSignIn.appInit("{{ gtmId }}", "{{ analyticsCookieDomain }}", "{{ gtmJourney }}")</script>
   {% endblock %}
 {% endblock %}
