@@ -74,8 +74,7 @@ var cookies = function (trackingId, analyticsCookieDomain, journey) {
   }
 
   function pushLanguageToDataLayer() {
-
-    const languageNames = {
+    var languageNames = {
       'en':'english',
       'cy':'welsh'
     }
