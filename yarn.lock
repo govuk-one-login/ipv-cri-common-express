@@ -1590,10 +1590,10 @@ he@1.2.0:
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
-hmpo-form-wizard@12.0.6:
-  version "12.0.6"
-  resolved "https://registry.yarnpkg.com/hmpo-form-wizard/-/hmpo-form-wizard-12.0.6.tgz#b0750d5f719abda0bd0b8d856e9268470bff3b4c"
-  integrity sha512-sjtnoS87wRF0M2c0/KMM6Kf+MBK4q11e2jSIwoVYsF9INDWT6sp7YT+54LQb4CgDLxr7I4mIQ1LcXP5qsQWhNg==
+hmpo-form-wizard@12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/hmpo-form-wizard/-/hmpo-form-wizard-12.1.0.tgz#a90ee6fb9555fb55331656931412aeecaf704730"
+  integrity sha512-4OtVgYj6SiPUDt+xnHjzXoiQcbb7Bb1Alg95WyjzcL0fC3v6QNhnNyuWdiebdOk1vCbPRkCCJY8KKsbzOB4MeA==
   dependencies:
     body-parser "^1.20.0"
     csrf "^3.1.0"
