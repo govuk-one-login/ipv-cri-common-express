@@ -51,7 +51,7 @@
     "hmpo-logger": "6.1.1",
     "i18next": "22.4.10",
     "i18next-fs-backend": "^2.1.1",
-    "i18next-http-middleware": "3.2.1",
+    "i18next-http-middleware": "3.2.2",
     "i18next-sync-fs-backend": "1.1.1",
     "lodash.differencewith": "4.5.0",
     "lodash.frompairs": "4.0.1"
