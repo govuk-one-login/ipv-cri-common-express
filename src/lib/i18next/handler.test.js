@@ -2,7 +2,7 @@ const proxyquire = require("proxyquire").noCallThru();
 
 let handler;
 let i18next;
-let i18NextSyncFsBackend;
+let i18NextFsBackend;
 let i18NextHttpMiddleware;
 let defaultConfig;
 let configure;
@@ -25,11 +25,11 @@ configure = {
   configure: sinon.stub().returns(defaultConfig),
 };
 
-i18NextSyncFsBackend = sinon.stub();
+i18NextFsBackend = sinon.stub();
 
 handler = proxyquire("./handler", {
   i18next,
-  "i18next-sync-fs-backend": i18NextSyncFsBackend,
+  "i18next-fs-backend": i18NextFsBackend,
   "i18next-http-middleware": i18NextHttpMiddleware,
   "./configure": configure,
 });
@@ -46,7 +46,7 @@ describe("handler", () => {
 
     const firstUse = i18next.use.getCall(0);
 
-    expect(firstUse).to.have.been.calledWith(i18NextSyncFsBackend);
+    expect(firstUse).to.have.been.calledWith(i18NextFsBackend);
   });
 
   it("should call i18next.use with language detector", () => {

@@ -1,5 +1,5 @@
 const i18next = require("i18next");
-const Backend = require("i18next-sync-fs-backend");
+const Backend = require("i18next-fs-backend");
 const i18nextMiddleware = require("i18next-http-middleware");
 
 const { configure } = require("./configure");
