@@ -49,7 +49,7 @@ describe("error-handling", () => {
                 code: "invalid_request_object",
               },
             },
-          })
+          }),
         );
       });
 
@@ -63,7 +63,7 @@ describe("error-handling", () => {
                 description: "Invalid request JWT",
               },
             },
-          })
+          }),
         );
       });
 
@@ -75,7 +75,7 @@ describe("error-handling", () => {
             authParams: {
               redirect_uri: "http://error.example.org",
             },
-          })
+          }),
         );
       });
 
@@ -91,7 +91,7 @@ describe("error-handling", () => {
                 code: "server_error",
               },
             },
-          })
+          }),
         );
       });
       it("should use a default for error description", async () => {
@@ -106,7 +106,7 @@ describe("error-handling", () => {
                 description: "general error",
               },
             },
-          })
+          }),
         );
       });
       it("should use a default for redirect_uri", async () => {
@@ -119,7 +119,7 @@ describe("error-handling", () => {
             authParams: {
               redirect_uri: "http://example.org",
             },
-          })
+          }),
         );
       });
     });
@@ -202,7 +202,7 @@ describe("error-handling", () => {
                 code: "invalid_request_object",
               },
             },
-          })
+          }),
         );
       });
 
@@ -216,7 +216,7 @@ describe("error-handling", () => {
                 description: "Invalid request JWT",
               },
             },
-          })
+          }),
         );
       });
 
@@ -228,7 +228,7 @@ describe("error-handling", () => {
             authParams: {
               redirect_uri: "http://error.example.org",
             },
-          })
+          }),
         );
       });
 
@@ -244,7 +244,7 @@ describe("error-handling", () => {
                 code: "server_error",
               },
             },
-          })
+          }),
         );
       });
       it("should use a default for error description", async () => {
@@ -259,7 +259,7 @@ describe("error-handling", () => {
                 description: "general error",
               },
             },
-          })
+          }),
         );
       });
       it("should use a default for redirect_uri", async () => {
@@ -272,7 +272,7 @@ describe("error-handling", () => {
             authParams: {
               redirect_uri: "http://example.org",
             },
-          })
+          }),
         );
       });
     });

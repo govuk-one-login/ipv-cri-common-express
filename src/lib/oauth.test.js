@@ -84,21 +84,21 @@ describe("oauth lib", () => {
         redirectUrl = buildRedirectUrl({ authParams });
 
         expect(redirectUrl.searchParams.get("code")).to.equal(
-          authParams.authorization_code
+          authParams.authorization_code,
         );
       });
       it("should add client_id", () => {
         redirectUrl = buildRedirectUrl({ authParams });
 
         expect(redirectUrl.searchParams.get("client_id")).to.equal(
-          authParams.client_id
+          authParams.client_id,
         );
       });
       it("should add state if available", () => {
         redirectUrl = buildRedirectUrl({ authParams });
 
         expect(redirectUrl.searchParams.get("state")).to.equal(
-          authParams.state
+          authParams.state,
         );
       });
 
@@ -136,7 +136,7 @@ describe("oauth lib", () => {
           redirectUrl = buildRedirectUrl({ authParams });
 
           expect(redirectUrl.searchParams.get("error_description")).to.equal(
-            error.description
+            error.description,
           );
         });
         it("should add the error message as a fallback", () => {
@@ -144,7 +144,7 @@ describe("oauth lib", () => {
           redirectUrl = buildRedirectUrl({ authParams });
 
           expect(redirectUrl.searchParams.get("error_description")).to.equal(
-            error.message
+            error.message,
           );
         });
         it("should add state if available", () => {

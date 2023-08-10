@@ -23,7 +23,7 @@ describe("replaceTranslate", () => {
     replaceTranslate(req, res, next);
 
     expect(req.i18n.getFixedT).to.have.been.calledWithExactly(
-      req.i18n.language
+      req.i18n.language,
     );
   });
 

@@ -55,7 +55,7 @@ describe("handler", () => {
     const firstUse = i18next.use.getCall(1);
 
     expect(firstUse).to.have.been.calledWith(
-      i18NextHttpMiddleware.LanguageDetector
+      i18NextHttpMiddleware.LanguageDetector,
     );
   });
 

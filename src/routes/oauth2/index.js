@@ -16,7 +16,7 @@ router.get(
   addAuthParamsToSession,
   addJWTToRequest,
   initSessionWithJWT,
-  redirectToEntryPoint
+  redirectToEntryPoint,
 );
 router.get("/callback", retrieveAuthorizationCode, redirectToCallback);
 
