@@ -93,7 +93,7 @@ describe("oauth middleware", () => {
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing JWT"))
+            .and(sinon.match.has("message", "Missing JWT")),
         );
       });
 
@@ -105,7 +105,7 @@ describe("oauth middleware", () => {
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing client_id"))
+            .and(sinon.match.has("message", "Missing client_id")),
         );
       });
 
@@ -115,7 +115,7 @@ describe("oauth middleware", () => {
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing API.PATHS.SESSION value"))
+            .and(sinon.match.has("message", "Missing API.PATHS.SESSION value")),
         );
       });
     });
@@ -156,7 +156,7 @@ describe("oauth middleware", () => {
 
         it("should save 'redirect_uri' into req.session.authParams", () => {
           expect(req.session.authParams.redirect_uri).to.equal(
-            "http://example.org:9001/callback"
+            "http://example.org:9001/callback",
           );
         });
         it("should call next", function () {
@@ -175,7 +175,7 @@ describe("oauth middleware", () => {
           expect(next).to.have.been.calledWith(
             sinon.match
               .instanceOf(Error)
-              .and(sinon.match.has("message", "API error"))
+              .and(sinon.match.has("message", "API error")),
           );
         });
       });
@@ -217,7 +217,7 @@ describe("oauth middleware", () => {
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing session-id"))
+            .and(sinon.match.has("message", "Missing session-id")),
         );
       });
 
@@ -229,7 +229,7 @@ describe("oauth middleware", () => {
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing client_id"))
+            .and(sinon.match.has("message", "Missing client_id")),
         );
       });
 
@@ -241,7 +241,7 @@ describe("oauth middleware", () => {
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing redirect_uri"))
+            .and(sinon.match.has("message", "Missing redirect_uri")),
         );
       });
 
@@ -253,7 +253,7 @@ describe("oauth middleware", () => {
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing client_id"))
+            .and(sinon.match.has("message", "Missing client_id")),
         );
       });
 
@@ -266,9 +266,9 @@ describe("oauth middleware", () => {
             .and(
               sinon.match.has(
                 "message",
-                "Missing API.PATHS.AUTHORIZATION value"
-              )
-            )
+                "Missing API.PATHS.AUTHORIZATION value",
+              ),
+            ),
         );
       });
     });
@@ -325,7 +325,7 @@ describe("oauth middleware", () => {
           expect(next).to.have.been.calledWith(
             sinon.match
               .instanceOf(Error)
-              .and(sinon.match.has("message", "API error"))
+              .and(sinon.match.has("message", "API error")),
           );
         });
       });
@@ -357,7 +357,7 @@ describe("oauth middleware", () => {
       await middleware.redirectToCallback(req, res, next);
 
       expect(res.redirect).to.have.been.calledWith(
-        `${redirect}?client_id=${clientId}&code=${code}&state=${state}`
+        `${redirect}?client_id=${clientId}&code=${code}&state=${state}`,
       );
     });
 
@@ -375,7 +375,7 @@ describe("oauth middleware", () => {
       await middleware.redirectToCallback(req, res, next);
 
       expect(res.redirect).to.have.been.calledWith(
-        `${redirect}?error=${errorCode}&error_description=${description}&state=${state}`
+        `${redirect}?error=${errorCode}&error_description=${description}&state=${state}`,
       );
     });
 
@@ -387,7 +387,7 @@ describe("oauth middleware", () => {
       expect(next).to.have.been.calledWith(
         sinon.match
           .instanceOf(TypeError)
-          .and(sinon.match.has("code", "ERR_INVALID_URL"))
+          .and(sinon.match.has("code", "ERR_INVALID_URL")),
       );
     });
   });
@@ -416,8 +416,8 @@ describe("oauth middleware", () => {
           sinon.match
             .instanceOf(Error)
             .and(
-              sinon.match.has("message", "Missing APP.PATHS.ENTRYPOINT value")
-            )
+              sinon.match.has("message", "Missing APP.PATHS.ENTRYPOINT value"),
+            ),
         );
       });
     });

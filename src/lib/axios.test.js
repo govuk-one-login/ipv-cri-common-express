@@ -60,7 +60,7 @@ describe("axios", () => {
       axios(req, res, next);
 
       expect(req.axios.defaults.headers.common["x-scenario-id"]).to.equal(
-        "test-scenario-success"
+        "test-scenario-success",
       );
     });
   });
@@ -98,7 +98,7 @@ describe("axios", () => {
       axios(req, res, next);
 
       expect(req.axios.defaults.headers.common["x-forwarded-for"]).to.equal(
-        "192.0.2.0"
+        "192.0.2.0",
       );
     });
   });
