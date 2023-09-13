@@ -37,7 +37,7 @@
     "eslint-plugin-prettier": "5.0.0",
     "hmpo-form-wizard": "12.1.0",
     "husky": "8.0.3",
-    "lint-staged": "13.2.0",
+    "lint-staged": "14.0.1",
     "mocha": "10.2.0",
     "nodemon": "2.0.22",
     "nyc": "15.1.0",
