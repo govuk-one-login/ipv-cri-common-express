@@ -1,5 +1,5 @@
 {
-  "name": "di-ipv-cri-common-express",
+  "name": "@govuk-one-login/di-ipv-cri-common-express",
   "version": "2.0.0",
   "description": "User interface for the Identity Proofing and Verification (IPV) system within the GDS digital identity platform, GOV.UK Sign In.",
   "main": "src/index.js",
