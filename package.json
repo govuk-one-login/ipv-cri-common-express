@@ -21,7 +21,6 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "lint": "prettier --check src test && eslint .",
-    "prepare": "husky install",
     "test": "mocha",
     "test:coverage": "nyc --reporter=lcov --reporter=text-summary npm run test",
     "test:watch": "mocha --watch"
@@ -45,7 +44,6 @@
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-prettier": "5.0.0",
     "hmpo-form-wizard": "12.1.0",
-    "husky": "8.0.3",
     "lint-staged": "14.0.1",
     "mocha": "10.2.0",
     "nodemon": "3.0.1",

@@ -15,7 +15,7 @@ const foundLanguages = readdirSync(join(__dirname, fileLoc)).filter(
     const joinedPath = join(join(__dirname, fileLoc), fileName);
     const isDirectory = lstatSync(joinedPath).isDirectory();
     return isDirectory;
-  }
+  },
 );
 
 const foundNamespaces = readdirSync(join(__dirname, `${fileLoc}/en`)).reduce(
@@ -28,7 +28,7 @@ const foundNamespaces = readdirSync(join(__dirname, `${fileLoc}/en`)).reduce(
 
     return collection;
   },
-  []
+  [],
 );
 
 // set up i18next on the backedn with saveMissing set to true.
@@ -56,7 +56,7 @@ function compareContent(set1, set2, parent) {
     Object.keys(set2),
     (arrVal, othVal) => {
       return arrVal.split("_")[0] === othVal.split("_")[0];
-    }
+    },
   );
 
   console.log(differences);
