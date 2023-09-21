@@ -2,13 +2,13 @@ root:
   field1: "im field1"
   field3: "im filed3"
   array1:
-   - "value1"
-   - "value2"
-   - "value3"
+    - "value1"
+    - "value2"
+    - "value3"
   array2:
-   - "value1"
-   - "value2"
-   - "MoreHere"
+    - "value1"
+    - "value2"
+    - "MoreHere"
   nest:
     nest2:
       nestIsDifferent: "diff"

@@ -12,7 +12,7 @@ describe("checkTranslation", () => {
       const logs = failOutput.stdout.split("\n");
       const warnings = logs.filter((val) => val.includes("warning"));
       const errors = logs.filter(
-        (val) => val.includes("error") || val.includes("Missing")
+        (val) => val.includes("error") || val.includes("Missing"),
       );
       // remove descriptive logs
       warnings.shift();
@@ -33,7 +33,7 @@ describe("checkTranslation", () => {
             return true;
           } else if (
             val.includes(
-              "ENGLISH - Missing default.root.nest.nest2.nestIsDifferent"
+              "ENGLISH - Missing default.root.nest.nest2.nestIsDifferent",
             )
           ) {
             return true;
@@ -53,11 +53,11 @@ describe("checkTranslation", () => {
 
   it("should pass with no errors", async () => {
     const output = await exec(
-      "node ./scripts/checkTranslations.js ./testFiles/success"
+      "node ./scripts/checkTranslations.js ./testFiles/success",
     );
     const stout = output.stdout.split("/n");
     const successMessage = !!stout.filter((val) =>
-      val.includes("Translation files look good")
+      val.includes("Translation files look good"),
     );
 
     expect(successMessage).to.be.true;
@@ -65,11 +65,11 @@ describe("checkTranslation", () => {
 
   it("should pass plurals with no errors", async () => {
     const output = await exec(
-      "node ./scripts/checkTranslations.js ./testFiles/plurals"
+      "node ./scripts/checkTranslations.js ./testFiles/plurals",
     );
     const stout = output.stdout.split("/n");
     const successMessage = !!stout.filter((val) =>
-      val.includes("Translation files look good")
+      val.includes("Translation files look good"),
     );
 
     expect(successMessage).to.be.true;
