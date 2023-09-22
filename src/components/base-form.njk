@@ -53,9 +53,9 @@
 
 {% block bodyEnd %}
   {% block scripts %}
-    <script type="text/javascript" src="/public/javascripts/cookies.js"></script>
-    <script type="text/javascript" src="/public/javascripts/all.js"></script>
-    <script type="text/javascript" src="/public/javascripts/application.js"></script>
+    <script type="text/javascript" src="{{ assetPath }}/javascripts/cookies.js"></script>
+    <script type="text/javascript" src="{{ assetPath }}/javascripts/all.js"></script>
+    <script type="text/javascript" src="{{ assetPath }}/javascripts/application.js"></script>
     <script type="text/javascript" {% if cspNonce %} nonce='{{ cspNonce }}{% endif %}'>window.GOVSignIn.appInit("{{ gtmId }}", "{{ analyticsCookieDomain }}", "{{ gtmJourney }}")</script>
   {% endblock %}
 {% endblock %}
