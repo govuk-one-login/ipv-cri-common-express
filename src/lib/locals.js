@@ -4,6 +4,13 @@ module.exports = {
     res.locals.analyticsCookieDomain = req.app.get(
       "APP.GTM.ANALYTICS_COOKIE_DOMAIN",
     );
+
+    next();
+  },
+
+  getAssetPath: function (req, res, next) {
+    res.locals.assetPath = req.app.get("APP.ASSET_PATH");
+
     next();
   },
 };
