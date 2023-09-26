@@ -1,6 +1,6 @@
 {
   "name": "@govuk-one-login/di-ipv-cri-common-express",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Express libraries and utilities for use building GOV.UK One Login Credential Issuers",
   "main": "src/index.js",
   "files": [
