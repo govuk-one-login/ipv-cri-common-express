@@ -40,7 +40,7 @@
     "cfenv": "1.2.4",
     "chai": "4.3.8",
     "chai-as-promised": "7.1.1",
-    "eslint": "8.49.0",
+    "eslint": "8.50.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-prettier": "5.0.0",
     "hmpo-form-wizard": "12.1.0",
