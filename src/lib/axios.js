@@ -17,7 +17,14 @@ module.exports = function (req, res, next) {
 
   // Add a request interceptor
   req.axios.interceptors.request.use(function (config) {
-    logger.get().info("API request", { config, req });
+    logger.get().info("API request", {
+      config: {
+        baseURL: config.baseURL,
+        method: config.method,
+        timeout: config.timeout,
+      },
+      req,
+    });
 
     return config;
   });
