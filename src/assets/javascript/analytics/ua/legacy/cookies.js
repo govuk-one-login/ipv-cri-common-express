@@ -1,6 +1,6 @@
 "use strict";
 
-var cookies = function (trackingId, analyticsCookieDomain, journey) {
+  var cookies = function (trackingId, analyticsCookieDomain, journey) {
   var COOKIES_PREFERENCES_SET = "cookies_preferences_set";
   var cookiesAccepted = document.querySelector("#cookies-accepted");
   var cookiesRejected = document.querySelector("#cookies-rejected");

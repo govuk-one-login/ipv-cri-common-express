@@ -24,7 +24,7 @@ module.exports = {
       ],
       formAction: ["*"],
       objectSrc: ["'none'"],
-      connectSrc: ["'self'", "https://www.google-analytics.com"],
+      connectSrc: ["'self'", "*.google-analytics.com"],
     },
   },
   dnsPrefetchControl: {
@@ -41,4 +41,5 @@ module.exports = {
   referrerPolicy: false,
   permittedCrossDomainPolicies: false,
   expectCt: false,
+  crossOriginEmbedderPolicy: false,
 };
