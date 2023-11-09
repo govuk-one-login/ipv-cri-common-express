@@ -44,7 +44,7 @@
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-prettier": "5.0.0",
     "hmpo-form-wizard": "12.1.0",
-    "lint-staged": "14.0.1",
+    "lint-staged": "15.0.2",
     "mocha": "10.2.0",
     "nodemon": "3.0.1",
     "nyc": "15.1.0",
