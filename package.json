@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/alphagov/di-ipv-cri-common-express#readme",
   "devDependencies": {
-    "axios": "1.6.0",
+    "axios": "1.6.1",
     "cfenv": "1.2.4",
     "chai": "4.3.10",
     "chai-as-promised": "7.1.1",
