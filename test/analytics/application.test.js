@@ -33,7 +33,7 @@ describe("Init", () => {
   });
 
   describe("When GA4 is enabled", () => {
-    const isGa4Enabled = true;
+    const isGa4Enabled = "true";
 
     //analyticsCookieDomain, uaContainerId, isGa4Enabled, ga4ContainerId, gtmJourney
     it("Initialises cookie banner and loads analytics per new implementation", () => {
@@ -51,7 +51,7 @@ describe("Init", () => {
   });
 
   describe("When GA4 is not enabled", () => {
-    const isGa4Enabled = false;
+    const isGa4Enabled = "false";
 
     describe("When user has given consent to analytics cookies", () => {
       it("Initialises analytics and cookie banner per existing implementation", () => {
