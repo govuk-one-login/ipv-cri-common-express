@@ -27,14 +27,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alphagov/di-ipv-cri-common-express.git"
+    "url": "https://github.com/govuk-one-login/ipv-cri-common-express"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/alphagov/di-ipv-cri-common-express/issues"
+    "url": "https://github.com/govuk-one-login/ipv-cri-common-express/issues"
   },
-  "homepage": "https://github.com/alphagov/di-ipv-cri-common-express#readme",
+  "homepage": "https://github.com/govuk-one-login/ipv-cri-common-express#readme",
   "devDependencies": {
     "axios": "1.6.1",
     "cfenv": "1.2.4",
