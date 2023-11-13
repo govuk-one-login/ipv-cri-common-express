@@ -1,18 +1,27 @@
+window.GOVUKFrontend.initAll()
 
-(function (w) {
-  "use strict";
-  function appInit(trackingId, analyticsCookieDomain, journey, status) {
+window.DI = window.DI || {};
 
-    w.GOVUKFrontend.initAll();
+(function (DI) {
 
-    var cookies = w.GOVSignIn.Cookies(trackingId, analyticsCookieDomain, journey, status);
+  'use strict'
 
-    if (cookies.hasConsentForAnalytics()) {
-      cookies.initAnalytics();
+  function appInit(analyticsCookieDomain, uaContainerId, isGa4Enabled, ga4ContainerId, gtmJourney) {
+
+    if(isGa4Enabled === 'true') {
+      // New analytics implementation (UA and GA4)
+      window.DI.cookieBannerInit(analyticsCookieDomain)
+      window.DI.loadAnalytics(uaContainerId, ga4ContainerId)
+    } else {
+      // Existing analytics implementation (UA only)
+      var cookies = window.GOVSignIn.Cookies(uaContainerId, analyticsCookieDomain, gtmJourney);
+
+      if (cookies.hasConsentForAnalytics()) {
+        cookies.initAnalytics();
+      }
+      cookies.cookieBannerInit();
     }
-
-    cookies.cookieBannerInit();
   }
 
-  w.GOVSignIn.appInit = appInit;
-})(window);
+  DI.appInit = appInit;
+})(window.DI);

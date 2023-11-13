@@ -24,3 +24,12 @@
   </div>
 
 {% endblock %}
+
+  {% block scripts %}
+    <input type="hidden" aria-hidden=true value="{{gaTaxonomyLevel2}}" id="gaTaxonomyLevel2">
+    <script type="text/javascript" src="{{ assetPath }}/javascripts/analytics.js"></script>
+    <script type="text/javascript" src="{{ assetPath }}/javascripts/all.js"></script>
+    <script type="text/javascript" src="{{ assetPath }}/javascripts/application.js"></script>
+    <script type="text/javascript" {% if cspNonce %} nonce='{{ cspNonce }}{% endif %}'>window.DI.appInit("{{ analyticsCookieDomain }}", "{{ uaContainerId }}", "{{isGa4Enabled}}", "{{ga4ContainerId}}", "{{ gtmJourney }}")</script>
+    <script type="text/javascript" {% if cspNonce %} nonce='{{ cspNonce }}{% endif %}'>window.DI = window.DI || {};window.DI.httpStatusCode = 500</script>
+  {% endblock %}
