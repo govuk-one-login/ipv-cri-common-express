@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "hmpo-logger": "7.0.1",
-    "i18next": "23.6.0",
+    "i18next": "23.7.9",
     "i18next-fs-backend": "2.2.0",
     "i18next-http-middleware": "3.4.1",
     "lodash.differencewith": "4.5.0",
