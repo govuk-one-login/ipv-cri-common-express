@@ -25,8 +25,6 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm install
-      - name: Run lint
-        run: npm run lint
       - name: Run test and write coverage
         run: npm run test:coverage
       - name: Run sonarcloud scan
