@@ -29,8 +29,8 @@ jobs:
         run: npm run lint
       - name: Run test and write coverage
         run: npm run test:coverage
-#      - name: Run sonarcloud scan
-#        if: ${{ github.actor != 'dependabot[bot]' }}
-#        uses: sonarsource/sonarcloud-github-action@master
-#        env:
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # obtained from https://sonarcloud.io
+      - name: Run sonarcloud scan
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
