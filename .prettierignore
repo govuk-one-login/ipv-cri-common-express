@@ -1,3 +1,2 @@
-# Ignore artifacts:
-coverage
+package-lock.json
 src/assets/javascript/

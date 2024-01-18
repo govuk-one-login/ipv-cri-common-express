@@ -11,14 +11,14 @@ functions: 05
 lines: 05
 watermarks:
   statements:
-    - 60
+    - 38
     - 90
   branches:
-    - 80
+    - 38
     - 90
   functions:
-    - 60
+    - 35
     - 90
   lines:
-    - 60
+    - 39
     - 90
