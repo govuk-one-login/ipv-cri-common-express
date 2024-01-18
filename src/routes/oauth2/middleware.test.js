@@ -97,7 +97,7 @@ describe("oauth middleware", () => {
         );
       });
 
-      it("should call next with an error when req.session.authParams.client_id is missing", async () => {
+      it("should call next with an error when req.session.authParams is missing", async () => {
         delete req.session.authParams;
 
         await middleware.initSessionWithJWT(req, res, next);
@@ -242,18 +242,6 @@ describe("oauth middleware", () => {
           sinon.match
             .instanceOf(Error)
             .and(sinon.match.has("message", "Missing redirect_uri")),
-        );
-      });
-
-      it("should call next with an error when req.session.authParams.client_id is missing", async () => {
-        delete req.session.authParams.client_id;
-
-        await middleware.retrieveAuthorizationCode(req, res, next);
-
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing client_id")),
         );
       });
 

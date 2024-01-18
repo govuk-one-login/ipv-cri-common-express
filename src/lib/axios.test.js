@@ -86,6 +86,17 @@ describe("axios", () => {
       expect(req.axios?.defaults?.headers?.common?.["x-scenario-id"]).to.be
         .undefined;
     });
+
+    it("should not x-forwarded-for to axios headers", () => {
+      delete axiosClient.defaults;
+      req.headers["forwarded"] =
+        "for=192.0.2.0;host=subdomain.example.gov.uk;proto=http";
+
+      axios(req, res, next);
+
+      expect(req.axios?.defaults?.headers?.common?.["x-forwarded-for"]).to.be
+        .undefined;
+    });
   });
 
   context("with 'x-forwarded-for'", () => {
@@ -115,19 +126,6 @@ describe("axios", () => {
     it("should not x-forwarded-for to axios headers while header is null", () => {
       delete axiosClient.defaults;
       req.headers["forwarded"] = null;
-
-      axios(req, res, next);
-
-      expect(req.axios?.defaults?.headers?.common?.["x-forwarded-for"]).to.be
-        .undefined;
-    });
-  });
-
-  context("without defaults'", () => {
-    it("should not x-forwarded-for to axios headers", () => {
-      delete axiosClient.defaults;
-      req.headers["forwarded"] =
-        "for=192.0.2.0;host=subdomain.example.gov.uk;proto=http";
 
       axios(req, res, next);
 
