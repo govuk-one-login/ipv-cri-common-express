@@ -1,8 +1,7 @@
 window.DI = window.DI || {};
 
-(function(DI) {
-
-  'use strict'
+(function (DI) {
+  "use strict";
 
   const COOKIES_PREFERENCES_SET = "cookies_preferences_set";
   const cookiesAccepted = document.querySelector("#cookies-accepted");
@@ -14,11 +13,11 @@ window.DI = window.DI || {};
   const rejectCookies = document.querySelector('button[name="cookiesReject"]');
 
   function cookieBannerInit(domain) {
-
-    if (typeof domain !== "string") { //change
+    if (typeof domain !== "string") {
+      //change
       /* eslint-disable-next-line no-console */
-      console.error(`Cookie banner cannot be initialised: domain is ${domain}`)  //Change
-      return  //change
+      console.error(`Cookie banner cannot be initialised: domain is ${domain}`); //Change
+      return; //change
     }
 
     acceptCookies.addEventListener(
@@ -26,7 +25,7 @@ window.DI = window.DI || {};
       function (event) {
         event.preventDefault();
         setBannerCookieConsent(true, domain);
-      }.bind(this)
+      }.bind(this),
     );
 
     rejectCookies.addEventListener(
@@ -34,7 +33,7 @@ window.DI = window.DI || {};
       function (event) {
         event.preventDefault();
         setBannerCookieConsent(false, domain);
-      }.bind(this)
+      }.bind(this),
     );
 
     const hideButtons = Array.prototype.slice.call(hideCookieBanner);
@@ -44,11 +43,13 @@ window.DI = window.DI || {};
         function (event) {
           event.preventDefault();
           hideElement(cookieBannerContainer);
-        }.bind(this)
+        }.bind(this),
       );
     });
 
-    const hasCookiesPolicy = window.DI.cookies.getCookie(COOKIES_PREFERENCES_SET);
+    const hasCookiesPolicy = window.DI.cookies.getCookie(
+      COOKIES_PREFERENCES_SET,
+    );
     if (!hasCookiesPolicy) {
       showElement(cookieBannerContainer);
     }
@@ -59,7 +60,7 @@ window.DI = window.DI || {};
       COOKIES_PREFERENCES_SET,
       { analytics: analyticsConsent },
       { days: 365 },
-      domain
+      domain,
     );
 
     hideElement(cookieBanner);
@@ -67,14 +68,14 @@ window.DI = window.DI || {};
     if (analyticsConsent === true) {
       showElement(cookiesAccepted);
 
-      let event
-      if (typeof window.CustomEvent === 'function') {
-        event = new window.CustomEvent("cookie-consent")
+      let event;
+      if (typeof window.CustomEvent === "function") {
+        event = new window.CustomEvent("cookie-consent");
       } else {
-        event = document.createEvent('CustomEvent')
-        event.initCustomEvent("cookie-consent")
+        event = document.createEvent("CustomEvent");
+        event.initCustomEvent("cookie-consent");
       }
-      window.dispatchEvent(event)
+      window.dispatchEvent(event);
     } else {
       showElement(cookiesRejected);
     }
@@ -88,6 +89,5 @@ window.DI = window.DI || {};
     el.style.display = "block";
   }
 
-  DI.cookieBannerInit = cookieBannerInit
-
-})(window.DI)
+  DI.cookieBannerInit = cookieBannerInit;
+})(window.DI);

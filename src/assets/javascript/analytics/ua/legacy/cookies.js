@@ -1,6 +1,6 @@
 "use strict";
 
-  var cookies = function (trackingId, analyticsCookieDomain, journey) {
+var cookies = function (trackingId, analyticsCookieDomain, journey) {
   var COOKIES_PREFERENCES_SET = "cookies_preferences_set";
   var cookiesAccepted = document.querySelector("#cookies-accepted");
   var cookiesRejected = document.querySelector("#cookies-rejected");
@@ -16,7 +16,7 @@
       function (event) {
         event.preventDefault();
         setBannerCookieConsent(true);
-      }.bind(this)
+      }.bind(this),
     );
 
     rejectCookies.addEventListener(
@@ -24,7 +24,7 @@
       function (event) {
         event.preventDefault();
         setBannerCookieConsent(false);
-      }.bind(this)
+      }.bind(this),
     );
 
     var hideButtons = Array.prototype.slice.call(hideCookieBanner);
@@ -34,7 +34,7 @@
         function (event) {
           event.preventDefault();
           hideElement(cookieBannerContainer);
-        }.bind(this)
+        }.bind(this),
       );
     });
 
@@ -49,7 +49,7 @@
     setCookie(
       COOKIES_PREFERENCES_SET,
       { analytics: analyticsConsent },
-      { days: 365 }
+      { days: 365 },
     );
 
     hideElement(cookieBanner);
@@ -75,19 +75,20 @@
 
   function pushLanguageToDataLayer() {
     var languageNames = {
-      'en':'english',
-      'cy':'welsh'
-    }
+      en: "english",
+      cy: "welsh",
+    };
 
-    var languageCode = document.querySelector('html') &&
-      document.querySelector('html').getAttribute('lang');
+    var languageCode =
+      document.querySelector("html") &&
+      document.querySelector("html").getAttribute("lang");
 
     if (languageCode) {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "langEvent",
         language: languageNames[languageCode],
-        languagecode: languageCode
+        languagecode: languageCode,
       });
     }
   }
@@ -98,7 +99,7 @@
     gtmScriptTag.setAttribute("async", "true");
     gtmScriptTag.setAttribute(
       "src",
-      "https://www.googletagmanager.com/gtm.js?id=" + trackingId
+      "https://www.googletagmanager.com/gtm.js?id=" + trackingId,
     );
     document.documentElement.firstChild.appendChild(gtmScriptTag);
   }
@@ -110,8 +111,8 @@
         "gtm.blocklist": ["adm", "awct", "sp", "gclidw", "gcs", "opt"],
       },
       {
-        'event': "progEvent",
-        'ProgrammeName': 'DI - PYI'
+        event: "progEvent",
+        ProgrammeName: "DI - PYI",
       },
     ];
 
@@ -122,8 +123,8 @@
     if (journey) {
       dataLayer.push({
         event: "journeyEvent",
-        JourneyStatus: journey
-      })
+        JourneyStatus: journey,
+      });
     }
 
     pushLanguageToDataLayer();
