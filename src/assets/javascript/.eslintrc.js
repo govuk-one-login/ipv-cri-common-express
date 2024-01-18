@@ -8,8 +8,8 @@ module.exports = {
     mocha: true,
   },
   globals: {
-    "dataLayer": true,
-    "ga": true
+    dataLayer: true,
+    ga: true,
   },
   root: true,
   extends: ["eslint:recommended", "prettier"],

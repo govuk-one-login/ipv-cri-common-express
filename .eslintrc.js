@@ -1,4 +1,5 @@
 module.exports = {
+  root: true,
   env: {
     node: true,
     es6: true,
@@ -10,8 +11,8 @@ module.exports = {
     expect: true,
     setupDefaultMocks: true,
   },
-  root: true,
-  extends: ["eslint:recommended", "prettier"],
+  extends: ["prettier", "eslint:recommended", "plugin:prettier/recommended"],
+  ignorePatterns: ["wallaby.conf.js", "node_modules", "reports", "dist"],
   rules: {
     "no-console": 2,
     "padding-line-between-statements": [
@@ -19,4 +20,15 @@ module.exports = {
       { blankLine: "any", prev: "*", next: "*" },
     ],
   },
+  overrides: [
+    {
+      files: "**/*.test.js",
+      plugins: ["mocha"],
+      extends: ["plugin:mocha/recommended"],
+      rules: {
+        "mocha/no-mocha-arrows": 0,
+        "mocha/no-setup-in-describe": 0,
+      },
+    },
+  ],
 };
