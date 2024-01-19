@@ -47,7 +47,7 @@
     "lodash.frompairs": "4.0.1"
   },
   "devDependencies": {
-    "axios": "1.6.1",
+    "axios": "1.6.5",
     "cfenv": "1.2.4",
     "chai": "4.4.1",
     "chai-as-promised": "7.1.1",
