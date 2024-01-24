@@ -83,3 +83,7 @@ In order to prepare a new release
 # Code Owners
 
 This repo has a `CODEOWNERS` file in the root and is configured to require PRs to reviewed by Code Owners.
+
+# Peer Dependencies
+
+This node package includes the initialisation script from the GDS Analytics package (https://www.npmjs.com/package/@govuk-one-login/one-login-analytics).
