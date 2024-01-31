@@ -1,6 +1,7 @@
-# di-ipv-cri-common-express
+# ipv-cri-common-express
 
-[![Github Action: Unit Tests](https://github.com/alphagov/di-ipv-cri-common-express/actions/workflows/checks.yml/badge.svg)](https://github.com/alphagov/di-ipv-cri-common-express/actions/workflows/checks.yml?query=branch%3Amain)
+[![GitHub Action: Scan repository](https://github.com/govuk-one-login/ipv-cri-common-express/actions/workflows/scan-repo.yml/badge.svg?branch=main)](https://github.com/govuk-one-login/ipv-cri-common-express/actions/workflows/scan-repo.yml?query=branch%3Amain)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ipv-cri-common-express&metric=coverage)](https://sonarcloud.io/summary/overall?id=ipv-cri-common-express)
 
 di-ipv-cri-common-express contains Express libraries and utilities for use building GOV.UK One Login Credential Issuers
 
