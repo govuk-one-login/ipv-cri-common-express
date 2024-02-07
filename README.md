@@ -63,6 +63,23 @@ pre-commit run --all-files
 > Note: Husky was previously used, and will need to be de-configured using
 > `git config --unset-all core.hooksPath` and re-configured using `pre-commit install`
 
+# Release Procedure
+
+Releases are automatically published to [npm](https://npmjs.com) at [@govuk-one-login/di-ipv-cri-common-express](https://www.npmjs.com/package/@govuk-one-login/di-ipv-cri-common-express) using a [GitHub action](./github/workflows/publish.yml) upon creation of an appropriate Git tag.
+
+> The previous usage of `"govuk-one-login/ipv-cri-common-express.git#v4.0.0"` should not be used as this has no support for package building, which will be a requirement with future improemetns
+
+In order to prepare a new release
+
+1. `git checkout` a fresh copy of the `main` branch
+2. create a separate branch for the version to be updated to (e.g. `chore/release/v1.2.3`
+3. Run `npm version VERSION --no-git-tag-version`, changing `VERSION` to be `major`, `minor` or `patch` as required
+   - Once this has been run, the `package.json` and `package-lock.json` files will be updated with the new version.
+4. Create a PR for this change, and get this approved and merged
+5. Once this has been done, a release can be created using GitHub by accessing the [releases](https://github.com/govuk-one-login/ipv-cri-common-express/releases) section.
+6. Choose a new tag matching your version number, prefixed with `v` to avoid Git reference collisions, e.g. `v1.2.3`
+7. Click on the "Generate release notes" button to automatically pull in commit messages for the release notes.
+
 # Code Owners
 
 This repo has a `CODEOWNERS` file in the root and is configured to require PRs to reviewed by Code Owners.
