@@ -22,14 +22,21 @@
   <div>
       <p><a href="https://signin.account.gov.uk/contact-us" class="govuk-link" rel="noreferrer noopener" target="_blank">{{ translate("error.unrecoverable.contactMeLink") }}</a></p>
   </div>
-
+  <script {% if cspNonce %} nonce="{{ cspNonce }}"{%  endif %}>
+    window.addEventListener('load', function () {
+      window
+      .DI
+      .analyticsGa4
+      .pageViewTracker
+      .trackOnPageLoad({
+        statusCode: '500', // Access status code
+        englishPageTitle: '{{ translate("error.unrecoverable.title") }}',
+        taxonomy_level1: 'CRI', // Access taxonomy level 1
+        taxonomy_level2: 'Error', // Access taxonomy level 2
+        content_id: '005',
+        logged_in_status: false,
+        dynamic: false,
+      });
+    });
+  </script>
 {% endblock %}
-
-  {% block scripts %}
-    <input type="hidden" aria-hidden=true value="{{gaTaxonomyLevel2}}" id="gaTaxonomyLevel2">
-    <script type="text/javascript" src="{{ assetPath }}/javascripts/analytics.js"></script>
-    <script type="text/javascript" src="{{ assetPath }}/javascripts/all.js"></script>
-    <script type="text/javascript" src="{{ assetPath }}/javascripts/application.js"></script>
-    <script type="text/javascript" {% if cspNonce %} nonce='{{ cspNonce }}{% endif %}'>window.DI.appInit("{{ analyticsCookieDomain }}", "{{ uaContainerId }}", "{{isGa4Enabled}}", "{{ga4ContainerId}}", "{{ gtmJourney }}")</script>
-    <script type="text/javascript" {% if cspNonce %} nonce='{{ cspNonce }}{% endif %}'>window.DI = window.DI || {};window.DI.httpStatusCode = 500</script>
-  {% endblock %}

@@ -5,4 +5,6 @@ module.exports = {
   headers: require("./headers"),
   scenarioHeaders: require("./scenario-headers"),
   errorHandling: require("./error-handling"),
+  locals: require("./locals"),
+  settings: require("./settings"),
 };

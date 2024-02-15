@@ -54,10 +54,8 @@
 
 {% block bodyEnd %}
   {% block scripts %}
-    <input type="hidden" aria-hidden=true value="{{gaTaxonomyLevel2}}" id="gaTaxonomyLevel2">
-    <script type="text/javascript" src="{{ assetPath }}/javascripts/analytics.js"></script>
-    <script type="text/javascript" src="{{ assetPath }}/javascripts/all.js"></script>
-    <script type="text/javascript" src="{{ assetPath }}/javascripts/application.js"></script>
-    <script type="text/javascript" {% if cspNonce %} nonce='{{ cspNonce }}{% endif %}'>window.DI.appInit("{{ analyticsCookieDomain }}", "{{ uaContainerId }}", "{{isGa4Enabled}}", "{{ga4ContainerId}}", "{{ gtmJourney }}")</script>
+    <script type="text/javascript" src="/public/javascripts/all.js"></script>
+    <script type="text/javascript" src="/public/javascripts/analytics.js"></script>
+    <script type="text/javascript" {% if cspNonce %} nonce="{{ cspNonce }}"{%  endif %}>window.DI.appInit({ga4ContainerId: "{{ga4ContainerId}}",uaContainerId:"{{uaContainerId}}"},{disableGa4Tracking:{{ga4Disabled}},disableUaTracking:{{uaDisabled}},cookieDomain:"{{analyticsCookieDomain}}"});</script>
   {% endblock %}
 {% endblock %}

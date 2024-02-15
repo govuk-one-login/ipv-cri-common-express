@@ -1,21 +1,17 @@
 module.exports = {
   getGTM: function (req, res, next) {
+    res.locals.ga4ContainerId = req.app.get("APP.GTM.GA4_CONTAINER_ID");
+    res.locals.uaContainerId = req.app.get("APP.GTM.UA_CONTAINER_ID");
     res.locals.analyticsCookieDomain = req.app.get(
       "APP.GTM.ANALYTICS_COOKIE_DOMAIN",
     );
-    res.locals.uaContainerId = req.app.get("APP.ANALYTICS.UA_CONTAINER_ID");
-    res.locals.isGa4Enabled = req.app.get("APP.ANALYTICS.GA4_ENABLED");
-    res.locals.ga4ContainerId = req.app.get("APP.ANALYTICS.GA4_CONTAINER_ID");
-    res.locals.gaTaxonomyLevel2 = req.app.get(
-      "APP.ANALYTICS.GA_TAXONOMY_LEVEL_2",
-    );
-
+    res.locals.ga4Disabled = req.app.get("APP.GTM.GA4_DISABLED");
+    res.locals.uaDisabled = req.app.get("APP.GTM.UA_DISABLED");
     next();
   },
 
   getAssetPath: function (req, res, next) {
     res.locals.assetPath = req.app.get("APP.ASSET_PATH");
-
     next();
   },
 };
