@@ -19,6 +19,14 @@ This package contains:
 - [scripts](./scripts)
   - checkTranslations script used to ensure localisation files are kept synchronised
 
+# GA4 and the Crown Logo
+
+The implementation of GA4 and the Crown Logo update are contained across multiple versions of common-express in various stages. See below for details:
+
+## 5.1.0
+
+- Contains the flag to activate the new crown logo set to true ready for go-live of that feature
+
 # Installation
 
 Clone this repository and then run
