@@ -14,4 +14,8 @@ module.exports = {
     res.locals.assetPath = req.app.get("APP.ASSET_PATH");
     next();
   },
+  getLanguageToggle: function (req, res, next) {
+    res.locals.showLanguageToggle = req.app.get("APP.LANGUAGE_TOGGLE_ENABLED");
+    next();
+  },
 };
