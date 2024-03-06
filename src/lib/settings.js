@@ -14,7 +14,8 @@ module.exports = {
     app.set("APP.GTM.UA_DISABLED", uaDisabled);
   },
 
-  setLanguageToggle: ({ app, showLanguageToggle }) => {
+  setLanguageToggle: ({ app, showLanguageToggle, htmlLang }) => {
     app.set("APP.LANGUAGE_TOGGLE_ENABLED", showLanguageToggle);
+    app.set("APP.HTML_LANG", htmlLang);
   },
 };
