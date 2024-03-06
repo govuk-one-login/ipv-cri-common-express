@@ -4,6 +4,10 @@
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 
+{% block head %} 
+  <link href="/public/stylesheets/language-toggle.css" rel="stylesheet">
+{% endblock %}
+
 {%- block pageTitle %}
   {{- (translate("govuk.error", { default: "Error" }) + ": ") if errorlist.length }}{{ hmpoTitle | safe }}{{ " – " + govukServiceName | safe if govukServiceName !== " " }} – GOV.UK
 {%- endblock %}
@@ -42,6 +46,29 @@
         }) }}</span>
     {% endif %}
   {% endblock %}
+
+  {% block languageToggle %}
+    {% if showLanguageToggle %}
+      {% from "one-login-language-toggle/macro.njk" import oneloginLanguageSelect %}
+      {{ oneloginLanguageSelect({
+        ariaLabel:'Choose a language',
+        class:'govuk-!-margin-bottom-1',
+        language: htmlLang,
+        languages: [
+        { 
+          code: 'en',
+          text: 'English'
+          },
+          {
+            code:'cy',
+            text: 'Cymraeg'
+            }]
+        })
+      }}
+    {% endif %}
+  {% endblock %}
+
+
 {% endblock %}
 
 {% set footerNavItems = translate("govuk.footerNavItems", { returnObjects: true }) %}
