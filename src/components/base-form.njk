@@ -35,18 +35,21 @@
     }
   }) }}
 
-  {% block backLink %}
-    {% if backLink %}
-      {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
-      <span id="back">{{ govukBackLink({
+  <div class="govuk-width-container">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        {% block backLink %}
+        {% if backLink %}
+        {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+        <span id="back">{{ govukBackLink({
           text: translate("govuk.backLink"),
           href: backLink
         }) }}</span>
-    {% endif %}
-  {% endblock %}
-
-  {% block languageToggle %}
-    {% if showLanguageToggle %}
+        {% endif %}
+        {% endblock %}
+      </div>
+      <div class="govuk-grid-column-one-third last-item">
+      {% if showLanguageToggle %}
       {% from "one-login-language-toggle/macro.njk" import oneloginLanguageSelect %}
       {{ oneloginLanguageSelect({
         ariaLabel:'Choose a language',
@@ -63,8 +66,12 @@
             }]
         })
       }}
-    {% endif %}
-  {% endblock %}
+      {% endif %}
+      </div>
+    </div>
+  </div>
+
+  
 {% endblock %}
 
 
