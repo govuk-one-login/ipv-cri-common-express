@@ -53,7 +53,7 @@
                 class:'govuk-!-margin-bottom-1',
                 activeLanguage: htmlLang,
                 languages: [
-                { 
+                {
                   code: 'en',
                   text: 'English',
                   visuallyHidden: 'Change to English'
@@ -86,7 +86,6 @@
   {% block scripts %}
     <script type="text/javascript" src="/public/javascripts/all.js"></script>
     <script type="text/javascript" src="/public/javascripts/analytics.js"></script>
-    
     <script type="text/javascript" {% if cspNonce %} nonce="{{ cspNonce }}"{%  endif %}>window.DI.appInit({ga4ContainerId: "{{ga4ContainerId}}",uaContainerId:"{{uaContainerId}}"},{disableGa4Tracking:{{ga4Disabled}},disableUaTracking:{{uaDisabled}},cookieDomain:"{{analyticsCookieDomain}}"});</script>
   {% endblock %}
 {% endblock %}
