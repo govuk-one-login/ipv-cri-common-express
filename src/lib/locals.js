@@ -15,7 +15,8 @@ module.exports = {
     next();
   },
   getLanguageToggle: function (req, res, next) {
-    res.locals.showLanguageToggle = req.app.get("APP.LANGUAGE_TOGGLE_ENABLED");
+    const toggleValue = req.app.get("APP.LANGUAGE_TOGGLE_ENABLED");
+    res.locals.showLanguageToggle = toggleValue && toggleValue !== "0";
     res.locals.htmlLang = req.i18n.language;
     next();
   },
