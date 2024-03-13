@@ -3,8 +3,6 @@
 {% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 
-
-
 {%- block pageTitle %}
     {{- (translate("govuk.error", { default: "Error" }) + ": ") if errorlist.length }}{{ hmpoTitle | safe }}{{ " – " + govukServiceName | safe if govukServiceName !== " " }} – GOV.UK
 {%- endblock %}
@@ -33,42 +31,33 @@
     }
   }) }}
   {% block backLink %}
-    <div class="govuk-width-container">
-      <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            {% if backLink %}
-              {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
-              <span id="back">{{ govukBackLink({
-                    text: translate("govuk.backLink"),
-                    href: backLink
-                 }) }}
-              </span>
-            {% endif %}
-        </div>
-        <div class="govuk-grid-column-one-third last-item">
-          {% if showLanguageToggle %}
-            {% from "one-login-language-toggle/macro.njk" import oneloginLanguageSelect %}
-            {{ oneloginLanguageSelect({
-                ariaLabel: translate("govuk.languageToggle.ariaLabel"),
-                class:'govuk-!-margin-bottom-1',
-                activeLanguage: htmlLang,
-                languages: [
-                {
-                  code: 'en',
-                  text: 'English',
-                  visuallyHidden: 'Change to English'
-                },
-                {
-                  code:'cy',
-                  text: 'Cymraeg',
-                  visuallyHidden: 'Newid yr iaith ir Gymraeg'
-                }]
-              })
-            }}
-          {% endif %}
-        </div>
-      </div>
-    </div>
+      {% if backLink %}
+        {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+        <span id="back">{{ govukBackLink({
+          text: translate("govuk.backLink"),
+          href: backLink}) }}
+        </span>
+      {% endif %}
+      {% if showLanguageToggle %}
+        {% from "one-login-language-toggle/macro.njk" import oneloginLanguageSelect %}
+        {{ oneloginLanguageSelect({
+          ariaLabel: translate("govuk.languageToggle.ariaLabel"),
+          class:'govuk-!-margin-bottom-1',
+          activeLanguage: htmlLang,
+          languages: [
+            {
+              code: 'en',
+              text: 'English',
+              visuallyHidden: 'Change to English'
+            },
+            {
+              code:'cy',
+              text: 'Cymraeg',
+              visuallyHidden: 'Newid yr iaith ir Gymraeg'
+            }]
+          })
+        }}
+      {% endif %}
   {% endblock %}
 {% endblock %}
 
