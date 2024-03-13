@@ -58,7 +58,7 @@
     "hmpo-form-wizard": "13.0.0",
     "lint-staged": "15.2.0",
     "mocha": "10.2.0",
-    "nodemon": "3.0.3",
+    "nodemon": "3.1.0",
     "nyc": "15.1.0",
     "prettier": "3.2.5",
     "proxyquire": "2.1.3",
