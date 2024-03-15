@@ -32,15 +32,35 @@
       "role": "complementary"
     }
   }) }}
-
   {% block backLink %}
-    {% if backLink %}
-      {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
-      <span id="back">{{ govukBackLink({
+      {% if showLanguageToggle %}
+        {% from "one-login-language-toggle/macro.njk" import oneloginLanguageSelect %}
+        {{ oneloginLanguageSelect({
+          ariaLabel: translate("govuk.languageToggle.ariaLabel"),
+          class:'govuk-!-margin-bottom-1',
+          activeLanguage: htmlLang,
+          languages: [
+            {
+              code: 'en',
+              text: 'English',
+              visuallyHidden: 'Change to English'
+            },
+            {
+              code:'cy',
+              text: 'Cymraeg',
+              visuallyHidden: 'Newid yr iaith ir Gymraeg'
+            }]
+          })
+        }}
+      {% endif %}
+      {% if backLink %}
+        {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+        <span id="back">{{ govukBackLink({
           text: translate("govuk.backLink"),
-          href: backLink
-        }) }}</span>
-    {% endif %}
+          href: backLink}) }}
+        </span>
+      {% endif %}
+
   {% endblock %}
 {% endblock %}
 
