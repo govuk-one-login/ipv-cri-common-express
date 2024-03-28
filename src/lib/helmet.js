@@ -20,11 +20,16 @@ module.exports = {
         "'self'",
         "data:",
         "https://www.googletagmanager.com",
-        "https://www.google-analytics.com",
+        "*.google-analytics.com",
+        "*.analytics.google.com",
       ],
       formAction: ["*"],
       objectSrc: ["'none'"],
-      connectSrc: ["'self'", "*.google-analytics.com"],
+      connectSrc: [
+        "'self'",
+        "*.google-analytics.com",
+        "*.analytics.google.com",
+      ],
     },
   },
   dnsPrefetchControl: {
