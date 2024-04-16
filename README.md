@@ -94,4 +94,4 @@ This repo has a `CODEOWNERS` file in the root and is configured to require PRs t
 
 # Peer Dependencies
 
-This node package includes the initialisation script from the GDS Analytics package (https://www.npmjs.com/package/@govuk-one-login/one-login-analytics).
+This node package includes the initialisation script from the GDS Analytics package (https://www.npmjs.com/package/@govuk-one-login/frontend-analytics).
