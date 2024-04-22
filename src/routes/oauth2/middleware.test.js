@@ -126,15 +126,43 @@ describe("oauth middleware", () => {
           get: sinon.stub(),
         };
         req.app.get.withArgs("API.PATHS.SESSION").returns("/api/authorize");
+
+        req.headers["txma-audit-encoded"] = "test-txma-audit-encoded-header";
       });
 
       it("should call axios with the correct parameters", async function () {
+        const expectedHeaders = {};
+        expectedHeaders["txma-audit-encoded"] =
+          req.headers["txma-audit-encoded"];
+
         await middleware.initSessionWithJWT(req, res, next);
 
-        expect(req.axios.post).to.have.been.calledWith("/api/authorize", {
-          request: exampleJwt,
-          client_id: req.session.authParams.client_id,
-        });
+        expect(req.axios.post).to.have.been.calledWith(
+          "/api/authorize",
+          {
+            request: exampleJwt,
+            client_id: req.session.authParams.client_id,
+          },
+          { headers: expectedHeaders },
+        );
+      });
+
+      it("should call axios with the missing txma-audit-encoded parameters", async function () {
+        const expectedHeaders = {};
+        req.headers["txma-audit-encoded"] = undefined;
+        expectedHeaders["txma-audit-encoded"] =
+          req.headers["txma-audit-encoded"];
+
+        await middleware.initSessionWithJWT(req, res, next);
+
+        expect(req.axios.post).to.have.been.calledWith(
+          "/api/authorize",
+          {
+            request: exampleJwt,
+            client_id: req.session.authParams.client_id,
+          },
+          { headers: expectedHeaders },
+        );
       });
 
       context("with API result", () => {

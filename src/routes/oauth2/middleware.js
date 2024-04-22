@@ -27,12 +27,21 @@ module.exports = {
     }
 
     const requestJWT = req.jwt;
+    const headers = {};
+    headers["txma-audit-encoded"] = req.headers?.["txma-audit-encoded"];
+
     try {
       if (requestJWT) {
-        const apiResponse = await req.axios.post(sessionPath, {
-          request: req.jwt,
-          client_id: req.session.authParams.client_id,
-        });
+        const apiResponse = await req.axios.post(
+          sessionPath,
+          {
+            request: req.jwt,
+            client_id: req.session.authParams.client_id,
+          },
+          {
+            headers: headers,
+          },
+        );
 
         req.session.tokenId = apiResponse?.data["session_id"];
         req.session.authParams.state = apiResponse?.data?.state;

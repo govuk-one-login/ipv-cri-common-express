@@ -40,5 +40,13 @@ module.exports = function (req, res, next) {
     }
   }
 
+  if (
+    req?.headers["txma-audit-encoded"] &&
+    req.axios?.defaults?.headers?.common
+  ) {
+    req.axios.defaults.headers.common["txma-audit-encoded"] =
+      req.headers["txma-audit-encoded"];
+  }
+
   next();
 };

@@ -133,4 +133,38 @@ describe("axios", () => {
         .undefined;
     });
   });
+
+  context("with 'txma-audit-encoded'", () => {
+    it("should add txma-audit-encoded to axios headers", () => {
+      axiosClient.defaults = { headers: { common: {} } };
+
+      req.headers["txma-audit-encoded"] = "test-txma-audit-encoded-header";
+
+      axios(req, res, next);
+
+      expect(req.axios.defaults.headers.common["txma-audit-encoded"]).to.equal(
+        "test-txma-audit-encoded-header",
+      );
+    });
+  });
+
+  context("without 'txma-audit-encoded'", () => {
+    it("should not add txma-audit-encoded to axios headers", () => {
+      delete req.headers["txma-audit-encoded"];
+
+      axios(req, res, next);
+
+      expect(req.axios?.defaults?.headers?.common?.["txma-audit-encoded"]).to.be
+        .undefined;
+    });
+    it("should not add txma-audit-encoded to axios headers while header is null", () => {
+      delete axiosClient.defaults;
+      req.headers["txma-audit-encoded"] = null;
+
+      axios(req, res, next);
+
+      expect(req.axios?.defaults?.headers?.common?.["txma-audit-encoded"]).to.be
+        .undefined;
+    });
+  });
 });
