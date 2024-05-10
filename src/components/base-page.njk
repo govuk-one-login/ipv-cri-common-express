@@ -34,11 +34,12 @@
   }) }}
   {% block backLink %}
       {% if showLanguageToggle %}
-        {% from "one-login-language-toggle/macro.njk" import oneloginLanguageSelect %}
-        {{ oneloginLanguageSelect({
+        {% from "frontend-language-toggle/macro.njk" import languageSelect %}
+        {{ languageSelect({
           ariaLabel: translate("govuk.languageToggle.ariaLabel"),
           class:'govuk-!-margin-bottom-1',
           activeLanguage: htmlLang,
+          url: currentUrl,
           languages: [
             {
               code: 'en',
