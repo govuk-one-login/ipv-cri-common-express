@@ -1,4 +1,7 @@
 const { buildRedirectUrl } = require("../../lib/oauth");
+const {
+  createPersonalDataHeaders,
+} = require("@govuk-one-login/frontend-passthrough-headers");
 
 module.exports = {
   addAuthParamsToSession: async (req, res, next) => {
@@ -29,10 +32,21 @@ module.exports = {
     const requestJWT = req.jwt;
     try {
       if (requestJWT) {
-        const apiResponse = await req.axios.post(sessionPath, {
-          request: req.jwt,
-          client_id: req.session.authParams.client_id,
-        });
+        const headers = createPersonalDataHeaders(
+          `${req.app.get("API.BASE_URL")}${req.app.get("API.PATHS.SESSION")}`,
+          req,
+        );
+
+        const apiResponse = await req.axios.post(
+          sessionPath,
+          {
+            request: req.jwt,
+            client_id: req.session.authParams.client_id,
+          },
+          {
+            headers,
+          },
+        );
 
         req.session.tokenId = apiResponse?.data["session_id"];
         req.session.authParams.state = apiResponse?.data?.state;
@@ -67,6 +81,15 @@ module.exports = {
     }
 
     try {
+      const headers = {
+        "session-id": req.session.tokenId,
+        session_id: req.session.tokenId,
+        ...createPersonalDataHeaders(
+          `${req.app.get("API.BASE_URL")}${req.app.get("API.PATHS.AUTHORIZATION")}`,
+          req,
+        ),
+      };
+
       const authCode = await req.axios.get(authorizationPath, {
         params: {
           client_id: req.session.authParams.client_id,
@@ -75,10 +98,7 @@ module.exports = {
           response_type: "code",
           scope: "openid",
         },
-        headers: {
-          "session-id": req.session.tokenId,
-          session_id: req.session.tokenId,
-        },
+        headers,
       });
 
       req.session.authParams.authorization_code =

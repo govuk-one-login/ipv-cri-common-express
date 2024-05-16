@@ -126,15 +126,29 @@ describe("oauth middleware", () => {
           get: sinon.stub(),
         };
         req.app.get.withArgs("API.PATHS.SESSION").returns("/api/authorize");
+        req.app.get.withArgs("API.BASE_URL").returns("http://localhost:3000");
+
+        req.headers = {
+          "txma-audit-encoded": "dummy-txma-header",
+          "x-forwarded-for": "198.51.100.10:46532",
+        };
       });
 
       it("should call axios with the correct parameters", async function () {
         await middleware.initSessionWithJWT(req, res, next);
-
-        expect(req.axios.post).to.have.been.calledWith("/api/authorize", {
-          request: exampleJwt,
-          client_id: req.session.authParams.client_id,
-        });
+        expect(req.axios.post).to.have.been.calledWith(
+          "/api/authorize",
+          {
+            request: exampleJwt,
+            client_id: req.session.authParams.client_id,
+          },
+          {
+            headers: {
+              "txma-audit-encoded": "dummy-txma-header",
+              "x-forwarded-for": "127.0.0.1",
+            },
+          },
+        );
       });
 
       context("with API result", () => {
@@ -266,6 +280,13 @@ describe("oauth middleware", () => {
         req.app.get
           .withArgs("API.PATHS.AUTHORIZATION")
           .returns("/api/authorize");
+        req.app.get.withArgs("API.PATHS.SESSION").returns("/api/authorize");
+        req.app.get.withArgs("API.BASE_URL").returns("http://localhost:3000");
+
+        req.headers = {
+          "txma-audit-encoded": "dummy-txma-header",
+          "x-forwarded-for": "198.51.100.10:46532",
+        };
       });
 
       it("should call axios with the correct parameters", async function () {
@@ -282,6 +303,8 @@ describe("oauth middleware", () => {
           headers: {
             "session-id": req.session.tokenId,
             session_id: req.session.tokenId,
+            "txma-audit-encoded": "dummy-txma-header",
+            "x-forwarded-for": "127.0.0.1",
           },
         });
       });
