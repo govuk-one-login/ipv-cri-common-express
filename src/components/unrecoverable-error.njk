@@ -23,6 +23,7 @@
       <p><a href="https://signin.account.gov.uk/contact-us" class="govuk-link" rel="noreferrer noopener" target="_blank">{{ translate("error.unrecoverable.contactMeLink") }}</a></p>
   </div>
   <script {% if cspNonce %} nonce="{{ cspNonce }}"{%  endif %}>
+    window.GOVUKFrontend.initAll()
     window.addEventListener('load', function () {
       window
       .DI
