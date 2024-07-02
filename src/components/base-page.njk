@@ -80,7 +80,15 @@
     <script type="text/javascript" src="/public/javascripts/analytics.js"></script>
     <script type="text/javascript" {% if cspNonce %} nonce="{{ cspNonce }}"{%  endif %}>
       window.GOVUKFrontend.initAll()
-      window.DI.appInit({ga4ContainerId: "{{ga4ContainerId}}",uaContainerId:"{{uaContainerId}}"},{disableGa4Tracking:{{ga4Disabled}},disableUaTracking:{{uaDisabled}},cookieDomain:"{{analyticsCookieDomain}}"});
+      window.DI.appInit({
+        ga4ContainerId: "{{ga4ContainerId}}",
+        uaContainerId:"{{uaContainerId}}"
+      },{
+        disableGa4Tracking:{{ga4Disabled}},
+        disableUaTracking:{{uaDisabled}},
+        cookieDomain:"{{analyticsCookieDomain}}",
+        isDataSensitive:{{analyticsDataSensitive}}
+      });
     </script>
   {% endblock %}
 {% endblock %}

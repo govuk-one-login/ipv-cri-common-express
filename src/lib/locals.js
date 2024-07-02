@@ -7,6 +7,9 @@ module.exports = {
     );
     res.locals.ga4Disabled = req.app.get("APP.GTM.GA4_DISABLED");
     res.locals.uaDisabled = req.app.get("APP.GTM.UA_DISABLED");
+    res.locals.analyticsDataSensitive = req.app.get(
+      "APP.GTM.ANALYTICS_DATA_SENSITIVE",
+    );
     next();
   },
 
