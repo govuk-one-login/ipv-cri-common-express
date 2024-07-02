@@ -37,7 +37,6 @@ Several environment variables are declared within the CRIs and then used within 
 - `UA_CONTAINER_ID` - Container ID for Universal Analytics, required for UA to work correctly. Default value is `GTM-TK92W68`
 - `GA4_CONTAINER_ID` - Container ID for GA4, required for analytics to work correctly. Default value is `GTM-KD86CMZ`
 - `ANALYTICS_COOKIE_DOMAIN` - Cookie domain to persist values throughout the different sections of the OneLogin journey. Default value is `localhost`
-- `LANGUAGE_TOGGLE_DISABLED` - Feature flag to disable Language Toggle, defaulted to `true`
 - `ANALYTICS_DATA_SENSITIVE` - Redacts all form response data, defaulted to `true`. Only to be set to `false` if a journey section contains no PII in none text based form controls
 
 # Installation
