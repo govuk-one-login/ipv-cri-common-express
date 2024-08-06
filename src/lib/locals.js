@@ -5,10 +5,28 @@ module.exports = {
     res.locals.analyticsCookieDomain = req.app.get(
       "APP.GTM.ANALYTICS_COOKIE_DOMAIN",
     );
-    res.locals.ga4Disabled = req.app.get("APP.GTM.GA4_DISABLED");
-    res.locals.uaDisabled = req.app.get("APP.GTM.UA_DISABLED");
+    res.locals.ga4Enabled = req.app.get("APP.GTM.GA4_ENABLED");
+    res.locals.uaEnabled = req.app.get("APP.GTM.UA_ENABLED");
     res.locals.analyticsDataSensitive = req.app.get(
       "APP.GTM.ANALYTICS_DATA_SENSITIVE",
+    );
+    res.locals.ga4PageViewEnabled = req.app.get(
+      "APP.GTM.GA4_PAGE_VIEW_ENABLED",
+    );
+    res.locals.ga4FormResponseEnabled = req.app.get(
+      "APP.GTM.GA4_FORM_RESPONSE_ENABLED",
+    );
+    res.locals.ga4FormErrorEnabled = req.app.get(
+      "APP.GTM.GA4_FORM_ERROR_ENABLED",
+    );
+    res.locals.ga4FormChangeEnabled = req.app.get(
+      "APP.GTM.GA4_FORM_CHANGE_ENABLED",
+    );
+    res.locals.ga4NavigationEnabled = req.app.get(
+      "APP.GTM.GA4_NAVIGATION_ENABLED",
+    );
+    res.locals.ga4SelectContentEnabled = req.app.get(
+      "APP.GTM.GA4_SELECT_CONTENT_ENABLED",
     );
     next();
   },
