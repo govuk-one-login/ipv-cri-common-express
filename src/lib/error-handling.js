@@ -10,7 +10,7 @@ module.exports = {
       description: DEFAULT_ERROR_DESCRIPTION,
     };
 
-    let redirect_uri = req.session.authParams.redirect_uri;
+    let redirect_uri = req.session?.authParams?.redirect_uri;
 
     if (err.isAxiosError) {
       const errorResponse = err?.response?.data;
@@ -23,6 +23,10 @@ module.exports = {
         error.description;
 
       redirect_uri = err?.response?.data?.redirect_uri || redirect_uri;
+    }
+
+    if (!redirect_uri) {
+      return next(new Error("Missing redirect_uri"));
     }
 
     try {
