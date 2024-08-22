@@ -326,5 +326,29 @@ describe("error-handling", () => {
         expect(next).to.have.been.calledWith(err);
       });
     });
+
+    context("with a missing redirect_uri", () => {
+      beforeEach(async () => {
+        err = new Error("Missing redirect_uri");
+
+        req.session = {
+          authParams: undefined,
+        };
+
+        await redirectAsErrorToCallback(err, req, res, next);
+      });
+
+      it("should not call res.redirect", () => {
+        expect(res.redirect).not.to.have.been.called;
+      });
+
+      it("should call next with err", () => {
+        expect(next).to.have.been.calledWith(
+          sinon.match
+            .instanceOf(Error)
+            .and(sinon.match.has("message", "Missing redirect_uri")),
+        );
+      });
+    });
   });
 });
