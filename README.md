@@ -20,14 +20,6 @@ This package contains:
 - [scripts](./scripts)
   - checkTranslations script used to ensure localisation files are kept synchronised
 
-# GA4 and the Crown Logo
-
-The implementation of GA4 and the Crown Logo update are contained across multiple versions of common-express in various stages. See below for details:
-
-## 5.1.0
-
-- Contains the flag to activate the new crown logo set to true ready for go-live of that feature
-
 ## Environment Variables
 
 Several environment variables are declared within the CRIs and then used within the shared code of this repository:
@@ -91,13 +83,14 @@ Releases are automatically published to [npm](https://npmjs.com) at [@govuk-one-
 In order to prepare a new release
 
 1. `git checkout` a fresh copy of the `main` branch
-2. create a separate branch for the version to be updated to (e.g. `chore/release/v1.2.3`
+2. create a separate branch for the version to be updated to (e.g. `chore/release/v1.2.3`)
 3. Run `npm version VERSION --no-git-tag-version`, changing `VERSION` to be `major`, `minor` or `patch` as required
    - Once this has been run, the `package.json` and `package-lock.json` files will be updated with the new version.
-4. Create a PR for this change, and get this approved and merged
-5. Once this has been done, a release can be created using GitHub by accessing the [releases](https://github.com/govuk-one-login/ipv-cri-common-express/releases) section.
-6. Choose a new tag matching your version number, prefixed with `v` to avoid Git reference collisions, e.g. `v1.2.3`
-7. Click on the "Generate release notes" button to automatically pull in commit messages for the release notes.
+4. Ensure that the [RELEASE_NOTES](./RELEASE_NOTES.md) have been updated with the new version
+5. Create a PR for this change, and get this approved and merged
+6. Once this has been done, a release can be created using GitHub by accessing the [releases](https://github.com/govuk-one-login/ipv-cri-common-express/releases) section.
+7. Choose a new tag matching your version number, prefixed with `v` to avoid Git reference collisions, e.g. `v1.2.3`
+8. Click on the "Generate release notes" button to automatically pull in commit messages for the release notes.
 
 # Code Owners
 
