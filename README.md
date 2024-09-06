@@ -32,12 +32,18 @@ The implementation of GA4 and the Crown Logo update are contained across multipl
 
 Several environment variables are declared within the CRIs and then used within the shared code of this repository:
 
-- `GA4_DISABLED` - Feature flag to disable GA4, defaulted to `false`
-- `UA_DISABLED` - Feature flag to disable UA, defaulted to `true`
+- `GA4_ENABLED` - Feature flag to enable GA4, defaulted to `"false"`
+- `UA_ENABLED` - Feature flag to enable UA, defaulted to `"false"`
 - `UA_CONTAINER_ID` - Container ID for Universal Analytics, required for UA to work correctly. Default value is `GTM-TK92W68`
 - `GA4_CONTAINER_ID` - Container ID for GA4, required for analytics to work correctly. Default value is `GTM-KD86CMZ`
 - `ANALYTICS_COOKIE_DOMAIN` - Cookie domain to persist values throughout the different sections of the OneLogin journey. Default value is `localhost`
-- `ANALYTICS_DATA_SENSITIVE` - Redacts all form response data, defaulted to `true`. Only to be set to `false` if a journey section contains no PII in none text based form controls
+- `ANALYTICS_DATA_SENSITIVE` - Redacts all form response data, defaulted to `"true"`. Only to be set to `"false"` if a journey section contains no PII in none text based form controls
+- `GA4_PAGE_VIEW_ENABLED` - Feature flag to enable GA4 page view tracking, defaulted to `"true"`
+- `GA4_FORM_RESPONSE_ENABLED` - Feature flag to enable GA4 form response tracking, defaulted to `"true"`
+- `GA4_FORM_ERROR_ENABLED` - Feature flag to enable GA4 form error tracking, defaulted to `"true"`
+- `GA4_FORM_CHANGE_ENABLED` - Feature flag to enable GA4 form change tracking, defaulted to `"true"`
+- `GA4_NAVIGATION_ENABLED` - Feature flag to enable GA4 navigation tracking, defaulted to `"true"`
+- `GA4_SELECT_CONTENT_ENABLED` - Feature flag to enable GA4 select content tracking, defaulted to `"true"`
 
 # Installation
 
