@@ -3,22 +3,26 @@
 [![GitHub Action: Scan repository](https://github.com/govuk-one-login/ipv-cri-common-express/actions/workflows/scan-repo.yml/badge.svg?branch=main)](https://github.com/govuk-one-login/ipv-cri-common-express/actions/workflows/scan-repo.yml?query=branch%3Amain)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ipv-cri-common-express&metric=coverage)](https://sonarcloud.io/summary/overall?id=ipv-cri-common-express)
 
-di-ipv-cri-common-express contains Express libraries and utilities for use building GOV.UK One Login Credential Issuers
+`ipv-cri-common-express` contains [Express](https://expressjs.com/) libraries and utilities for use for building GOV.UK One Login Credential Issuers
 
 It provides functionality for use with an [Express webserver](https://expressjs.com/), [GOV.UK Design System](https://design-system.service.gov.uk/) and the [HMPO Components library](https://github.com/HMPO/hmpo-components)
+
+It was originally created in order to share code between Credential Issuers in a prescribed but abstract way. The use of shared code then allows the Credential Issuers to solely focus on whatever the specific screens and interactions that are required as part of their use case.
 
 This package contains:
 
 - [assets](./src/assets)
   - JavaScript used for progressive enhancement
 - [components](./src/components)
-  - Common [Nunjucks](https://mozilla.github.io/nunjucks/)
+  - Common [Nunjucks](https://mozilla.github.io/nunjucks/) templates
 - [lib](./src/lib)
   - Express middleware
 - [routes](./src/routes)
   - Express router to handle common OAuth functionality
 - [scripts](./scripts)
   - checkTranslations script used to ensure localisation files are kept synchronised
+
+The combination of components, middleware, routing and utility scripts into a single package has resulted in a slightly muddled approach to how this package is used and maintained. Work towards splitting this up into individual specific packages has already started, beginning with replacing the JavaScript inside the `assets` folder with [@govuk-one-login/frontend-analytics](https://www.npmjs.com/package/@govuk-one-login/frontend-analytics)
 
 # GA4 and the Crown Logo
 
