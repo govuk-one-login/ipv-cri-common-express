@@ -2,6 +2,7 @@ const { buildRedirectUrl } = require("../../lib/oauth");
 const {
   createPersonalDataHeaders,
 } = require("@govuk-one-login/frontend-passthrough-headers");
+const logger = require("hmpo-logger").get();
 
 module.exports = {
   addAuthParamsToSession: async (req, res, next) => {
@@ -47,6 +48,14 @@ module.exports = {
             headers,
           },
         );
+
+        if (!apiResponse?.data["session_id"]) {
+          logger.warn("No session ID in session response");
+        }
+
+        if (!apiResponse?.data?.redirect_uri) {
+          logger.warn("No redirect URI in session response");
+        }
 
         req.session.tokenId = apiResponse?.data["session_id"];
         req.session.authParams.state = apiResponse?.data?.state;
