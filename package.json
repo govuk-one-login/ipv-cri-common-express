@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@govuk-one-login/frontend-passthrough-headers": ">=1.0.0",
-    "axios": "1.6.7",
+    "axios": "1.7.4",
     "cfenv": "1.2.4",
     "chai": "4.4.1",
     "chai-as-promised": "7.1.1",
