@@ -57,7 +57,7 @@
     "eslint-plugin-mocha": "10.2.0",
     "eslint-plugin-prettier": "5.1.3",
     "express": "^4.19.2",
-    "hmpo-form-wizard": "13.0.0",
+    "hmpo-form-wizard": "14.0.0",
     "lint-staged": "15.2.7",
     "mocha": "10.6.0",
     "nodemon": "3.1.0",
