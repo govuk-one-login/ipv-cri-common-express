@@ -1,8 +1,7 @@
 const axios = require("axios");
-
 const logger = require("hmpo-logger");
-
 const userIpAddress = require("./user-ip-address");
+const { PACKAGE_NAME } = require("./constants");
 
 module.exports = function (req, res, next) {
   const baseURL = req.app.get("API.BASE_URL");
@@ -17,7 +16,7 @@ module.exports = function (req, res, next) {
 
   // Add a request interceptor
   req.axios.interceptors.request.use(function (config) {
-    logger.get().info("API request", {
+    logger.get(PACKAGE_NAME).info("API request", {
       config: {
         baseURL: config.baseURL,
         method: config.method,
