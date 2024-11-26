@@ -1,8 +1,9 @@
 const { buildRedirectUrl } = require("../../lib/oauth");
+const { PACKAGE_NAME } = require("../../lib/constants");
 const {
   createPersonalDataHeaders,
 } = require("@govuk-one-login/frontend-passthrough-headers");
-const logger = require("hmpo-logger").get();
+const logger = require("hmpo-logger").get(PACKAGE_NAME);
 
 module.exports = {
   addAuthParamsToSession: async (req, res, next) => {
