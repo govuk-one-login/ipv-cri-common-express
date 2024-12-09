@@ -1,3 +1,5 @@
+const Logger = require("hmpo-logger/lib/logger");
+
 module.exports = {
   getGTM: function (req, res, next) {
     res.locals.ga4ContainerId = req.app.get("APP.GTM.GA4_CONTAINER_ID");
@@ -39,9 +41,13 @@ module.exports = {
     const toggleValue = req.app.get("APP.LANGUAGE_TOGGLE_ENABLED");
     res.locals.showLanguageToggle = toggleValue && toggleValue === "1";
     res.locals.htmlLang = req.i18n.language;
-    res.locals.currentUrl = new URL(
-      req.protocol + "://" + req.get("host") + req.originalUrl,
-    );
+    try {
+      res.locals.currentUrl = new URL(
+        req.protocol + "://" + req.get("host") + req.originalUrl,
+      );
+    } catch (e) {
+      Logger.error("Error constructing url for language toggle", e.message);
+    }
     next();
   },
 };
