@@ -1,4 +1,5 @@
-const Logger = require("hmpo-logger/lib/logger");
+const { PACKAGE_NAME } = require("../lib/constants");
+const logger = require("hmpo-logger").get(PACKAGE_NAME);
 
 module.exports = {
   getGTM: function (req, res, next) {
@@ -46,7 +47,7 @@ module.exports = {
         req.protocol + "://" + req.get("host") + req.originalUrl,
       );
     } catch (e) {
-      Logger.error("Error constructing url for language toggle", e.message);
+      logger.error("Error constructing url for language toggle", e.message);
     }
     next();
   },
