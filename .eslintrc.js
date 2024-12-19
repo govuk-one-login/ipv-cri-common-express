@@ -31,4 +31,16 @@ module.exports = {
       },
     },
   ],
+  // Unit tests
+    files: ['test/**'],
+    languageOptions: {
+        globals: {
+            ...globals.mocha,
+            sinon: 'readonly',
+            APP_ROOT: 'readonly',
+            expect: 'readonly',
+            LOGGER_RESET: 'readonly',
+            CONFIG_RESET: 'readonly',
+        },
+    },
 };
