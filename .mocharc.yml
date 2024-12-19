@@ -1,7 +1,9 @@
 fail-zero: false
 spec:
   - "**/*.test.js"
+  - "**/spec*.js"
 ignore:
   - "node_modules/**"
 file:
   - "./test/utils/mocha-helpers"
+  - "./src/bootstrap/test/unit/helper.js"
