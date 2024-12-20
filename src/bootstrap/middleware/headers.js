@@ -1,30 +1,32 @@
-const helmetLib = require('helmet');
-const nocache = require('./nocache');
-const compatibility = require('./compatibility');
-const compression = require('compression');
+const helmetLib = require("helmet");
+const nocache = require("./nocache");
+const compatibility = require("./compatibility");
+const compression = require("compression");
 
-const setup = (app, {
+const setup = (
+  app,
+  {
     disableCompression = false,
     trustProxy = true,
-    publicPath='/public',
-    helmet
-} = {}) => {
+    publicPath = "/public",
+    helmet,
+  } = {},
+) => {
+  // Security
+  if (helmet) {
+    app.use(helmetLib(helmet));
+  } else {
+    app.disable("x-powered-by");
+    app.use(helmetLib.frameguard("sameorigin"));
+  }
 
-    // Security
-    if (helmet) {
-        app.use(helmetLib(helmet));
-    } else {
-        app.disable('x-powered-by');
-        app.use(helmetLib.frameguard('sameorigin'));
-    }
-
-    // Headers
-    app.set('trust proxy', trustProxy);
-    app.use(nocache.middleware({ publicPath }));
-    app.use(compatibility.middleware());
-    if (!disableCompression) app.use(compression());
+  // Headers
+  app.set("trust proxy", trustProxy);
+  app.use(nocache.middleware({ publicPath }));
+  app.use(compatibility.middleware());
+  if (!disableCompression) app.use(compression());
 };
 
 module.exports = {
-    setup
+  setup,
 };
