@@ -1,9 +1,9 @@
 const proxyquire = require('proxyquire');
 const expressSession = sinon.stub();
-const session = proxyquire(APP_ROOT + '/middleware/session', {
+const session = proxyquire(APP_ROOT + '/src/bootstrap/middleware/session', {
     'express-session': expressSession
 });
-const redisClient = require(APP_ROOT + '/lib/redis-client');
+const redisClient = require(APP_ROOT + '/src/bootstrap/lib/redis-client');
 
 describe('Session', () => {
     let redisStub;

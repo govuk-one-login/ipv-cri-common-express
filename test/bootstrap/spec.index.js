@@ -1,4 +1,4 @@
-const index = require(APP_ROOT);
+const index = require(APP_ROOT + '/src/bootstrap');
 const express = require('express');
 
 describe('hmpo-app', () => {

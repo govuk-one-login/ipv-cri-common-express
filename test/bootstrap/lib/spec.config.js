@@ -1,5 +1,5 @@
 const hmpoConfig = require('hmpo-config');
-const config = require(APP_ROOT + '/lib/config');
+const config = require(APP_ROOT + '/src/bootstrap/lib/config');
 
 describe('Config', () => {
 

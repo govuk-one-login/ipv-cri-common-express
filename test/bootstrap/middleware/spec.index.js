@@ -18,7 +18,7 @@ describe('middleware functions', () => {
     });
 
     it('exports middleware functions', () => {
-        middleware = require(APP_ROOT + '/middleware');
+        middleware = require(APP_ROOT + '/src/bootstrap/middleware');
         middleware.setup.should.be.a('function');
         middleware.session.should.be.a('function');
         middleware.errorHandler.should.be.a('function');
@@ -84,7 +84,7 @@ describe('middleware functions', () => {
                 }
             };
 
-            middleware = proxyquire(APP_ROOT + '/middleware', {
+            middleware = proxyquire(APP_ROOT + '/src/bootstrap/middleware', {
                 'express': stubs.express,
                 'body-parser': stubs.bodyParser,
                 'hmpo-logger': stubs.hmpoLogger,
@@ -338,7 +338,7 @@ describe('middleware functions', () => {
                 }
             };
 
-            middleware = proxyquire(APP_ROOT + '/middleware', {
+            middleware = proxyquire(APP_ROOT + '/src/bootstrap/middleware', {
                 './session': stubs.session,
                 './feature-flag': stubs.featureFlag,
                 './linked-files': stubs.linkedFiles
@@ -379,7 +379,7 @@ describe('middleware functions', () => {
                 }
             };
 
-            middleware = proxyquire(APP_ROOT + '/middleware', {
+            middleware = proxyquire(APP_ROOT + '/src/bootstrap/middleware', {
                 './page-not-found': stubs.pageNotFound,
                 './error-handler': stubs.errorHandler
             });
@@ -400,7 +400,7 @@ describe('middleware functions', () => {
 
     describe('listen', () => {
         beforeEach( () => {
-            middleware = require(APP_ROOT + '/middleware');
+            middleware = require(APP_ROOT + '/src/bootstrap/middleware');
         });
 
         it('should listen on the default host and port', () => {

@@ -1,6 +1,6 @@
 const redis = require('redis');
 const fakeredis = require('fakeredis');
-const redisClient = require(APP_ROOT + '/lib/redis-client');
+const redisClient = require(APP_ROOT + '/src/bootstrap/lib/redis-client');
 
 describe('Redis Client', () => {
     let redisStub, fakeredisStub, loggerStub;

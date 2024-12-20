@@ -6,4 +6,4 @@ ignore:
   - "node_modules/**"
 file:
   - "./test/utils/mocha-helpers"
-  - "./src/bootstrap/test/unit/helper.js"
+  - "./test/bootstrap/helper.js"

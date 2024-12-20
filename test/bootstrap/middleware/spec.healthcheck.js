@@ -1,4 +1,4 @@
-const healthcheck = require(APP_ROOT + '/middleware/healthcheck');
+const healthcheck = require(APP_ROOT + '/src/bootstrap/middleware/healthcheck');
 const os = require('os');
 
 describe('healthcheck', () => {

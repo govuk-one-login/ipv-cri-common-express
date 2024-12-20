@@ -1,4 +1,4 @@
-const compatibility = require(APP_ROOT + '/middleware/compatibility');
+const compatibility = require(APP_ROOT + '/src/bootstrap/middleware/compatibility');
 
 describe('Compatibility', () => {
     it('exports a middleware function', () => {

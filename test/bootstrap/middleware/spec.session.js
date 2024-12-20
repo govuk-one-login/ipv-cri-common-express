@@ -1,5 +1,5 @@
-const session = require(APP_ROOT + '/middleware/session');
-const redisClient = require(APP_ROOT + '/lib/redis-client');
+const session = require(APP_ROOT + '/src/bootstrap/middleware/session');
+const redisClient = require(APP_ROOT + '/src/bootstrap/lib/redis-client');
 
 describe('Session', () => {
     let redisStub;

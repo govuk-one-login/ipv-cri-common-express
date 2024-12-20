@@ -1,5 +1,5 @@
 const hmpoLogger = require('hmpo-logger');
-const logger = require(APP_ROOT + '/lib/logger');
+const logger = require(APP_ROOT + '/src/bootstrap/lib/logger');
 
 describe('Logger', () => {
 

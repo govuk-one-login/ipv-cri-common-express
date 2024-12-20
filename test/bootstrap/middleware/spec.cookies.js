@@ -1,4 +1,4 @@
-const cookies = require(APP_ROOT + '/middleware/cookies');
+const cookies = require(APP_ROOT + '/src/bootstrap/middleware/cookies');
 
 describe('Cookies', () => {
     describe('middleware',  () => {

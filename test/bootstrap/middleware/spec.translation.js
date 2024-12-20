@@ -1,4 +1,4 @@
-const translation = require(APP_ROOT + '/middleware/translation');
+const translation = require(APP_ROOT + '/src/bootstrap/middleware/translation');
 const i18n = require('hmpo-i18n');
 
 describe('translation middleware', () => {
@@ -22,7 +22,7 @@ describe('translation middleware', () => {
         translation.setup(app);
         i18n.middleware.should.have.been.calledWithExactly(app, {
             baseDir: [
-                APP_ROOT + '/test/unit/fixtures',
+                APP_ROOT + '/test/bootstrap/fixtures',
                 APP_ROOT + '/node_modules/hmpo-components'
             ],
             noCache: true,
@@ -37,7 +37,7 @@ describe('translation middleware', () => {
         translation.setup(app, { locales: [ '.', './dir_not_found' ] });
         i18n.middleware.should.have.been.calledWithExactly(app, {
             baseDir: [
-                APP_ROOT + '/test/unit/fixtures',
+                APP_ROOT + '/test/bootstrap/fixtures',
                 APP_ROOT + '/node_modules/hmpo-components'
             ],
             noCache: true,

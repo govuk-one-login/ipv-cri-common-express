@@ -1,6 +1,6 @@
-const redisClient = require(APP_ROOT + '/lib/redis-client');
-const linkedFiles = require(APP_ROOT + '/middleware/linked-files');
-const uuid = require(APP_ROOT + '/lib/uuid');
+const redisClient = require(APP_ROOT + '/src/bootstrap/lib/redis-client');
+const linkedFiles = require(APP_ROOT + '/src/bootstrap/middleware/linked-files');
+const uuid = require(APP_ROOT + '/src/bootstrap/lib/uuid');
 
 const testuuid = 'abcd1234-5678-9012-3456-abcdef1234567890';
 

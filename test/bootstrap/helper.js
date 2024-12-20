@@ -9,7 +9,7 @@ global.APP_ROOT = resolve(__dirname, "..", "..");
 
 global.CONFIG_RESET = () => {
   delete global.GLOBAL_CONFIG;
-  const config = require(APP_ROOT + "/lib/config");
+  const config = require(APP_ROOT + "/src/bootstrap/lib/config");
   config.setup({
     APP_ROOT: resolve(__dirname, "fixtures"),
     seed: {
@@ -28,7 +28,7 @@ global.LOGGER_RESET = () => {
     warn: sinon.stub(),
   };
 
-  const logger = require(APP_ROOT + "/lib/logger");
+  const logger = require(APP_ROOT + "/src/bootstrap/lib/logger");
   if (logger.get.restore) logger.get.restore();
   sinon.stub(logger, "get").returns(loggerStub);
 

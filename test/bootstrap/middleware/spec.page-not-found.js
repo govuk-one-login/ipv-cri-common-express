@@ -1,4 +1,4 @@
-const pageNotFound = require(APP_ROOT + '/middleware/page-not-found').middleware;
+const pageNotFound = require(APP_ROOT + '/src/bootstrap/middleware/page-not-found').middleware;
 
 describe('Page Not Found', () => {
 

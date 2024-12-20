@@ -1,4 +1,4 @@
-const version = require(APP_ROOT + '/middleware/version');
+const version = require(APP_ROOT + '/src/bootstrap/middleware/version');
 
 describe('Version', () => {
     it('exports a middleware function', () => {

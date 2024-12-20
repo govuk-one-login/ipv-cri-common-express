@@ -1,5 +1,5 @@
 const nunjucks = require('nunjucks');
-const { setup } = require(APP_ROOT + '/middleware/nunjucks');
+const { setup } = require(APP_ROOT + '/src/bootstrap/middleware/nunjucks');
 
 describe('nunjucks middleware', () => {
 
@@ -25,7 +25,7 @@ describe('nunjucks middleware', () => {
         setup(app);
         nunjucks.configure.should.have.been.calledWithExactly(
             [
-                APP_ROOT + '/test/unit/fixtures/views',
+                APP_ROOT + '/test/bootstrap/fixtures/views',
                 APP_ROOT + '/node_modules/hmpo-components/components',
                 APP_ROOT + '/node_modules/govuk-frontend',
             ],
@@ -42,7 +42,7 @@ describe('nunjucks middleware', () => {
         setup(app, { views: [ 'views', 'not_found'] });
         nunjucks.configure.should.have.been.calledWithExactly(
             [
-                APP_ROOT + '/test/unit/fixtures/views',
+                APP_ROOT + '/test/bootstrap/fixtures/views',
                 APP_ROOT + '/node_modules/hmpo-components/components',
                 APP_ROOT + '/node_modules/govuk-frontend',
             ],

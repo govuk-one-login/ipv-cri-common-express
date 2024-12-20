@@ -1,4 +1,4 @@
-const modelOptions = require(APP_ROOT + '/middleware/model-options');
+const modelOptions = require(APP_ROOT + '/src/bootstrap/middleware/model-options');
 
 describe('Model options helper', () => {
 

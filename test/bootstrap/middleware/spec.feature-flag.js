@@ -1,4 +1,4 @@
-const featureFlag = require(APP_ROOT + '/middleware/feature-flag');
+const featureFlag = require(APP_ROOT + '/src/bootstrap/middleware/feature-flag');
 
 describe('Feature Flag', () => {
     let options;

@@ -1,4 +1,4 @@
-const nocache = require(APP_ROOT + '/middleware/nocache');
+const nocache = require(APP_ROOT + '/src/bootstrap/middleware/nocache');
 
 describe('No Cache', () => {
     it('exports a middleware function', () => {

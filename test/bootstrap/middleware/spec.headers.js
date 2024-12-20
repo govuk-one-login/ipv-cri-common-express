@@ -24,7 +24,7 @@ describe('headers middleware', () => {
 
         stubs.helmet.frameguard = sinon.stub().returns('frameguard middleware');
 
-        middleware = proxyquire(APP_ROOT + '/middleware/headers', {
+        middleware = proxyquire(APP_ROOT + '/src/bootstrap/middleware/headers', {
             'compression': stubs.compression,
             './nocache': stubs.nocache,
             './compatibility': stubs.compatibility,
