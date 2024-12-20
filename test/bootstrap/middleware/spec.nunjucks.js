@@ -1,5 +1,5 @@
 const nunjucks = require('nunjucks');
-const { setup } = require(APP_ROOT + '/src/bootstrap/middleware/nunjucks');
+const { setup: setupNunjucks } = require(APP_ROOT + '/src/bootstrap/middleware/nunjucks');
 
 describe('nunjucks middleware', () => {
 
@@ -22,7 +22,7 @@ describe('nunjucks middleware', () => {
     });
 
     it('should configure nunjucks with a default set of views and options', () => {
-        setup(app);
+        setupNunjucks(app);
         nunjucks.configure.should.have.been.calledWithExactly(
             [
                 APP_ROOT + '/test/bootstrap/fixtures/views',
@@ -39,7 +39,7 @@ describe('nunjucks middleware', () => {
     });
 
     it('should filter out a view if not present', () => {
-        setup(app, { views: [ 'views', 'not_found'] });
+        setupNunjucks(app, { views: [ 'views', 'not_found'] });
         nunjucks.configure.should.have.been.calledWithExactly(
             [
                 APP_ROOT + '/test/bootstrap/fixtures/views',
@@ -53,7 +53,7 @@ describe('nunjucks middleware', () => {
     it('should run in prod mode if dev flag not set', () => {
         app.get.withArgs('dev').returns(false);
 
-        setup(app);
+        setupNunjucks(app);
         nunjucks.configure.should.have.been.calledWithExactly(
             sinon.match.array,
             {
@@ -66,12 +66,12 @@ describe('nunjucks middleware', () => {
     });
 
     it('should set the view engine value', () => {
-        setup(app);
+        setupNunjucks(app);
         app.set.should.have.been.calledWithExactly('view engine', 'html');
     });
 
-    it('should set the view engine value', () => {
-        const result = setup(app);
+    it('should set the Nunjucks environment', () => {
+        const result = setupNunjucks(app);
         result.should.equal(nunjucksEnv);
     });
 });
