@@ -69,7 +69,7 @@ const get = (path, defaultIfUndefined) => {
   if (!path) return global.GLOBAL_CONFIG;
   const value = path
     .split(".")
-    .reduce((obj, part) => obj && obj[part], global.GLOBAL_CONFIG);
+    .reduce((obj, part) => obj?.[part], global.GLOBAL_CONFIG);
   return value === undefined ? defaultIfUndefined : value;
 };
 

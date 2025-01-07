@@ -42,6 +42,13 @@ describe("Error Handler", () => {
         res.redirect.should.have.been.calledWithExactly("/redirect/location");
       });
 
+      it("does not redirect if path matches the redirect", () => {
+        req.path = "location///";
+        const err = { redirect: "location" };
+        errorhandler(err, req, res, next);
+        res.redirect.should.not.have.been.called;
+      });
+
       it("does redirect if on the POST of destination page", () => {
         req.path = "/redirect/location";
         req.method = "POST";

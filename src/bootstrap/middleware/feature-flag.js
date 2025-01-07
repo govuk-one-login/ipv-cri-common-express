@@ -6,7 +6,7 @@ const middleware =
     req.featureFlags = deepCloneMerge.extend(
       req.featureFlags || {},
       featureFlags,
-      req.session && req.session.featureFlags,
+      req.session?.featureFlags,
     );
     res.locals.featureFlags = req.featureFlags;
     next();

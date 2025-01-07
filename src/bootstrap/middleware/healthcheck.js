@@ -19,10 +19,7 @@ const middleware =
 
     const response = () => {
       status.status =
-        status.status ||
-        (status.error && status.error.code) ||
-        (status.error && status.error.message) ||
-        "OK";
+        status.status || status.error?.code || status.error?.message || "OK";
       res.setHeader("Connection", "close");
       res.status(status.status === "OK" ? 200 : 500).json(status);
     };

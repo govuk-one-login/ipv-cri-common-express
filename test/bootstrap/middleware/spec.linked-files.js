@@ -276,7 +276,9 @@ describe("Linked Files", () => {
 
     it("should throw an error if an invalid argument is passed", () => {
       let EmptyClass = class {};
-      expect(() => linkedFiles.injection(EmptyClass)).to.throw();
+      expect(() => linkedFiles.injection(EmptyClass)).to.throw(
+        "SessionInjection base class expected",
+      );
     });
 
     it("should return an extended class", () => {

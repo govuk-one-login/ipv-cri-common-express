@@ -21,11 +21,10 @@ const setup = (
     redisOptions.url = connectionString;
   }
   if (host && port) {
-    redisOptions.socket = Object.assign(
-      {},
-      { host, port },
-      redisOptions.socket,
-    );
+    redisOptions.socket = {
+      ...{ host, port },
+      ...redisOptions.socket,
+    };
   }
 
   if (redisOptions.url || redisOptions.socket) {
@@ -63,7 +62,7 @@ const setup = (
 const getClient = () => redisClient.client;
 
 const close = (cb) => {
-  if (!redisClient.client || !redisClient.client.connected) {
+  if (!redisClient.client?.connected) {
     redisClient.client = null;
     if (cb) cb();
     return;

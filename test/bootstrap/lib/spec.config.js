@@ -109,7 +109,7 @@ describe("Config", () => {
 
   describe("get", () => {
     it("throws an error if no config is loaded", () => {
-      expect(() => config.get("key")).to.throw();
+      expect(() => config.get("key")).to.throw("Config not loaded");
     });
 
     it("returns a value from config", () => {

@@ -58,7 +58,7 @@ const linkedFiles = {
         super.middlewareDecodePayload(req, res, (err) => {
           if (err) return next(err);
 
-          if (!req.payload || !req.payload.files) return next();
+          if (!req.payload?.files) return next();
 
           req.payload.journeyKeys = req.payload.journeyKeys || {};
 
@@ -103,14 +103,14 @@ const linkedFiles = {
   },
 
   get(req, id, cb) {
-    if (!req.session.linkedFiles || !req.session.linkedFiles[id]) {
+    if (!req.session.linkedFiles?.[id]) {
       return cb(new Error("Linked file id not found " + id));
     }
     linkedFiles.getNoCheck(id, cb);
   },
 
   del(req, id, cb) {
-    if (!req.session.linkedFiles || !req.session.linkedFiles[id]) {
+    if (!req.session.linkedFiles?.[id]) {
       return cb(new Error("Linked file id not found " + id));
     }
     debug("Linked file deleted:", id);

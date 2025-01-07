@@ -12,7 +12,7 @@ const middleware =
         {
           headers: {
             [sessionIDHeader]: req.sessionID,
-            [scenarioIDHeader]: req.session && req.session.scenarioID,
+            [scenarioIDHeader]: req.session?.scenarioID,
           },
           logging: {
             req,
