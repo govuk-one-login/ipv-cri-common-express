@@ -5,7 +5,7 @@
 ### Simple usage
 
 ```
-const { setup } = require('hmpo-app');
+const { setup } = require('@govuk-one-login/di-ipv-cri-common-express').bootstrap;
 const { router } = setup();
 
 router.use('/', require('./routes/example'));
