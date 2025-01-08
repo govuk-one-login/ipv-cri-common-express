@@ -12,9 +12,9 @@ const middleware = ({ versionFile = "version.json" } = {}) => {
     debug("Error loading version json file", err.message);
   }
 
-  (versionJSON.appName = config.get("APP_NAME")),
-    (versionJSON.appVersion = config.get("APP_VERSION")),
-    (versionJSON.nodeVersion = process.versions.node);
+  versionJSON.appName = config.get("APP_NAME");
+  versionJSON.appVersion = config.get("APP_VERSION");
+  versionJSON.nodeVersion = process.versions.node;
   versionJSON.featureFlags = config.get("featureFlags");
 
   return (req, res, next) => res.send(versionJSON);
