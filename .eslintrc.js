@@ -10,6 +10,9 @@ module.exports = {
     sinon: true,
     expect: true,
     setupDefaultMocks: true,
+    APP_ROOT: "readonly",
+    LOGGER_RESET: "readonly",
+    CONFIG_RESET: "readonly",
   },
   extends: ["prettier", "eslint:recommended", "plugin:prettier/recommended"],
   ignorePatterns: ["wallaby.conf.js", "node_modules", "reports", "dist"],
@@ -19,10 +22,20 @@ module.exports = {
       "error",
       { blankLine: "any", prev: "*", next: "*" },
     ],
+    "no-unused-vars": ["error", { argsIgnorePattern: "(req|res|next)" }],
   },
   overrides: [
     {
       files: "**/*.test.js",
+      plugins: ["mocha"],
+      extends: ["plugin:mocha/recommended"],
+      rules: {
+        "mocha/no-mocha-arrows": 0,
+        "mocha/no-setup-in-describe": 0,
+      },
+    },
+    {
+      files: "**/spec**.js",
       plugins: ["mocha"],
       extends: ["plugin:mocha/recommended"],
       rules: {
