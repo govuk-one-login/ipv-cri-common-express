@@ -2,6 +2,7 @@ const helmetLib = require("helmet");
 const nocache = require("./nocache");
 const compatibility = require("./compatibility");
 const compression = require("compression");
+const { randomBytes } = require("crypto");
 
 const setup = (
   app,
@@ -14,6 +15,17 @@ const setup = (
 ) => {
   // Security
   if (helmet) {
+    app.use((_req, res, next) => {
+      randomBytes(16, (err, randomBytes) => {
+        if (err) {
+          next(err);
+        } else {
+          res.locals.cspNonce = randomBytes.toString("hex");
+          next();
+        }
+      });
+    });
+
     app.use(helmetLib(helmet));
   } else {
     app.disable("x-powered-by");
