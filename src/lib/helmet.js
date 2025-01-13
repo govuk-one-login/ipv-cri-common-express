@@ -1,5 +1,3 @@
-const { generateNonce } = require("./strings");
-
 module.exports = {
   contentSecurityPolicy: {
     directives: {
@@ -7,10 +5,7 @@ module.exports = {
       styleSrc: ["'self'"],
       scriptSrc: [
         "'self'",
-        (req, res) => {
-          res.locals.cspNonce = res.locals.cspNonce || generateNonce();
-          return `'nonce-${res.locals.cspNonce}'`;
-        },
+        (_req, res) => `'nonce-${res.locals.cspNonce}'`,
         "'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='",
         "https://www.googletagmanager.com",
         "https://www.google-analytics.com",
