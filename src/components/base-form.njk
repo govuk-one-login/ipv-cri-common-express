@@ -75,8 +75,8 @@
 
 {% block bodyEnd %}
   {% block scripts %}
-    <script type="text/javascript" src="/public/javascripts/all.js"></script>
-    <script type="text/javascript" src="/public/javascripts/analytics.js"></script>
+    <script type="text/javascript" {% if assets and assets['all.js'] %} src="/public/javascripts/{{ assets['all.js'] }}" {% else %} src="/public/javascripts/all.js"{% endif %}></script>
+    <script type="text/javascript" {% if assets and assets['analytics.js'] %} src="/public/javascripts/{{ assets['analytics.js'] }}" {% else %} src="/public/javascripts/analytics.js"{% endif %}></script>
     <script type="text/javascript" {% if cspNonce %} nonce="{{ cspNonce }}"{%  endif %}>
       window.GOVUKFrontend.initAll()
       window.DI.appInit({
