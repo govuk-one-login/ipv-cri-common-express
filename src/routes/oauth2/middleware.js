@@ -126,7 +126,7 @@ module.exports = {
         authParams: req.session.authParams,
       });
 
-      logger.debug("Redirecting to callback");
+      logger.info("Redirecting to callback");
 
       return res.redirect(redirectUrl.toString());
     } catch (e) {
