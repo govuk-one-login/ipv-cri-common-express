@@ -7,8 +7,6 @@ const DEFAULT_ERROR_DESCRIPTION = "general error";
 
 module.exports = {
   redirectAsErrorToCallback: async (err, req, res, next) => {
-    logger.debug("Error handling entered", err);
-
     let error = {
       code: DEFAULT_ERROR_CODE,
       description: DEFAULT_ERROR_DESCRIPTION,
@@ -17,8 +15,6 @@ module.exports = {
     let redirect_uri = req.session?.authParams?.redirect_uri;
 
     if (err.isAxiosError) {
-      logger.debug("isAxiosError", err.isAxiosError);
-
       const errorResponse = err?.response?.data;
 
       error.code =
@@ -43,7 +39,7 @@ module.exports = {
         },
       });
 
-      logger.debug("Redirecting to callback with error", error);
+      logger.info("Redirecting to callback with error", error);
 
       return res.redirect(redirectUrl.toString());
     } catch (e) {
