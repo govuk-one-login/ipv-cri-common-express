@@ -124,14 +124,14 @@ const middleware = {
     app = requiredArgument("app"),
     { port = 3000, host = "0.0.0.0" } = {},
   ) {
-    const server = app.listen(port, host, () => {
+    var server = app.listen(port, host, () => {
       logger.get().info("Listening on http://:listen", {
         bind: host,
         port,
         listen: (host === "0.0.0.0" ? "localhost" : host) + ":" + port,
       });
+      server.keepAliveTimeout = 65000;
     });
-    server.keepAliveTimeout = 65000;
   },
 };
 
