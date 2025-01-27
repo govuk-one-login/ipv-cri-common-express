@@ -56,13 +56,11 @@ const setup = (
       ...options.errors,
     });
 
-  if (options.port !== false) {
-    const server = middleware.listen(app, {
+  if (options.port !== false)
+    middleware.listen(app, {
       port: options.port || config.get("port"),
       host: options.host || config.get("host"),
     });
-    server.keepAliveTimeout = 65000;
-  }
 
   return { app, staticRouter, router, errorRouter };
 };
