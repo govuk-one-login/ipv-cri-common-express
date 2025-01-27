@@ -3,6 +3,9 @@ const config = require("./lib/config");
 const logger = require("./lib/logger");
 const middleware = require("./middleware");
 const redisClient = require("./lib/redis-client");
+const debug = require("debug");
+
+let server;
 
 const setup = (
   options = {
@@ -57,10 +60,21 @@ const setup = (
     });
 
   if (options.port !== false)
-    middleware.listen(app, {
+    server = middleware.listen(app, {
       port: options.port || config.get("port"),
       host: options.host || config.get("host"),
     });
+
+  process.on("SIGTERM", () => {
+    debug("SIGTERM signal received: closing HTTP server");
+    if (server) {
+      server.close(() => {
+        debug("HTTP server closed");
+      });
+    } else {
+      debug("No server instance to close");
+    }
+  });
 
   return { app, staticRouter, router, errorRouter };
 };
@@ -75,4 +89,5 @@ module.exports = {
   nunjucks: require("./middleware/nunjucks"),
   linkedFiles: require("./middleware/linked-files"),
   featureFlag: require("./middleware/feature-flag"),
+  server,
 };
