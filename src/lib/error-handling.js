@@ -27,6 +27,15 @@ module.exports = {
       redirect_uri = err?.response?.data?.redirect_uri || redirect_uri;
     }
 
+    if (
+      !redirect_uri &&
+      !req.session?.tokenId &&
+      !req.session?.authParams?.state
+    ) {
+      err.code = "MISSING_AUTHPARAMS";
+      return next(err);
+    }
+
     if (!redirect_uri) {
       return next(new Error("Missing redirect_uri"));
     }
