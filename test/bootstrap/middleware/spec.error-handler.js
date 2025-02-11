@@ -226,6 +226,12 @@ describe("Error Handler", () => {
         err = {};
       });
 
+      it("should set status code to 403 for MISSING_AUTHPARAMS error", () => {
+        err = { code: "MISSING_AUTHPARAMS" };
+        errorhandler(err, req, res, next);
+        res.statusCode.should.equal(403);
+      });
+
       it("sets a default template if no template is specified", () => {
         errorhandler(err, req, res, next);
         res.render.should.have.been.calledOnce;
