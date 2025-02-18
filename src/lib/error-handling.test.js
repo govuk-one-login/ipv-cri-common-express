@@ -350,5 +350,28 @@ describe("error-handling", () => {
         );
       });
     });
+
+    context("with a missing redirect_uri, tokenId, and state", () => {
+      beforeEach(async () => {
+        req.session = {
+          authParams: {
+            redirect_uri: undefined,
+            state: undefined,
+          },
+          tokenId: undefined,
+        };
+
+        await redirectAsErrorToCallback(err, req, res, next);
+      });
+
+      it("should not call res.redirect", () => {
+        expect(res.redirect).not.to.have.been.called;
+      });
+      it("should call next with err MISSING_AUTHPARAMS code", () => {
+        expect(next).to.have.been.calledWith(
+          sinon.match.has("code", "MISSING_AUTHPARAMS"),
+        );
+      });
+    });
   });
 });

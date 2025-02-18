@@ -26,6 +26,10 @@ const middleware =
       backLink = null;
     }
 
+    if (err.code === "MISSING_AUTHPARAMS") {
+      err.status = err.status || 403;
+    }
+
     if (res.finished || res._headerSent) {
       const logger = require("../lib/logger").get();
       return logger.error(
