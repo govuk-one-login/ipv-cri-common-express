@@ -53,7 +53,8 @@
     "lodash.differencewith": "4.5.0",
     "lodash.frompairs": "4.0.1",
     "nocache": "^3.0.4",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "overload-protection": "1.2.3"
   },
   "devDependencies": {
     "@govuk-one-login/frontend-passthrough-headers": ">=1.0.0",
