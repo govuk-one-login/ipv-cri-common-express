@@ -373,5 +373,40 @@ describe("error-handling", () => {
         );
       });
     });
+
+    context("MISSING_SESSION_DATA error", () => {
+      beforeEach(() => {
+        err = {
+          code: "MISSING_SESSION_DATA",
+          status: 401,
+        };
+      });
+      it("should call next with err MISSING_SESSION_DATA code", async () => {
+        await redirectAsErrorToCallback(err, req, res, next);
+
+        expect(next).to.have.been.calledWith({
+          code: "MISSING_SESSION_DATA",
+          status: 401,
+        });
+      });
+      it("should not call res.redirect", async () => {
+        await redirectAsErrorToCallback(err, req, res, next);
+
+        expect(res.redirect).not.to.have.been.called;
+      });
+      it("should prioritise MISSING_SESSION_DATA before MISSING_AUTHPARAMS when error code explictly set in err ", async () => {
+        req.session = {
+          authParams: {
+            redirect_uri: undefined,
+            state: undefined,
+          },
+          tokenId: undefined,
+        };
+
+        await redirectAsErrorToCallback(err, req, res, next);
+
+        expect(res.redirect).not.to.have.been.called;
+      });
+    });
   });
 });
