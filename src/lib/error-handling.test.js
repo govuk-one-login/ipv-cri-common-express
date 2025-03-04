@@ -405,6 +405,10 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
+        expect(next).to.have.been.calledWith({
+          code: "MISSING_SESSION_DATA",
+          status: 401,
+        });
         expect(res.redirect).not.to.have.been.called;
       });
     });
