@@ -27,6 +27,10 @@ module.exports = {
       redirect_uri = err?.response?.data?.redirect_uri || redirect_uri;
     }
 
+    if (err.code === "MISSING_SESSION_DATA" && err.status === 401) {
+      return next(err);
+    }
+
     if (
       !redirect_uri &&
       !req.session?.tokenId &&
