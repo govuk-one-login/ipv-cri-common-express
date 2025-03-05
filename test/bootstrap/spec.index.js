@@ -18,16 +18,28 @@ describe("hmpo-app", () => {
 
   describe("setup", () => {
     let app;
+    let staticRouter;
+    let router;
+    let errorRouter;
 
     beforeEach(() => {
       app = {
         use: sinon.stub(),
         get: sinon.stub(),
       };
+      staticRouter = {
+        use: sinon.stub(),
+      };
+      router = {
+        use: sinon.stub(),
+      };
+      errorRouter = {
+        use: sinon.stub(),
+      };
       sinon.stub(express, "Router");
-      express.Router.onCall(0).returns("staticRouter");
-      express.Router.onCall(1).returns("router");
-      express.Router.onCall(2).returns("errorRouter");
+      express.Router.onCall(0).returns(staticRouter);
+      express.Router.onCall(1).returns(router);
+      express.Router.onCall(2).returns(errorRouter);
       sinon.stub(index.config, "get");
       sinon.stub(index.config, "setup");
       sinon.stub(index.logger, "setup");
@@ -154,9 +166,9 @@ describe("hmpo-app", () => {
       const routers = index.setup();
       routers.should.eql({
         app,
-        staticRouter: "staticRouter",
-        router: "router",
-        errorRouter: "errorRouter",
+        staticRouter: staticRouter,
+        router: router,
+        errorRouter: errorRouter,
       });
     });
   });
