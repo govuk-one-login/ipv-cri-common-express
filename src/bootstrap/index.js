@@ -3,12 +3,21 @@ const config = require("./lib/config");
 const logger = require("./lib/logger");
 const middleware = require("./middleware");
 const redisClient = require("./lib/redis-client");
+const {
+  configure: configureOverloadProtection,
+} = require("./lib/overload-protection");
 
 const setup = (
   options = {
     middlewareSetupFn: undefined,
+    overloadProtection: undefined,
   },
 ) => {
+  const protect = require("overload-protection")(
+    "express",
+    configureOverloadProtection(options.overloadProtection),
+  );
+
   if (options.config !== false) config.setup(options.config);
 
   if (options.logs !== false)
@@ -36,6 +45,7 @@ const setup = (
   }
 
   const staticRouter = express.Router();
+  staticRouter.use(protect);
   app.use(staticRouter);
 
   if (options.session !== false)
@@ -45,9 +55,11 @@ const setup = (
     });
 
   const router = express.Router();
+  router.use(protect);
   app.use(router);
 
   const errorRouter = express.Router();
+  errorRouter.use(protect);
   app.use(errorRouter);
 
   if (options.errors !== false)
