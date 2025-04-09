@@ -34,10 +34,10 @@ module.exports = {
 
   setDeviceIntelligence: ({
     app,
-    useDeviceIntelligence,
+    deviceIntelligenceEnabled,
     deviceIntelligenceDomain,
   }) => {
-    app.set("APP.USE_DEVICE_INTELLIGENCE", useDeviceIntelligence);
+    app.set("APP.DEVICE_INTELLIGENCE_ENABLED", deviceIntelligenceEnabled);
     app.set("APP.DEVICE_INTELLIGENCE_DOMAIN", deviceIntelligenceDomain);
   },
 };

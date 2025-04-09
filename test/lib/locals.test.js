@@ -68,7 +68,7 @@ describe("setDeviceIntelligence / getDeviceIntelligence", () => {
     });
     setDeviceIntelligence({
       app,
-      useDeviceIntelligence: "useDeviceIntelligenceTest",
+      deviceIntelligenceEnabled: "deviceIntelligenceEnabledTest",
       deviceIntelligenceDomain: "deviceIntelligenceDomainTest",
     });
     const req = reqres.req({ url: TEST_ROUTE });
@@ -76,7 +76,7 @@ describe("setDeviceIntelligence / getDeviceIntelligence", () => {
     const res = reqres.res();
     router(req, res, () => {
       res.locals.should.eql({
-        useDeviceIntelligence: "useDeviceIntelligenceTest",
+        deviceIntelligenceEnabled: "deviceIntelligenceEnabledTest",
         deviceIntelligenceDomain: "deviceIntelligenceDomainTest",
       });
     });
