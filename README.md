@@ -48,6 +48,8 @@ Several environment variables are declared within the CRIs and then used within 
 - `GA4_FORM_CHANGE_ENABLED` - Feature flag to enable GA4 form change tracking, required
 - `GA4_NAVIGATION_ENABLED` - Feature flag to enable GA4 navigation tracking, required
 - `GA4_SELECT_CONTENT_ENABLED` - Feature flag to enable GA4 select content tracking, required
+- `DEVICE_INTELLIGENCE_ENABLED` - Feature flag to enable device intelligence fingerprint component
+- `DEVICE_INTELLIGENCE_DOMAIN` - Cookie domain for device intelligence fingerprint component, required
 
 # Installation
 

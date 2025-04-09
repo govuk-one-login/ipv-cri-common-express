@@ -92,5 +92,14 @@
         }
       );
     </script>
+
+    {% if deviceIntelligenceEnabled %}
+    <script type="module" src="/public/javascripts/deviceIntelligence.js"></script>
+    <script type="module" {% if cspNonce %} nonce="{{ cspNonce }}"{%  endif %}>
+      import { setFingerprintCookie } from "/public/javascripts/deviceIntelligence.js";
+      setFingerprintCookie("{{deviceIntelligenceDomain}}")
+    </script>
+    {% endif %}
+
   {% endblock %}
 {% endblock %}
