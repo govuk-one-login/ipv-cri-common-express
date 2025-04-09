@@ -33,7 +33,7 @@ module.exports = {
     );
     next();
   },
-  
+
   getAssetPath: function (req, res, next) {
     res.locals.assetPath = req.app.get("APP.ASSET_PATH");
     next();
@@ -54,8 +54,12 @@ module.exports = {
   },
 
   getDeviceIntelligence: function (req, res, next) {
-    res.locals.useDeviceIntelligence = req.app.get("APP.USE_DEVICE_INTELLIGENCE");
-    res.locals.deviceIntelligenceDomain = req.app.get("APP.DEVICE_INTELLIGENCE_DOMAIN");
+    res.locals.useDeviceIntelligence = req.app.get(
+      "APP.USE_DEVICE_INTELLIGENCE",
+    );
+    res.locals.deviceIntelligenceDomain = req.app.get(
+      "APP.DEVICE_INTELLIGENCE_DOMAIN",
+    );
     next();
   },
 };

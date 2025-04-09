@@ -2,9 +2,12 @@ const express = require("express");
 const reqres = require("reqres");
 const sinon = require("sinon");
 const { expect } = require("chai");
-const { setGTM } = require("../../src/lib/settings");
-const { getGTM } = require("../../src/lib/locals");
-const { getLanguageToggle } = require("../../src/lib/locals");
+const { setGTM, setDeviceIntelligence } = require("../../src/lib/settings");
+const {
+  getGTM,
+  getDeviceIntelligence,
+  getLanguageToggle,
+} = require("../../src/lib/locals");
 const { PACKAGE_NAME } = require("../../src/lib/constants");
 const logger = require("hmpo-logger").get(PACKAGE_NAME);
 
@@ -49,6 +52,32 @@ describe("setGTM / getGTM", () => {
         ga4NavigationEnabled: "ga4NavigationEnabledTest",
         ga4SelectContentEnabled: "ga4SelectContentEnabledTest",
         analyticsDataSensitive: "analyticsDataSensitiveTest",
+      });
+    });
+  });
+});
+
+describe("setDeviceIntelligence / getDeviceIntelligence", () => {
+  it("Sets express config and retrieves it", () => {
+    const TEST_ROUTE = "/test";
+    const app = express();
+    const router = express.Router();
+    router.use(getDeviceIntelligence);
+    router.route(TEST_ROUTE).get((req, res, next) => {
+      next();
+    });
+    setDeviceIntelligence({
+      app,
+      useDeviceIntelligence: "useDeviceIntelligenceTest",
+      deviceIntelligenceDomain: "deviceIntelligenceDomainTest",
+    });
+    const req = reqres.req({ url: TEST_ROUTE });
+    req.app = app;
+    const res = reqres.res();
+    router(req, res, () => {
+      res.locals.should.eql({
+        useDeviceIntelligence: "useDeviceIntelligenceTest",
+        deviceIntelligenceDomain: "deviceIntelligenceDomainTest",
       });
     });
   });
