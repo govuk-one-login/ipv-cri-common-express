@@ -92,6 +92,15 @@
         cookieDomain:"{{analyticsCookieDomain}}",
         isDataSensitive:{{analyticsDataSensitive}}
       });
+    </script> 
+
+    {% if useDeviceIntelligence %}
+    <script type="module" src="/public/javascripts/deviceIntelligence.js"></script>
+    <script type="module">
+      import { setFingerprintCookie } from "/public/javascripts/deviceIntelligence.js";
+      setFingerprintCookie("{{deviceIntelligenceDomain}}")
     </script>
+  {% endif %}
+
   {% endblock %}
 {% endblock %}

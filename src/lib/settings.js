@@ -31,4 +31,9 @@ module.exports = {
   setLanguageToggle: ({ app, showLanguageToggle }) => {
     app.set("APP.LANGUAGE_TOGGLE_ENABLED", showLanguageToggle);
   },
+
+  setDeviceIntelligence: ({ app, useDeviceIntelligence, deviceIntelligenceDomain }) => {
+    app.set("APP.USE_DEVICE_INTELLIGENCE", useDeviceIntelligence);
+    app.set("APP.GTM.DEVICE_INTELLIGENCE_DOMAIN", deviceIntelligenceDomain);
+  },
 };
