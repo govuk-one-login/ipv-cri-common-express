@@ -58,7 +58,7 @@ describe("setGTM / getGTM", () => {
 });
 
 describe("setDeviceIntelligence / getDeviceIntelligence", () => {
-  it("Sets express config and retrieves it", () => {
+  it("Sets express config with boolean toggle and retrieves it", () => {
     const TEST_ROUTE = "/test";
     const app = express();
     const router = express.Router();
@@ -68,7 +68,7 @@ describe("setDeviceIntelligence / getDeviceIntelligence", () => {
     });
     setDeviceIntelligence({
       app,
-      deviceIntelligenceEnabled: "deviceIntelligenceEnabledTest",
+      deviceIntelligenceEnabled: "true",
       deviceIntelligenceDomain: "deviceIntelligenceDomainTest",
     });
     const req = reqres.req({ url: TEST_ROUTE });
@@ -76,7 +76,7 @@ describe("setDeviceIntelligence / getDeviceIntelligence", () => {
     const res = reqres.res();
     router(req, res, () => {
       res.locals.should.eql({
-        deviceIntelligenceEnabled: "deviceIntelligenceEnabledTest",
+        deviceIntelligenceEnabled: true,
         deviceIntelligenceDomain: "deviceIntelligenceDomainTest",
       });
     });
