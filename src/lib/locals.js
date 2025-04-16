@@ -55,7 +55,8 @@ module.exports = {
 
   getDeviceIntelligence: function (req, res, next) {
     const toggleValue = req.app.get("APP.DEVICE_INTELLIGENCE_ENABLED");
-    res.locals.deviceIntelligenceEnabled = toggleValue && toggleValue === "1";
+    res.locals.deviceIntelligenceEnabled =
+      toggleValue && toggleValue === "true";
     res.locals.deviceIntelligenceDomain = req.app.get(
       "APP.DEVICE_INTELLIGENCE_DOMAIN",
     );

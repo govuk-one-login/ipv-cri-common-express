@@ -68,7 +68,7 @@ describe("setDeviceIntelligence / getDeviceIntelligence", () => {
     });
     setDeviceIntelligence({
       app,
-      deviceIntelligenceEnabled: "1",
+      deviceIntelligenceEnabled: "true",
       deviceIntelligenceDomain: "deviceIntelligenceDomainTest",
     });
     const req = reqres.req({ url: TEST_ROUTE });
