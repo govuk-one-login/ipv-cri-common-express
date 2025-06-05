@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const config = require("../lib/config");
 const nunjucks = require("nunjucks");
+const frontendUi = require("@govuk-one-login/frontend-ui");
 
 const setup = (app, { views = "views", ...otherOptions } = {}) => {
   const isDevEnv = Boolean(app.get("dev"));
@@ -17,6 +18,10 @@ const setup = (app, { views = "views", ...otherOptions } = {}) => {
       "components",
     ),
     path.resolve(path.dirname(require.resolve("govuk-frontend")), ".."),
+    path.resolve(
+      path.dirname(require.resolve("@govuk-one-login/frontend-ui")),
+      "..",
+    ),
   ];
 
   views = views
@@ -35,6 +40,13 @@ const setup = (app, { views = "views", ...otherOptions } = {}) => {
 
   app.set("view engine", "html");
   app.set("nunjucks", nunjucksEnv);
+
+  nunjucksEnv.addGlobal("addLanguageParam", frontendUi.addLanguageParam);
+  nunjucksEnv.addGlobal("contactUsUrl", frontendUi.contactUsUrl);
+  nunjucksEnv.addGlobal(
+    "May_2025_Rebrand",
+    process.env.May_2025_Rebrand == "true",
+  );
 
   return nunjucksEnv;
 };
