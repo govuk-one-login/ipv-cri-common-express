@@ -18,10 +18,7 @@ const setup = (app, { views = "views", ...otherOptions } = {}) => {
       "components",
     ),
     path.resolve(path.dirname(require.resolve("govuk-frontend")), ".."),
-    path.resolve(
-      path.dirname(require.resolve("@govuk-one-login/frontend-ui")),
-      "..",
-    ),
+    path.resolve("node_modules/@govuk-one-login/"),
   ];
 
   views = views
@@ -38,15 +35,17 @@ const setup = (app, { views = "views", ...otherOptions } = {}) => {
     ...otherOptions,
   });
 
-  app.set("view engine", "html");
-  app.set("nunjucks", nunjucksEnv);
-
   nunjucksEnv.addGlobal("addLanguageParam", frontendUi.addLanguageParam);
   nunjucksEnv.addGlobal("contactUsUrl", frontendUi.contactUsUrl);
   nunjucksEnv.addGlobal(
     "May_2025_Rebrand",
     process.env.May_2025_Rebrand == "true",
   );
+
+  app.set("view engine", "html");
+  app.set("nunjucks", nunjucksEnv);
+
+
 
   return nunjucksEnv;
 };
