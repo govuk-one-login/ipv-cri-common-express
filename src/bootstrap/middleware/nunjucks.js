@@ -38,7 +38,12 @@ const setup = (app, { views = "views", ...otherOptions } = {}) => {
   app.set("view engine", "html");
   app.set("nunjucks", nunjucksEnv);
 
-
+  nunjucksEnv.addGlobal("addLanguageParam", frontendUi.addLanguageParam);
+  nunjucksEnv.addGlobal("contactUsUrl", frontendUi.contactUsUrl);
+  nunjucksEnv.addGlobal(
+    "May_2025_Rebrand",
+    process.env.May_2025_Rebrand == "true",
+  );
 
   return nunjucksEnv;
 };

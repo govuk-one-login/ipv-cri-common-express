@@ -15,6 +15,7 @@ describe("nunjucks middleware", () => {
 
     sinon.stub(nunjucks, "configure");
     nunjucksEnv = {};
+    nunjucksEnv.addGlobal = sinon.stub();
     nunjucks.configure.returns(nunjucksEnv);
   });
 
@@ -29,6 +30,7 @@ describe("nunjucks middleware", () => {
         APP_ROOT + "/test/bootstrap/fixtures/views",
         APP_ROOT + "/node_modules/hmpo-components/components",
         APP_ROOT + "/node_modules/govuk-frontend",
+        APP_ROOT + "/node_modules/@govuk-one-login",
       ],
       {
         express: app,
@@ -46,6 +48,7 @@ describe("nunjucks middleware", () => {
         APP_ROOT + "/test/bootstrap/fixtures/views",
         APP_ROOT + "/node_modules/hmpo-components/components",
         APP_ROOT + "/node_modules/govuk-frontend",
+        APP_ROOT + "/node_modules/@govuk-one-login",
       ],
       sinon.match.object,
     );
