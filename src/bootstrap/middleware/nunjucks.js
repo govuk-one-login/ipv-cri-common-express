@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const config = require("../lib/config");
 const nunjucks = require("nunjucks");
+const frontendUi = require("@govuk-one-login/frontend-ui");
 
 const setup = (app, { views = "views", ...otherOptions } = {}) => {
   const isDevEnv = Boolean(app.get("dev"));
@@ -17,6 +18,7 @@ const setup = (app, { views = "views", ...otherOptions } = {}) => {
       "components",
     ),
     path.resolve(path.dirname(require.resolve("govuk-frontend")), ".."),
+    path.resolve("node_modules/@govuk-one-login/"),
   ];
 
   views = views
@@ -32,6 +34,13 @@ const setup = (app, { views = "views", ...otherOptions } = {}) => {
     watch: isDevEnv,
     ...otherOptions,
   });
+
+  nunjucksEnv.addGlobal("addLanguageParam", frontendUi.addLanguageParam);
+  nunjucksEnv.addGlobal("contactUsUrl", frontendUi.contactUsUrl);
+  nunjucksEnv.addGlobal(
+    "MAY_2025_REBRAND_ENABLED",
+    process.env.MAY_2025_REBRAND_ENABLED === "true",
+  );
 
   app.set("view engine", "html");
   app.set("nunjucks", nunjucksEnv);
