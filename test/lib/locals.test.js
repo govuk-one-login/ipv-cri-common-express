@@ -8,8 +8,7 @@ const {
   getDeviceIntelligence,
   getLanguageToggle,
 } = require("../../src/lib/locals");
-const { PACKAGE_NAME } = require("../../src/lib/constants");
-const logger = require("hmpo-logger").get(PACKAGE_NAME);
+const logger = require("../bootstrap/lib/spec.logger");
 
 describe("setGTM / getGTM", () => {
   it("Sets express config and retrieves it", () => {

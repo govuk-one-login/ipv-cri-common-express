@@ -1,6 +1,6 @@
 const path = require("path");
 const express = require("express");
-const logger = require("../lib/logger");
+const { logger } = require("../lib/logger");
 
 const requiredArgument = (argName) => {
   throw new Error(`Argument '${argName}' must be specified`);
@@ -25,7 +25,7 @@ const middleware = {
     modelOptions: modelOptionsConfig,
     cookies: cookieOptions,
   } = {}) {
-    const hmpoLogger = require("hmpo-logger");
+    const { logger } = require("../lib/logger");
     const healthcheck = require("./healthcheck");
     const modelOptions = require("./model-options");
     const featureFlag = require("./feature-flag");
@@ -81,8 +81,7 @@ const middleware = {
     app.use(modelOptions.middleware(modelOptionsConfig));
     app.use(bodyParser.urlencoded({ extended: true }));
 
-    // logging
-    if (requestLogging) app.use(hmpoLogger.middleware(":request"));
+    if (requestLogging) app.use(logger.middleware(":request"));
 
     Object.assign(app.locals, {
       baseUrl: "/",

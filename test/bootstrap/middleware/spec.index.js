@@ -95,7 +95,7 @@ describe("middleware functions", () => {
       middleware = proxyquire(APP_ROOT + "/src/bootstrap/middleware", {
         express: stubs.express,
         "body-parser": stubs.bodyParser,
-        "hmpo-logger": stubs.hmpoLogger,
+        pino: stubs.pino,
         "hmpo-components": stubs.hmpoComponents,
         "./nunjucks": stubs.nunjucks,
         "./public": stubs.public,
