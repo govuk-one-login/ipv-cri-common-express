@@ -1,6 +1,6 @@
 const path = require("path");
 const express = require("express");
-const { logger } = require("../lib/logger");
+// logger is required lazily inside functions to keep test proxyquire stubs simple
 
 const requiredArgument = (argName) => {
   throw new Error(`Argument '${argName}' must be specified`);
@@ -25,7 +25,7 @@ const middleware = {
     modelOptions: modelOptionsConfig,
     cookies: cookieOptions,
   } = {}) {
-    const { logger } = require("../lib/logger");
+    const logger = require("../lib/logger");
     const healthcheck = require("./healthcheck");
     const modelOptions = require("./model-options");
     const featureFlag = require("./feature-flag");
@@ -81,7 +81,21 @@ const middleware = {
     app.use(modelOptions.middleware(modelOptionsConfig));
     app.use(bodyParser.urlencoded({ extended: true }));
 
-    if (requestLogging) app.use(logger.middleware(":request"));
+    if (requestLogging) {
+      // register a simple request-logging middleware using the new logger interface
+      app.use((req, res, next) => {
+        try {
+          logger.get(":request").info("request", {
+            method: req.method,
+            url: req.originalUrl || req.url,
+            headers: req.headers,
+          });
+        } catch (e) {
+          // failing to log should not break the request lifecycle
+        }
+        next();
+      });
+    }
 
     Object.assign(app.locals, {
       baseUrl: "/",
@@ -124,11 +138,13 @@ const middleware = {
     { port = 3000, host = "0.0.0.0" } = {},
   ) {
     app.listen(port, host, () => {
-      logger.get().info("Listening on http://:listen", {
-        bind: host,
-        port,
-        listen: (host === "0.0.0.0" ? "localhost" : host) + ":" + port,
-      });
+      require("../lib/logger")
+        .get()
+        .info("Listening on http://:listen", {
+          bind: host,
+          port,
+          listen: (host === "0.0.0.0" ? "localhost" : host) + ":" + port,
+        });
     });
   },
 };

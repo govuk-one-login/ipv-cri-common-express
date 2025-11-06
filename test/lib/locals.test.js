@@ -3,12 +3,12 @@ const reqres = require("reqres");
 const sinon = require("sinon");
 const { expect } = require("chai");
 const { setGTM, setDeviceIntelligence } = require("../../src/lib/settings");
+const logger = LOGGER_RESET();
 const {
   getGTM,
   getDeviceIntelligence,
   getLanguageToggle,
 } = require("../../src/lib/locals");
-const logger = require("../bootstrap/lib/spec.logger");
 
 describe("setGTM / getGTM", () => {
   it("Sets express config and retrieves it", () => {
@@ -91,7 +91,7 @@ describe("getLanguageToggle middleware", () => {
         get: sinon.stub(),
       },
       protocol: "https",
-      get: sinon.stub().withArgs("host").returns("example.com"), // Default behavior for host,
+      get: sinon.stub().withArgs("host").returns("example.com"), // Default behavior for host
       originalUrl: "/test-path",
       i18n: {
         language: "en",
@@ -103,11 +103,11 @@ describe("getLanguageToggle middleware", () => {
     };
 
     next = sinon.spy();
-    sinon.stub(logger, "error");
+    logger.error.resetHistory();
   });
 
   afterEach(() => {
-    sinon.restore(); // Restore mocked methods
+    sinon.restore();
   });
 
   it("should log an error if constructing currentUrl fails", () => {

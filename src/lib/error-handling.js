@@ -1,5 +1,5 @@
 const oAuth = require("./oauth");
-const { logger } = require("../bootstrap/lib/logger");
+const logger = require("../bootstrap/lib/logger");
 
 const DEFAULT_ERROR_CODE = "server_error";
 const DEFAULT_ERROR_DESCRIPTION = "general error";
@@ -51,7 +51,11 @@ module.exports = {
         },
       });
 
-      logger.info("Redirecting to callback with error", error);
+      logger.get().info("Redirecting to callback", {
+        oauthErrorPresent: !!err?.response?.data?.oauth_error,
+        statusCode: err?.response?.status,
+        hasRedirectUri: !!redirect_uri,
+      });
 
       return res.redirect(redirectUrl.toString());
     } catch (e) {

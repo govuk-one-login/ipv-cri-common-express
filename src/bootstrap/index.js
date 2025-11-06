@@ -1,6 +1,6 @@
 const express = require("express");
 const config = require("./lib/config");
-const { logger } = require("./lib/logger");
+const logger = require("./lib/logger");
 const middleware = require("./middleware");
 const redisClient = require("./lib/redis-client");
 const {

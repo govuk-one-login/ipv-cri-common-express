@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { logger } = require("../bootstrap/lib/logger");
+const logger = require("../bootstrap/lib/logger");
 const userIpAddress = require("./user-ip-address");
 const { PACKAGE_NAME } = require("./constants");
 

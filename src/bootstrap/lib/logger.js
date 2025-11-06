@@ -6,7 +6,7 @@ const setup = (options = config.get("logs", {})) => pino.config(options);
 
 const loggers = new Map();
 
-const get = (name, level = 1) => {
+const get = (name) => {
   if (loggers.has(name)) return loggers.get(name);
 
   const logger = pino({
@@ -17,7 +17,7 @@ const get = (name, level = 1) => {
       level(label) {
         return { level: label.toUpperCase() };
       },
-    }
+    },
   });
 
   loggers.set(name, logger);
@@ -25,8 +25,21 @@ const get = (name, level = 1) => {
   return logger;
 };
 
+const middleware = (name) => {
+  return (req, res, next) => {
+    try {
+      const log = get(name);
+      log.info(":clientip :verb :request", { req });
+    } catch (e) {
+      // swallow logging errors in middleware
+    }
+
+    next();
+  };
+};
+
 module.exports = Object.assign(get, {
   setup,
   get,
+  middleware,
 });
-

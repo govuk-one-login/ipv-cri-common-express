@@ -1,4 +1,4 @@
-const { logger } = require("../bootstrap/lib/logger");
+const logger = require("../bootstrap/lib/logger");
 
 module.exports = {
   getGTM: function (req, res, next) {
@@ -47,7 +47,9 @@ module.exports = {
         req.protocol + "://" + req.get("host") + req.originalUrl,
       );
     } catch (e) {
-      logger.error("Error constructing url for language toggle", e.message);
+      logger
+        .get()
+        .error("Error constructing url for language toggle", e.message);
     }
     next();
   },

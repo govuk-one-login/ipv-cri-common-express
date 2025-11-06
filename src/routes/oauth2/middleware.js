@@ -1,4 +1,5 @@
 const { buildRedirectUrl } = require("../../lib/oauth");
+const logger = require("../../bootstrap/lib/logger");
 const {
   createPersonalDataHeaders,
 } = require("@govuk-one-login/frontend-passthrough-headers");
@@ -49,11 +50,11 @@ module.exports = {
         );
 
         if (!apiResponse?.data["session_id"]) {
-          logger.warn("No session ID in session response");
+          logger.get().warn("No session ID in session response");
         }
 
         if (!apiResponse?.data?.redirect_uri) {
-          logger.warn("No redirect URI in session response");
+          logger.get().warn("No redirect URI in session response");
         }
 
         req.session.tokenId = apiResponse?.data["session_id"];
@@ -124,7 +125,7 @@ module.exports = {
         authParams: req.session.authParams,
       });
 
-      logger.info("Redirecting to callback");
+      logger.get().info("Redirecting to callback");
 
       return res.redirect(redirectUrl.toString());
     } catch (e) {
