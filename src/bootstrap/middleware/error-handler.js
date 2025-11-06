@@ -50,7 +50,7 @@ const middleware =
     if (!err.template) {
       err.template = defaultErrorView;
       const log = require("../lib/logger").get();
-      log.error(":clientip :verb :request :err.message", { req, err }); 
+      log.error(":clientip :verb :request :err.message", { req, err });
     }
 
     err.status = err.status || 500;
