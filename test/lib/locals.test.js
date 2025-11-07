@@ -9,7 +9,9 @@ const {
   getLanguageToggle,
 } = require("../../src/lib/locals");
 const { PACKAGE_NAME } = require("../../src/lib/constants");
-const logger = require("hmpo-logger").get(PACKAGE_NAME);
+const logger = require(APP_ROOT + "/src/bootstrap/lib/logger").get(
+  PACKAGE_NAME,
+);
 
 describe("setGTM / getGTM", () => {
   it("Sets express config and retrieves it", () => {

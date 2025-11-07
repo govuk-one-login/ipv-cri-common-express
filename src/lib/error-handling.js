@@ -1,6 +1,6 @@
 const oAuth = require("./oauth");
 const { PACKAGE_NAME } = require("./constants");
-const logger = require("hmpo-logger").get(PACKAGE_NAME);
+const logger = require("../bootstrap/lib/logger").get(PACKAGE_NAME);
 
 const DEFAULT_ERROR_CODE = "server_error";
 const DEFAULT_ERROR_DESCRIPTION = "general error";
