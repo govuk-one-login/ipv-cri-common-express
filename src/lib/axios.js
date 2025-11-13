@@ -3,7 +3,7 @@ const logger = require("../bootstrap/lib/logger");
 const userIpAddress = require("./user-ip-address");
 const { PACKAGE_NAME } = require("./constants");
 
-module.exports = function (req, res, next) {
+module.exports = function request(req, res, next) {
   const baseURL = req.app.get("API.BASE_URL");
 
   if (!baseURL) {

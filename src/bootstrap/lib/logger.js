@@ -17,7 +17,7 @@ const redactQueryParams = (url) => {
         }
       }
       return parsedUrl.href.replace(BASE_PLACEHOLDER, "");
-    } catch (err) {
+    } catch {
       // ignore
     }
   }
@@ -65,4 +65,5 @@ const get = (name = ":hmpo-app", level = 1) => {
 module.exports = Object.assign(get, {
   setup,
   get,
+  redactQueryParams,
 });

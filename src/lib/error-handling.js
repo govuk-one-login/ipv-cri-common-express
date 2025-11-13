@@ -55,7 +55,7 @@ module.exports = {
       logger.info("Redirecting to callback with error", error);
 
       return res.redirect(redirectUrl.toString());
-    } catch (e) {
+    } catch {
       return next(err);
     }
   },
