@@ -1,5 +1,5 @@
 const { PACKAGE_NAME } = require("../lib/constants");
-const logger = require("hmpo-logger").get(PACKAGE_NAME);
+const logger = require("../bootstrap/lib/logger").get(PACKAGE_NAME);
 
 module.exports = {
   getGTM: function (req, res, next) {

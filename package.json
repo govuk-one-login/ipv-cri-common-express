@@ -39,6 +39,7 @@
     "test:watch": "mocha --watch"
   },
   "dependencies": {
+    "@govuk-one-login/frontend-ui": "^2.0.0",
     "async": "^3.2.6",
     "compression": "^1.7.5",
     "connect-redis": "6.1.3",
@@ -53,9 +54,10 @@
     "lodash.differencewith": "4.5.0",
     "lodash.frompairs": "4.0.1",
     "nocache": "^3.0.4",
-    "redis": "^4.7.0",
     "overload-protection": "1.2.3",
-    "@govuk-one-login/frontend-ui": "^2.0.0"
+    "pino": "^10.1.0",
+    "pino-http": "^11.0.0",
+    "redis": "^4.7.0"
   },
   "devDependencies": {
     "@govuk-one-login/frontend-passthrough-headers": ">=1.0.0",

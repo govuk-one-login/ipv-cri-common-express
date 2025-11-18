@@ -9,7 +9,7 @@ const {
   getLanguageToggle,
 } = require("../../src/lib/locals");
 const { PACKAGE_NAME } = require("../../src/lib/constants");
-const logger = require("hmpo-logger").get(PACKAGE_NAME);
+const logger = require("../../src/bootstrap/lib/logger").get(PACKAGE_NAME);
 
 describe("setGTM / getGTM", () => {
   it("Sets express config and retrieves it", () => {
@@ -104,7 +104,6 @@ describe("getLanguageToggle middleware", () => {
     };
 
     next = sinon.spy();
-    sinon.stub(logger, "error");
   });
 
   afterEach(() => {
