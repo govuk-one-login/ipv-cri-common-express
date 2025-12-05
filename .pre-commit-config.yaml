@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
         exclude: package-lock.json
@@ -21,7 +21,18 @@ repos:
         files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
         types: [file]
         args: ["."]
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
+  - repo: local
     hooks:
       - id: prettier
+        name: prettier
+        language: system
+        files: ^.*$
+        exclude: |
+          (?x)^(
+            package-lock\.json|
+            LICENSE|
+            \.npmrc|
+            \.secrets\.baseline|
+            \.git/.+
+          )$
+        entry: npx prettier --check
