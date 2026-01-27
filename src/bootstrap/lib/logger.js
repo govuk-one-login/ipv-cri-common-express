@@ -34,7 +34,7 @@ const get = (name = ":hmpo-app", level = 1) => {
     return pinoLoggers.get(name);
   }
   let newPinoLogger = pino({
-    name: ":hmpo-app",
+    name,
     level: process.env.LOGS_LEVEL ?? "info",
     messageKey: "message", // rename default msg property to message,
     formatters: {
