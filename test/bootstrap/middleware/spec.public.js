@@ -74,7 +74,7 @@ describe("Public static assets", () => {
       express.static
         .getCall(3)
         .should.have.been.calledWithExactly(
-          APP_ROOT + "/node_modules/govuk-frontend/govuk/assets",
+          APP_ROOT + "/node_modules/govuk-frontend/dist/govuk/assets",
           { maxAge: 86400000 },
         );
     });
