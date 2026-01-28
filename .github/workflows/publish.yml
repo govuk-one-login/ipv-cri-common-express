@@ -12,6 +12,7 @@ jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
+    environment: npm-publish
     steps:
       - name: Publish
         uses: govuk-one-login/github-actions/node/run-script@4616241694c035be4ea4a10fc0fe6521c0f079f8
