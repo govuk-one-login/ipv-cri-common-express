@@ -15,9 +15,7 @@ jobs:
     steps:
       - name: Publish
         uses: govuk-one-login/github-actions/node/run-script@4616241694c035be4ea4a10fc0fe6521c0f079f8
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         with:
-          node-version: 20.x
+          node-version: 24.x
           registry-url: https://registry.npmjs.org
           script: npm publish --provenance --access public
