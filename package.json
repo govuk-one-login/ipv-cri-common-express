@@ -39,7 +39,7 @@
     "test:watch": "mocha --watch"
   },
   "dependencies": {
-    "@govuk-one-login/frontend-ui": "4.2.2",
+    "@govuk-one-login/frontend-ui": "5.0.0",
     "async": "3.2.6",
     "compression": "1.8.1",
     "connect-redis": "6.1.3",
