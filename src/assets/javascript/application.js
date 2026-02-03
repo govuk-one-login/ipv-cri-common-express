@@ -1,5 +1,3 @@
-window.GOVUKFrontend.initAll();
-
 window.DI = window.DI || {};
 
 (function (DI) {
