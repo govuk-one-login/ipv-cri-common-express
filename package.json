@@ -1,6 +1,6 @@
 {
   "name": "@govuk-one-login/di-ipv-cri-common-express",
-  "version": "13.0.0",
+  "version": "13.0.1",
   "description": "Express libraries and utilities for use building GOV.UK One Login Credential Issuers",
   "main": "src/index.js",
   "files": [
@@ -39,7 +39,7 @@
     "test:watch": "mocha --watch"
   },
   "dependencies": {
-    "@govuk-one-login/frontend-ui": "4.2.2",
+    "@govuk-one-login/frontend-ui": "5.0.0",
     "async": "3.2.6",
     "compression": "1.8.1",
     "connect-redis": "6.1.3",
