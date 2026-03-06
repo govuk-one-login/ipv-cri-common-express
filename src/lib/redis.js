@@ -1,14 +1,4 @@
-const cfenv = require("cfenv");
-
 module.exports = ({ SESSION_URL, PORT } = {}) => {
-  const appEnv = cfenv.getAppEnv();
-  const cfRedisUrl = appEnv.getServiceURL("session-cache");
-  if (cfRedisUrl) {
-    return {
-      connectionString: cfRedisUrl,
-    };
-  }
-
   if (!SESSION_URL) {
     return {};
   }
