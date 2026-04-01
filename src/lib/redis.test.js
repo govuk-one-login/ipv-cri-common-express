@@ -1,5 +1,5 @@
 describe("redis", () => {
-  const redis = require("./redis");
+  const redis = require("./redis.ts");
 
   context("with environment variables", () => {
     it("should return config using environment variables", () => {

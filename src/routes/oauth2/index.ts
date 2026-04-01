@@ -1,15 +1,15 @@
-const express = require("express");
+import express from "express";
 
 const router = express.Router();
 
-const {
+import {
   addAuthParamsToSession,
   redirectToCallback,
   initSessionWithJWT,
   redirectToEntryPoint,
   addJWTToRequest,
   retrieveAuthorizationCode,
-} = require("./middleware");
+} from "./middleware.js";
 
 router.get(
   "/authorize",
@@ -20,4 +20,4 @@ router.get(
 );
 router.get("/callback", retrieveAuthorizationCode, redirectToCallback);
 
-module.exports = router;
+export { router };

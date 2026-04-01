@@ -1,4 +1,4 @@
-const scenarioHeaders = require("./scenario-headers");
+const scenarioHeaders = require("./scenario-headers.ts");
 
 describe("scenario-headers", () => {
   let req;

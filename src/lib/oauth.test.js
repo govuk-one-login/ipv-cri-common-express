@@ -1,4 +1,4 @@
-const { addOAuthPropertiesToSession, buildRedirectUrl } = require("./oauth");
+const { addOAuthPropertiesToSession, buildRedirectUrl } = require("./oauth.ts");
 
 describe("oauth lib", () => {
   describe("addOAuthPropertiesToSession", () => {

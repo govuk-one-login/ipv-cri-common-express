@@ -1,3 +1,3 @@
-module.exports = {
-  PACKAGE_NAME: "@govuk-one-login/di-ipv-cri-common-express",
-};
+export default {
+  PACKAGE_NAME: process.env.PACKAGE_NAME,
+}

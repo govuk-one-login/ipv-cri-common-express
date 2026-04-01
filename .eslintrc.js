@@ -15,7 +15,7 @@ module.exports = {
     CONFIG_RESET: "readonly",
   },
   extends: ["prettier", "eslint:recommended", "plugin:prettier/recommended"],
-  ignorePatterns: ["wallaby.conf.js", "node_modules", "reports", "dist"],
+  ignorePatterns: ["node_modules", "reports", "dist"],
   rules: {
     "no-console": 2,
     "padding-line-between-statements": [
