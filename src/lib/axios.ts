@@ -1,9 +1,10 @@
-const axios = require("axios");
-const logger = require("../bootstrap/lib/logger");
-const userIpAddress = require("./user-ip-address");
-const { PACKAGE_NAME } = require("./constants");
+import type {Request, Response, NextFunction} from "express";
+import axios from "axios"
+import * as logger from "../bootstrap/lib/logger.js"
+import userIpAddress from "./user-ip-address.js"
+import constants from "./constants.js"
 
-module.exports = function request(req, res, next) {
+module.exports = function request(req: Request, res: Response, next: NextFunction) {
   const baseURL = req.app.get("API.BASE_URL");
 
   if (!baseURL) {
@@ -16,7 +17,7 @@ module.exports = function request(req, res, next) {
 
   // Add a request interceptor
   req.axios.interceptors.request.use(function (config) {
-    logger.get(PACKAGE_NAME).info("API request", {
+    logger.get(constants.PACKAGE_NAME).info("API request", {
       config: {
         baseURL: config.baseURL,
         method: config.method,

@@ -1,7 +1,7 @@
-const net = require("net");
-const fromPairs = require("lodash.frompairs");
+import net from "net"
+import fromPairs from "lodash.frompairs"
 
-module.exports = (forwarded) => {
+export default (forwarded: string | null | undefined) => {
   const forwardedHeaders = fromPairs(
     forwarded?.split(";").map((s) => s.split("=")),
   );

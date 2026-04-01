@@ -1,4 +1,4 @@
-module.exports = ({ SESSION_URL, PORT } = {}) => {
+export default ({ SESSION_URL, PORT }: { SESSION_URL?: string; PORT?: number } = {}) => {
   if (!SESSION_URL) {
     return {};
   }
@@ -9,7 +9,7 @@ module.exports = ({ SESSION_URL, PORT } = {}) => {
 
   return {
     connectionString: `${scheme}://${host}:${port}`,
-    retry_strategy: function (options) {
+    retry_strategy: function (options: { total_retry_time: number; attempt: number }) {
       if (options.total_retry_time > 1000 * 60 * 60) {
         return new Error("Retry time exhausted");
       }

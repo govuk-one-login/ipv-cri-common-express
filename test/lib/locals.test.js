@@ -7,9 +7,9 @@ const {
   getGTM,
   getDeviceIntelligence,
   getLanguageToggle,
-} = require("../../src/lib/locals");
+} = require("@src/lib/locals.ts");
 const { PACKAGE_NAME } = require("../../src/lib/constants");
-const logger = require("../../src/bootstrap/lib/logger").get(PACKAGE_NAME);
+const logger = require("@src/bootstrap/lib/logger.ts").get(PACKAGE_NAME);
 
 describe("setGTM / getGTM", () => {
   it("Sets express config and retrieves it", () => {
