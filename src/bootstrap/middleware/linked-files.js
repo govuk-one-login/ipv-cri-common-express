@@ -1,7 +1,7 @@
 const debug = require("debug")("hmpo:linked-files");
-const redis = require("../lib/redis-client");
+const redis = require("../lib/redis-client.ts");
 const onFinished = require("on-finished");
-const uuid = require("../lib/uuid");
+const uuid = require("../lib/uuid.ts");
 const async = require("async");
 
 // redis records are stored as the uuid prefixed with this:

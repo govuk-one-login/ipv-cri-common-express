@@ -1,5 +1,5 @@
 const expressSession = require("express-session");
-const redisClient = require("../lib/redis-client");
+const redisClient = require("../lib/redis-client.ts");
 
 const middleware = ({
   cookieName = "hmpo.sid",
@@ -9,7 +9,7 @@ const middleware = ({
   cookieOptions = {},
 } = {}) => {
   if (!sessionStore) {
-    const RedisStore = require("connect-redis")(expressSession);
+    const { RedisStore } = require("connect-redis");
     sessionStore = new RedisStore({
       client: redisClient.getClient(),
       ttl,

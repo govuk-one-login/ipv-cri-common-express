@@ -91,17 +91,17 @@ const middleware = {
     modelOptions: modelOptionsConfig,
     cookies: cookieOptions,
   } = {}) {
-    const healthcheck = require("./healthcheck");
+    const healthcheck = require("./healthcheck.ts");
     const modelOptions = require("./model-options");
-    const featureFlag = require("./feature-flag");
+    const featureFlag = require("./feature-flag.ts");
     const version = require("./version");
-    const cookies = require("./cookies");
+    const cookies = require("./cookies.ts");
     const bodyParser = require("body-parser");
     const translation = require("./translation");
     const hmpoComponents = require("hmpo-components");
     const publicMiddleware = require("./public");
     const nunjucks = require("./nunjucks");
-    const headers = require("./headers");
+    const headers = require("./headers.ts");
 
     urls.public = urls.public || "/public";
     urls.publicImages =
@@ -175,7 +175,7 @@ const middleware = {
 
   session(app = requiredArgument("app"), sessionOptions) {
     const session = require("./session");
-    const featureFlag = require("./feature-flag");
+    const featureFlag = require("./feature-flag.ts");
     const linkedFiles = require("./linked-files");
 
     app.use(session.middleware(sessionOptions));
@@ -185,7 +185,7 @@ const middleware = {
 
   errorHandler(app = requiredArgument("app"), errorHandleroptions) {
     const pageNotFound = require("./page-not-found");
-    const errorHandler = require("./error-handler");
+    const errorHandler = require("./error-handler.ts");
 
     app.use(pageNotFound.middleware(errorHandleroptions));
     app.use(errorHandler.middleware(errorHandleroptions));

@@ -1,5 +1,5 @@
-const { configure } = require("./configure");
-const defaultConfig = require("./default-config");
+const { configure } = require("./configure.ts");
+const defaultConfig = require("./default-config.ts");
 
 describe("configure", () => {
   context("with no arguments", () => {
@@ -11,7 +11,7 @@ describe("configure", () => {
   });
 
   context("with arguments", () => {
-    it("should return config with overwridden properties", () => {
+    it("should return config with overridden properties", () => {
       let { detection, debug, ...configWithoutDetection } = configure({
         secure: true,
         cookieDomain: "localhost",

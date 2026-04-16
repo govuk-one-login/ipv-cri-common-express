@@ -1,4 +1,4 @@
-const { configure } = require("../../../src/bootstrap/lib/overload-protection");
+const { configure } = require("@src/bootstrap/lib/overload-protection.ts");
 
 describe("overload-protection (configure)", () => {
   describe("without environment variables", () => {
