@@ -1,12 +1,12 @@
-const middleware = require(
-  APP_ROOT + "/src/bootstrap/middleware/error-handler",
-).middleware;
+const loggerModule = require("../../../src/bootstrap/lib/logger");
 const request = require("hmpo-reqres").req;
 
 describe("Error Handler", () => {
-  let req, res, next, errorhandler, loggerStub;
+  let req, res, next, errorhandler, middleware;
 
   beforeEach(() => {
+    sinon.restore();
+
     req = request({
       baseUrl: "/my-app",
       path: "/my-app/path",
@@ -21,11 +21,15 @@ describe("Error Handler", () => {
     };
     next = sinon.stub();
 
+    sinon.spy(loggerModule, "logError");
+
+    middleware = require(
+      APP_ROOT + "/src/bootstrap/middleware/error-handler",
+    ).middleware;
+
     errorhandler = middleware({
       startUrl: "/start",
     });
-
-    loggerStub = LOGGER_RESET();
   });
 
   describe("middleware", () => {
@@ -252,32 +256,25 @@ describe("Error Handler", () => {
       });
 
       it("should log the error if no template is specified", () => {
-        loggerStub.error.reset();
         errorhandler(err, req, res, next);
-        loggerStub.error.should.have.been.calledOnce;
-        loggerStub.error.should.have.been.calledWithExactly(
-          ":clientip :verb :request :err.message",
-          { req: req, err: err },
-        );
+        loggerModule.logError.should.have.been.calledOnce;
+        loggerModule.logError.should.have.been.calledWithExactly(req, err);
       });
 
       it("should not log the error if a template is specified", () => {
         err.template = "test/template";
-        loggerStub.error.reset();
         errorhandler(err, req, res, next);
-        loggerStub.error.should.not.have.been.called;
+        loggerModule.logError.should.not.have.been.called;
       });
 
       it("should only log the error if the header has been sent", () => {
         res._headerSent = true;
         err.template = "test/template";
-        loggerStub.error.reset();
         errorhandler(err, req, res, next);
-        loggerStub.error.should.have.been.calledOnce;
-        loggerStub.error.should.have.been.calledWithExactly(
-          "Error after response: :clientip :verb :request :err.message",
-          { req: req, err: err },
-        );
+        loggerModule.logError.should.have.been.calledOnce;
+        loggerModule.logError.should.have.been.calledWithExactly(req, err, {
+          messagePrefix: "Error after response",
+        });
         res.render.should.not.have.been.called;
         next.should.not.have.been.called;
       });

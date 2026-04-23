@@ -3,6 +3,7 @@ const express = require("express");
 const logger = require("../lib/logger");
 const hmpoLogger = require("hmpo-logger");
 const pinoHttp = require("pino-http");
+const { PACKAGE_NAME } = require("../../lib/constants");
 
 const requiredArgument = (argName) => {
   throw new Error(`Argument '${argName}' must be specified`);
@@ -41,7 +42,7 @@ const addRequestContext = (req, res, val) => {
   };
 };
 
-const loggerMiddleware = (name = ":hmpo-app") =>
+const loggerMiddleware = (name = PACKAGE_NAME) =>
   pinoHttp({
     // Reuse an existing logger instance
     logger: logger.get(name),

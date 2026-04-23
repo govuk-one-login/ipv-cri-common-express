@@ -1,3 +1,5 @@
+const logger = require("../lib/logger");
+
 const middleware =
   ({
     startUrl = "/",
@@ -31,11 +33,9 @@ const middleware =
     }
 
     if (res.finished || res._headerSent) {
-      const logger = require("../lib/logger").get();
-      return logger.error(
-        "Error after response: :clientip :verb :request :err.message",
-        { req: req, err: err },
-      );
+      return logger.logError(req, err, {
+        messagePrefix: "Error after response",
+      });
     }
 
     if (err.redirect) {
@@ -49,8 +49,7 @@ const middleware =
 
     if (!err.template) {
       err.template = defaultErrorView;
-      const logger = require("../lib/logger").get();
-      logger.error(":clientip :verb :request :err.message", { req, err });
+      logger.logError(req, err);
     }
 
     err.status = err.status || 500;
