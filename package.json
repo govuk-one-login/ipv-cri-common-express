@@ -63,7 +63,6 @@
     "deep-clone-merge": "1.5.5",
     "frameguard": "4.0.0",
     "on-finished": "2.4.1",
-    "uuid": "10.0.0",
     "hmpo-i18n": "7.0.1",
     "hmpo-config": "4.0.0"
   },
