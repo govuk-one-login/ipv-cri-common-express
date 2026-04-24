@@ -1,6 +1,7 @@
 const hmpoLogger = require("hmpo-logger");
 const config = require("./config");
 const pino = require("pino");
+const { PACKAGE_NAME } = require("../../lib/constants");
 
 const pinoLoggers = new Map();
 
@@ -56,14 +57,46 @@ const get = (name = ":hmpo-app", level = 1) => {
           location: redactQueryParams(res.getHeader("location")),
         };
       },
+      err: (err) => {
+        return {
+          type: err.name,
+          message: err.message,
+          stack: err.stack,
+        };
+      },
     },
   });
   pinoLoggers.set(name, newPinoLogger);
   return newPinoLogger;
 };
 
+function logError(req, err, options = {}) {
+  const { messagePrefix, logger = get(PACKAGE_NAME) } = options;
+
+  if (process.env.USE_PINO_LOGGER === "true") {
+    const message = messagePrefix
+      ? `${messagePrefix}: ${err.message}`
+      : err.message;
+
+    logger.error({
+      ...(err.code && { code: err.code }),
+      method: req.method,
+      request: redactQueryParams(req.originalUrl || req.url),
+      message,
+      err,
+    });
+  } else {
+    const baseMessage = ":clientip :verb :request :err.message";
+    const message = messagePrefix
+      ? `${messagePrefix}: ${baseMessage}`
+      : baseMessage;
+    logger.error(message, { req, err });
+  }
+}
+
 module.exports = Object.assign(get, {
   setup,
   get,
   redactQueryParams,
+  logError,
 });

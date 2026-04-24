@@ -48,8 +48,8 @@ describe("Logger", () => {
   });
 
   afterEach(() => {
-    hmpoLogger.config.restore();
-    hmpoLogger.get.restore();
+    if (hmpoLogger.config.restore) hmpoLogger.config.restore();
+    if (hmpoLogger.get.restore) hmpoLogger.get.restore();
     LOGGER_RESET();
   });
 
@@ -116,6 +116,109 @@ describe("Logger", () => {
       const logger1 = logger.get("cached-logger");
       const logger2 = logger.get("cached-logger");
       expect(logger1).to.equal(logger2);
+    });
+  });
+
+  describe("logError", () => {
+    let mockLogger;
+
+    const mockReq = {
+      method: "GET",
+      url: "/search?q=test&code=sensitive",
+      originalUrl: "/search?q=test&code=sensitive",
+      ip: "127.0.0.1",
+    };
+
+    const mockErr = () => {
+      const err = new Error("Something failed");
+      err.code = "FAIL";
+      err.name = "TestError";
+      err.stack = "stacktrace";
+      return err;
+    };
+
+    beforeEach(function () {
+      sinon.restore();
+
+      process.env.USE_PINO_LOGGER = "true";
+
+      mockLogger = {
+        error: sinon.stub(),
+        info: sinon.stub(),
+        warn: sinon.stub(),
+      };
+    });
+
+    afterEach(function () {
+      sinon.restore();
+      delete process.env.USE_PINO_LOGGER;
+      delete process.env.NODE_ENV;
+    });
+
+    it("should log structured error in Pino mode", function () {
+      logger.logError(mockReq, mockErr(), { logger: mockLogger });
+
+      expect(mockLogger.error.calledOnce).to.equal(true);
+
+      const arg = mockLogger.error.firstCall.args[0];
+
+      expect(arg.code).to.equal("FAIL");
+      expect(arg.method).to.equal("GET");
+      expect(arg.request).to.equal("/search?q=test&code=hidden");
+      expect(arg.message.includes("Something failed")).to.equal(true);
+    });
+
+    it("should include prefix in message", function () {
+      logger.logError(mockReq, mockErr(), {
+        logger: mockLogger,
+        messagePrefix: "Added Start",
+      });
+
+      const arg = mockLogger.error.firstCall.args[0];
+
+      expect(arg.message.startsWith("Added Start:")).to.equal(true);
+    });
+
+    it("should omit code if not present", function () {
+      const err = new Error("No code error");
+
+      logger.logError(mockReq, err, { logger: mockLogger });
+
+      const arg = mockLogger.error.firstCall.args[0];
+
+      expect(arg.code).to.equal(undefined);
+    });
+
+    it("should redact sensitive query params from request", function () {
+      logger.logError(mockReq, mockErr(), { logger: mockLogger });
+
+      const arg = mockLogger.error.firstCall.args[0];
+
+      expect(arg.request).to.equal("/search?q=test&code=hidden");
+    });
+
+    it("should include stack in non-production", function () {
+      process.env.NODE_ENV = "development";
+
+      logger.logError(mockReq, mockErr(), { logger: mockLogger });
+
+      const arg = mockLogger.error.firstCall.args[0];
+
+      expect(arg.err.stack).to.exist;
+    });
+
+    it("should call HMPO logger in legacy mode", function () {
+      process.env.USE_PINO_LOGGER = "false";
+
+      logger.logError(mockReq, mockErr(), { logger: mockLogger });
+
+      expect(mockLogger.error.calledOnce).to.equal(true);
+
+      const args = mockLogger.error.firstCall.args;
+
+      expect(args[0]).to.equal(":clientip :verb :request :err.message");
+      expect(args[1].req).to.exist;
+      expect(args[1].err).to.exist;
     });
   });
 });
