@@ -17,7 +17,7 @@
 <!-- List any related ADRs or RFCs -->
 <!-- Delete/copy as appropriate -->
 
-- [KBV-XXXX](https://govukverify.atlassian.net/browse/KBV-XXXX)
+- TICKET-0000
 
 ## Checklists
 
