@@ -21,9 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [18, 20]
+        node: [22, 24]
     env:
-      COVERAGE: ${{ matrix.node == 20 || null }}
+      COVERAGE: ${{ matrix.node == 22 || null }}
     steps:
       - name: Run tests
         uses: govuk-one-login/github-actions/node/run-script@4616241694c035be4ea4a10fc0fe6521c0f079f8

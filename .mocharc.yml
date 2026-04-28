@@ -3,7 +3,7 @@ spec:
   - "**/*.test.js"
   - "**/spec*.js"
 ignore:
-  - "node_modules/**"
+  - "**/node_modules/**"
 file:
   - "./test/utils/mocha-helpers"
   - "./test/bootstrap/helper.js"
