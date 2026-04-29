@@ -3,7 +3,7 @@ const nocache = require("nocache")();
 const middleware =
   ({ publicPath } = {}) =>
   (req, res, next) => {
-    if (req.path.indexOf(publicPath) >= 0) {
+    if (req.path.includes(publicPath)) {
       return next();
     }
 

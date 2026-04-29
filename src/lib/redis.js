@@ -1,3 +1,7 @@
+/**
+ * @deprecated
+ * Unused CloudFoundry utility
+ */
 module.exports = ({ SESSION_URL, PORT } = {}) => {
   if (!SESSION_URL) {
     return {};
@@ -11,10 +15,10 @@ module.exports = ({ SESSION_URL, PORT } = {}) => {
     connectionString: `${scheme}://${host}:${port}`,
     retry_strategy: function (options) {
       if (options.total_retry_time > 1000 * 60 * 60) {
-        return new Error("Retry time exhausted");
+        throw new Error("Retry time exhausted");
       }
       if (options.attempt > 10) {
-        return new Error("Attempts exhausted");
+        throw new Error("Attempts exhausted");
       }
 
       return Math.min(options.attempt * 100, 3000);
