@@ -1,4 +1,4 @@
-const nodeOS = require("os");
+const nodeOS = require("node:os");
 const config = require("../lib/config");
 
 const middleware =

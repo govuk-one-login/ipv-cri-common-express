@@ -1,4 +1,4 @@
-const path = require("path");
+const path = require("node:path");
 const express = require("express");
 const config = require("../lib/config");
 

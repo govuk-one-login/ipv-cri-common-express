@@ -2,7 +2,7 @@ const helmetLib = require("helmet");
 const nocache = require("./nocache");
 const compatibility = require("./compatibility");
 const compression = require("compression");
-const { randomBytes } = require("crypto");
+const { randomBytes } = require("node:crypto");
 
 const setup = (
   app,

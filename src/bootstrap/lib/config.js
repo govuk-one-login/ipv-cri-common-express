@@ -23,9 +23,9 @@ const setup = ({
     config.addConfig(seed);
   }
 
-  if (!seed && merge && global.GLOBAL_CONFIG) {
+  if (!seed && merge && globalThis.GLOBAL_CONFIG) {
     debug("Merging with previous config");
-    config.addConfig(global.GLOBAL_CONFIG);
+    config.addConfig(globalThis.GLOBAL_CONFIG);
   }
 
   if (!seed && files) {
@@ -61,15 +61,15 @@ const setup = ({
     _environmentVariables.TZ = configData.timezone;
   }
 
-  global.GLOBAL_CONFIG = configData;
+  globalThis.GLOBAL_CONFIG = configData;
 };
 
 const get = (path, defaultIfUndefined) => {
-  if (!global.GLOBAL_CONFIG) throw new Error("Config not loaded");
-  if (!path) return global.GLOBAL_CONFIG;
+  if (!globalThis.GLOBAL_CONFIG) throw new Error("Config not loaded");
+  if (!path) return globalThis.GLOBAL_CONFIG;
   const value = path
     .split(".")
-    .reduce((obj, part) => obj?.[part], global.GLOBAL_CONFIG);
+    .reduce((obj, part) => obj?.[part], globalThis.GLOBAL_CONFIG);
   return value === undefined ? defaultIfUndefined : value;
 };
 

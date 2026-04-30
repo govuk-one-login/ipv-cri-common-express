@@ -1,6 +1,6 @@
 {
   "name": "@govuk-one-login/di-ipv-cri-common-express",
-  "version": "14.0.0",
+  "version": "14.0.1",
   "description": "Express libraries and utilities for use building GOV.UK One Login Credential Issuers",
   "main": "src/index.js",
   "files": [
@@ -58,7 +58,6 @@
     "i18next-fs-backend": "2.6.5",
     "i18next-http-middleware": "3.9.6",
     "lodash.differencewith": "4.5.0",
-    "lodash.frompairs": "4.0.1",
     "nocache": "3.0.4",
     "on-finished": "2.4.1",
     "overload-protection": "1.2.3",

@@ -51,7 +51,7 @@ describe("axios", () => {
     expect(req.axios).to.equal(axiosClient);
   });
 
-  context("with 'scenarioIdHeader'", () => {
+  context("with 'scenarioIDHeader'", () => {
     it("should add x-scenario-id to axios headers", () => {
       axiosClient.defaults = { headers: { common: {} } };
 
@@ -65,9 +65,9 @@ describe("axios", () => {
     });
   });
 
-  context("without 'scenarioIdHeader'", () => {
+  context("without 'scenarioIDHeader'", () => {
     it("should not x-scenario-id to axios headers", () => {
-      delete req.scenarioIdHeader;
+      delete req.scenarioIDHeader;
 
       axios(req, res, next);
 
@@ -79,7 +79,7 @@ describe("axios", () => {
   context("without defaults'", () => {
     it("should not x-scenario-id to axios headers", () => {
       delete axiosClient.defaults;
-      req.scenarioIdHeader = "test-scenario-success";
+      req.scenarioIDHeader = "test-scenario-success";
 
       axios(req, res, next);
 

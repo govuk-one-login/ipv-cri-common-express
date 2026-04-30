@@ -1,7 +1,7 @@
 const debug = require("debug")("hmpo-app:translations");
 const config = require("../lib/config");
-const path = require("path");
-const fs = require("fs");
+const path = require("node:path");
+const fs = require("node:fs");
 const i18n = require("hmpo-i18n");
 
 const setup = (app, { locales = ".", ...otherOptions } = {}) => {

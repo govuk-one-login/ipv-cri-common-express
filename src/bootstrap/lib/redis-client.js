@@ -8,7 +8,7 @@ const setup = (
     {},
   ),
 ) => {
-  const hostname = require("os").hostname().split(".")[0];
+  const hostname = require("node:os").hostname().split(".")[0];
   const clientName =
     config.get("APP_NAME") + ":" + hostname + ":" + (process.env.pm_id || "0");
   const log = logger.get(":redis");
@@ -22,7 +22,8 @@ const setup = (
   }
   if (host && port) {
     redisOptions.socket = {
-      ...{ host, port },
+      host,
+      port,
       ...redisOptions.socket,
     };
   }

@@ -1,6 +1,6 @@
 const debug = require("debug")("hmpo-app:version");
 const config = require("../lib/config");
-const path = require("path");
+const path = require("node:path");
 
 const middleware = ({ versionFile = "version.json" } = {}) => {
   let versionJSON = {};
