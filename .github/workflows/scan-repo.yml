@@ -34,6 +34,7 @@ jobs:
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           coverage-artifact: ${{ needs.coverage.outputs.coverage-artifact || 'coverage' }}
+          coverage-run-id: ${{ github.event_name != 'pull_request' && github.run_id || null }}
 
   codeql:
     name: CodeQL
