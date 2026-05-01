@@ -11,5 +11,5 @@ The lib folder contains a variety of Express middleware functions, designed to i
 - [`oauth`](./oauth.js) - helpers for adding OAuth properties to the session and building the OAuth redirect url
 - [`redis`](./redis.js) - CloudFoundry configuration for Redis
 - [`scenario-headers`](./scenario-headers.js) - helpers for setting scenario headers, used in Wiremock browser tests
-- [`settings`](./settings.js) - helpers for assigning [`req.app`](https://expressjs.com/en/api.html#req.app) values for later use with middleware
+- [`settings`](settings.ts) - helpers for assigning [`req.app`](https://expressjs.com/en/api.html#req.app) values for later use with middleware
 - [`user-ip-address`](./user-ip-address.js) - function to parse out IP from semicolon delimited [X-Forwarded-For header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For)

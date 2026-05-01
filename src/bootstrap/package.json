@@ -9,7 +9,8 @@
   "engines": {
     "node": "20.x || 22.x"
   },
-  "main": "index.js",
+  "main": "index.ts",
+  "type": "module",
   "scripts": {
     "pretest": "npm run test:lint",
     "test": "npm run test:unit",
@@ -20,7 +21,6 @@
   },
   "devDependencies": {
     "chai": "^4.5.0",
-    "eslint": "^9.11.1",
     "globals": "^15.11.0",
     "hmpo-reqres": "^2.0.0",
     "husky": "^9.1.6",

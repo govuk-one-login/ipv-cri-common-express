@@ -2,14 +2,14 @@ const express = require("express");
 const reqres = require("reqres");
 const sinon = require("sinon");
 const { expect } = require("chai");
-const { setGTM, setDeviceIntelligence } = require("../../src/lib/settings");
+const { setGTM, setDeviceIntelligence } = require("@src/lib/settings.ts");
 const {
   getGTM,
   getDeviceIntelligence,
   getLanguageToggle,
-} = require("../../src/lib/locals");
-const { PACKAGE_NAME } = require("../../src/lib/constants");
-const logger = require("../../src/bootstrap/lib/logger").get(PACKAGE_NAME);
+} = require("@src/lib/locals.ts");
+const { PACKAGE_NAME } = require("@src/lib/constants.ts");
+const logger = require("@src/bootstrap/lib/logger.ts").get(PACKAGE_NAME);
 
 describe("setGTM / getGTM", () => {
   it("Sets express config and retrieves it", () => {

@@ -3,7 +3,7 @@ check-coverage: true
 include: [src/**/*.js]
 exclude:
   - src/assets/**
-  - src/**/index.js
+  - src/**/index.ts
   - src/**/*.test.js
   - src/**/spec**.js
 report-dir: coverage

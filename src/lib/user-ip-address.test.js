@@ -1,4 +1,4 @@
-const userIpAddress = require("./user-ip-address");
+const userIpAddress = require("./user-ip-address.ts");
 
 describe("user ip address", () => {
   context("without ip header", () => {

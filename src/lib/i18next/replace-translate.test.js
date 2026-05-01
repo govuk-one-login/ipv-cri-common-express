@@ -1,4 +1,4 @@
-const { replaceTranslate } = require("./replace-translate");
+const { replaceTranslate } = require("./replace-translate.ts");
 
 describe("replaceTranslate", () => {
   let req;
