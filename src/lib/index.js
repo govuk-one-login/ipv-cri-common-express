@@ -1,6 +1,7 @@
 module.exports = {
   axios: require("./axios"),
   oauth: require("./oauth"),
+  redis: require("./redis"),
   headers: require("./headers"),
   helmet: require("./helmet"),
   scenarioHeaders: require("./scenario-headers"),
