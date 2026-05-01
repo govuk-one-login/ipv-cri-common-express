@@ -1,11 +1,4 @@
-/**
- * @deprecated
- * Unused CloudFoundry utility
- */
-module.exports = function getCloudFoundryRedisConfig({
-  SESSION_URL,
-  PORT,
-} = {}) {
+module.exports = function getRedisConfig({ SESSION_URL, PORT } = {}) {
   if (!SESSION_URL) {
     return {};
   }
