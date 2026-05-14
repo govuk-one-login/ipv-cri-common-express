@@ -4,13 +4,16 @@ const path = require("node:path");
 const fs = require("node:fs");
 const i18n = require("hmpo-i18n");
 
-const setup = (app, { locales = ".", ...otherOptions } = {}) => {
+const setup = (
+  app,
+  { locales = ".", hmpoComponentsDir, ...otherOptions } = {},
+) => {
   const APP_ROOT = config.get("APP_ROOT");
   const isDevEnv = Boolean(app.get("dev"));
 
   if (!Array.isArray(locales)) locales = [locales];
 
-  locales = [...locales, path.dirname(require.resolve("hmpo-components"))];
+  locales = [...locales, ...(hmpoComponentsDir ? [hmpoComponentsDir] : [])];
 
   locales = locales
     .map((dir) => path.resolve(APP_ROOT, dir))

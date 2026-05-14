@@ -1,4 +1,6 @@
+const path = require("path");
 const proxyquire = require("proxyquire").noPreserveCache();
+const hmpoComponentsDir = path.dirname(require.resolve("hmpo-components"));
 
 describe("middleware functions", () => {
   let middleware, app;
@@ -144,6 +146,7 @@ describe("middleware functions", () => {
         publicDirs: ["public"],
         publicImagesDirs: ["assets/images"],
         public: { maxAge: 3600 },
+        hmpoComponentsDir,
       });
       app.use.should.have.been.calledWithExactly("public middleware");
     });
@@ -257,6 +260,7 @@ describe("middleware functions", () => {
         publicDirs: ["public"],
         publicImagesDirs: ["assets/images"],
         public: { maxAge: 3600 },
+        hmpoComponentsDir,
       });
       app.use.should.have.been.calledWithExactly("public middleware");
     });
@@ -307,6 +311,7 @@ describe("middleware functions", () => {
       middleware.setup({ views: "a/dir", nunjucks: { additional: "options" } });
       stubs.nunjucks.setup.should.have.been.calledWithExactly(app, {
         views: "a/dir",
+        hmpoComponentsDir,
         additional: "options",
       });
     });
@@ -318,8 +323,14 @@ describe("middleware functions", () => {
       });
       stubs.translation.setup.should.have.been.calledWithExactly(app, {
         locales: "a/dir",
+        hmpoComponentsDir,
         additional: "options",
       });
+    });
+
+    it("should not setup translation when no locales or translation options are provided", () => {
+      middleware.setup({});
+      stubs.translation.setup.should.not.have.been.called;
     });
 
     it("should setup headers", () => {

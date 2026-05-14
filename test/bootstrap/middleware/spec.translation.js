@@ -20,6 +20,20 @@ describe("translation middleware", () => {
   it("should use the i18n middleware specifying the app root as the baseDir", () => {
     translation.setup(app);
     i18n.middleware.should.have.been.calledWithExactly(app, {
+      baseDir: [APP_ROOT + "/test/bootstrap/fixtures"],
+      noCache: true,
+      watch: true,
+      allowedLangs: ["en", "cy"],
+      cookie: { name: "lang" },
+      query: "lang",
+    });
+  });
+
+  it("should include hmpo-components locales when hmpoComponentsDir is provided", () => {
+    translation.setup(app, {
+      hmpoComponentsDir: APP_ROOT + "/node_modules/hmpo-components",
+    });
+    i18n.middleware.should.have.been.calledWithExactly(app, {
       baseDir: [
         APP_ROOT + "/test/bootstrap/fixtures",
         APP_ROOT + "/node_modules/hmpo-components",
@@ -35,10 +49,7 @@ describe("translation middleware", () => {
   it("should use the i18n middleware specifying a custom locales locations", () => {
     translation.setup(app, { locales: [".", "./dir_not_found"] });
     i18n.middleware.should.have.been.calledWithExactly(app, {
-      baseDir: [
-        APP_ROOT + "/test/bootstrap/fixtures",
-        APP_ROOT + "/node_modules/hmpo-components",
-      ],
+      baseDir: [APP_ROOT + "/test/bootstrap/fixtures"],
       noCache: true,
       watch: true,
       allowedLangs: ["en", "cy"],
