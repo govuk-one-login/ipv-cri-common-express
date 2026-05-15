@@ -5,7 +5,10 @@ const config = require("../lib/config");
 const nunjucks = require("nunjucks");
 const frontendUi = require("@govuk-one-login/frontend-ui");
 
-const setup = (app, { views = "views", ...otherOptions } = {}) => {
+const setup = (
+  app,
+  { views = "views", hmpoComponentsDir, ...otherOptions } = {},
+) => {
   const isDevEnv = Boolean(app.get("dev"));
   const APP_ROOT = config.get("APP_ROOT");
 
@@ -13,10 +16,9 @@ const setup = (app, { views = "views", ...otherOptions } = {}) => {
 
   views = [
     ...views,
-    path.resolve(
-      path.dirname(require.resolve("hmpo-components")),
-      "components",
-    ),
+    ...(hmpoComponentsDir
+      ? [path.resolve(hmpoComponentsDir, "components")]
+      : []),
     path.resolve(path.dirname(require.resolve("govuk-frontend")), ".."),
     path.resolve("node_modules/@govuk-one-login/"),
   ];

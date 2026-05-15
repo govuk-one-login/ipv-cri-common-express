@@ -99,10 +99,27 @@ const middleware = {
     const cookies = require("./cookies");
     const bodyParser = require("body-parser");
     const translation = require("./translation");
-    const hmpoComponents = require("hmpo-components");
     const publicMiddleware = require("./public");
     const nunjucks = require("./nunjucks");
     const headers = require("./headers");
+
+    let hmpoComponents = null;
+    let hmpoComponentsDir = null;
+    const hmpoAffectedOptions = [];
+    try {
+      hmpoComponentsDir = path.dirname(require.resolve("hmpo-components"));
+      hmpoComponents = require("hmpo-components");
+    } catch {
+      if (views !== undefined || nunjucksOptions !== undefined) {
+        hmpoAffectedOptions.push('"views"/"nunjucks"');
+      }
+      if (locales !== undefined || translationOptions !== undefined) {
+        hmpoAffectedOptions.push('"locales"/"translation"');
+      }
+      if (publicOptions !== false) {
+        hmpoAffectedOptions.push('"public"');
+      }
+    }
 
     urls.public = urls.public || "/public";
     urls.publicImages =
@@ -139,6 +156,7 @@ const middleware = {
           publicDirs,
           publicImagesDirs,
           public: publicOptions,
+          hmpoComponentsDir,
         }),
       );
 
@@ -167,9 +185,31 @@ const middleware = {
       next();
     });
 
-    const nunjucksEnv = nunjucks.setup(app, { views, ...nunjucksOptions });
-    translation.setup(app, { locales, ...translationOptions });
-    hmpoComponents.setup(app, nunjucksEnv);
+    const nunjucksEnv = nunjucks.setup(app, {
+      views,
+      hmpoComponentsDir,
+      ...nunjucksOptions,
+    });
+
+    if (locales !== undefined || translationOptions !== undefined) {
+      translation.setup(app, {
+        locales,
+        hmpoComponentsDir,
+        ...translationOptions,
+      });
+    }
+
+    if (hmpoComponents) {
+      hmpoComponents.setup(app, nunjucksEnv);
+    }
+
+    if (hmpoAffectedOptions.length > 0) {
+      logger
+        .get(PACKAGE_NAME)
+        .info(
+          `'hmpo-components' is not installed so additional setup has not been applied for: ${hmpoAffectedOptions.join(", ")}.`,
+        );
+    }
 
     return app;
   },

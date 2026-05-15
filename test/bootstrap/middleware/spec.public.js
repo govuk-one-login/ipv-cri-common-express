@@ -29,8 +29,8 @@ describe("Public static assets", () => {
     it("adds default public directories", () => {
       const router = publicMiddleware();
 
-      express.static.should.have.callCount(4);
-      router.use.should.have.callCount(4);
+      express.static.should.have.callCount(3);
+      router.use.should.have.callCount(3);
 
       router.use
         .getCall(0)
@@ -57,6 +57,27 @@ describe("Public static assets", () => {
 
       router.use
         .getCall(2)
+        .should.have.been.calledWithExactly("/public", "static middleware");
+      express.static
+        .getCall(2)
+        .should.have.been.calledWithExactly(
+          APP_ROOT + "/node_modules/govuk-frontend/dist/govuk/assets",
+          { maxAge: 86400000 },
+        );
+    });
+
+    it("adds hmpo-components assets when hmpoComponentsDir is provided", () => {
+      const path = require("path");
+      const hmpoComponentsDir = path.dirname(
+        require.resolve("hmpo-components"),
+      );
+      publicMiddleware({ hmpoComponentsDir });
+
+      express.static.should.have.callCount(4);
+      router.use.should.have.callCount(4);
+
+      router.use
+        .getCall(2)
         .should.have.been.calledWithExactly(
           "/public/images",
           "static middleware",
@@ -64,17 +85,7 @@ describe("Public static assets", () => {
       express.static
         .getCall(2)
         .should.have.been.calledWithExactly(
-          APP_ROOT + "/node_modules/hmpo-components/assets/images",
-          { maxAge: 86400000 },
-        );
-
-      router.use
-        .getCall(3)
-        .should.have.been.calledWithExactly("/public", "static middleware");
-      express.static
-        .getCall(3)
-        .should.have.been.calledWithExactly(
-          APP_ROOT + "/node_modules/govuk-frontend/dist/govuk/assets",
+          hmpoComponentsDir + "/assets/images",
           { maxAge: 86400000 },
         );
     });

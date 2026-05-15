@@ -28,7 +28,6 @@ describe("nunjucks middleware", () => {
     nunjucks.configure.should.have.been.calledWithExactly(
       [
         APP_ROOT + "/test/bootstrap/fixtures/views",
-        APP_ROOT + "/node_modules/hmpo-components/components",
         APP_ROOT + "/node_modules/govuk-frontend/dist",
         APP_ROOT + "/node_modules/@govuk-one-login",
       ],
@@ -41,12 +40,25 @@ describe("nunjucks middleware", () => {
     );
   });
 
+  it("should configure nunjucks with hmpo-components views when hmpoComponentsDir is provided", () => {
+    const hmpoComponentsDir = APP_ROOT + "/node_modules/hmpo-components";
+    setupNunjucks(app, { hmpoComponentsDir });
+    nunjucks.configure.should.have.been.calledWithExactly(
+      [
+        APP_ROOT + "/test/bootstrap/fixtures/views",
+        APP_ROOT + "/node_modules/hmpo-components/components",
+        APP_ROOT + "/node_modules/govuk-frontend/dist",
+        APP_ROOT + "/node_modules/@govuk-one-login",
+      ],
+      sinon.match.object,
+    );
+  });
+
   it("should filter out a view if not present", () => {
     setupNunjucks(app, { views: ["views", "not_found"] });
     nunjucks.configure.should.have.been.calledWithExactly(
       [
         APP_ROOT + "/test/bootstrap/fixtures/views",
-        APP_ROOT + "/node_modules/hmpo-components/components",
         APP_ROOT + "/node_modules/govuk-frontend/dist",
         APP_ROOT + "/node_modules/@govuk-one-login",
       ],

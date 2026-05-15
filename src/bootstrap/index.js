@@ -26,7 +26,7 @@ const setup = (
       ...options.logs,
     });
 
-  if (options.redis !== false)
+  if (options.redis != null && options.redis !== false)
     redisClient.setup({
       ...config.get("redis"),
       ...options.redis,
@@ -68,7 +68,7 @@ const setup = (
       ...options.errors,
     });
 
-  if (options.port !== false)
+  if (options.port != null && options.port !== false)
     middleware.listen(app, {
       port: options.port || config.get("port"),
       host: options.host || config.get("host"),
