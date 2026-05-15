@@ -54,7 +54,19 @@ module.exports = {
 
       logger.info("Redirecting to callback with error", error);
 
-      return res.redirect(redirectUrl.toString());
+      if (req.session?.save) {
+        req.session.save((err) => {
+          if (err) {
+            logger.error(
+              { error: err.message },
+              "Error saving session before redirect to callback with error",
+            );
+          }
+          res.redirect(redirectUrl.toString());
+        });
+      } else {
+        res.redirect(redirectUrl.toString());
+      }
     } catch {
       return next(err);
     }

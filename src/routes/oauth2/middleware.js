@@ -128,7 +128,19 @@ module.exports = {
 
       logger.info("Redirecting to callback");
 
-      return res.redirect(redirectUrl.toString());
+      if (req.session?.save) {
+        req.session.save((err) => {
+          if (err) {
+            logger.error(
+              { error: err.message },
+              "Error saving session before redirect to callback",
+            );
+          }
+          res.redirect(redirectUrl.toString());
+        });
+      } else {
+        res.redirect(redirectUrl.toString());
+      }
     } catch (e) {
       return next(e);
     }
@@ -140,6 +152,18 @@ module.exports = {
       return next(new Error("Missing APP.PATHS.ENTRYPOINT value"));
     }
 
-    res.redirect(entryPointPath);
+    if (req.session?.save) {
+      req.session.save((err) => {
+        if (err) {
+          logger.error(
+            { error: err.message },
+            "Error saving session before redirect to entry point",
+          );
+        }
+        res.redirect(entryPointPath);
+      });
+    } else {
+      res.redirect(entryPointPath);
+    }
   },
 };

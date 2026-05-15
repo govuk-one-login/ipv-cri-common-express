@@ -237,7 +237,7 @@ const middleware = {
     { port = 3000, host = "0.0.0.0" } = {},
   ) {
     app.listen(port, host, () => {
-      logger.get().info("Listening on http://:listen", {
+      logger.get(PACKAGE_NAME).info("Listening on http://:listen", {
         bind: host,
         port,
         listen: (host === "0.0.0.0" ? "localhost" : host) + ":" + port,

@@ -43,6 +43,16 @@ const middleware =
         req.method === "POST" ||
         req.path.replace(/\/+$/, "") !== err.redirect
       ) {
+        if (req.session?.save) {
+          return req.session.save((saveErr) => {
+            if (saveErr) {
+              logger.logError(req, saveErr, {
+                messagePrefix: "Error saving session before redirect",
+              });
+            }
+            res.redirect(err.redirect);
+          });
+        }
         return res.redirect(err.redirect);
       }
     }
