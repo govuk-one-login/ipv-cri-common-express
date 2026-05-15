@@ -1,8 +1,14 @@
 const defaultConfig = require("./default-config");
 
-const configure = function ({ cookieDomain, debug = false, secure } = {}) {
+const configure = function ({
+  cookieDomain,
+  debug = false,
+  secure,
+  additionalNamespaces = [],
+} = {}) {
   return {
     ...defaultConfig,
+    ns: [...defaultConfig.ns, ...additionalNamespaces],
     debug: debug,
     detection: {
       ...defaultConfig.detection,
