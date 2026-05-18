@@ -15,6 +15,10 @@ describe("oauth middleware", () => {
     next = setup.next;
   });
 
+  afterEach(() => {
+    require("../../bootstrap/lib/logger").get().error.resetHistory();
+  });
+
   describe("addAuthParamsToSession", () => {
     beforeEach(() => {
       req = {
@@ -401,6 +405,26 @@ describe("oauth middleware", () => {
           .and(sinon.match.has("code", "ERR_INVALID_URL")),
       );
     });
+
+    context("with session.save available", () => {
+      beforeEach(() => {
+        req.session.save = sinon.stub().yields(null);
+      });
+
+      it("should save the session before redirecting", async () => {
+        await middleware.redirectToCallback(req, res, next);
+
+        expect(req.session.save).to.have.been.calledBefore(res.redirect);
+      });
+
+      it("should still redirect if session save fails", async () => {
+        req.session.save = sinon.stub().yields(new Error("save failed"));
+
+        await middleware.redirectToCallback(req, res, next);
+
+        expect(res.redirect).to.have.been.called;
+      });
+    });
   });
 
   describe("redirectToAddress", () => {
@@ -417,6 +441,27 @@ describe("oauth middleware", () => {
       await middleware.redirectToEntryPoint(req, res, next);
 
       expect(res.redirect).to.have.been.calledWith("/app/entry");
+    });
+
+    context("with session.save available", () => {
+      beforeEach(() => {
+        req.app.get.withArgs("APP.PATHS.ENTRYPOINT").returns("/app/entry");
+        req.session.save = sinon.stub().yields(null);
+      });
+
+      it("should save the session before redirecting", async () => {
+        await middleware.redirectToEntryPoint(req, res, next);
+
+        expect(req.session.save).to.have.been.calledBefore(res.redirect);
+      });
+
+      it("should still redirect if session save fails", async () => {
+        req.session.save = sinon.stub().yields(new Error("save failed"));
+
+        await middleware.redirectToEntryPoint(req, res, next);
+
+        expect(res.redirect).to.have.been.called;
+      });
     });
 
     context("with missing APP.PATHS.ENTRYPOINT", () => {
