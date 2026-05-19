@@ -76,7 +76,28 @@ describe("handler", () => {
       debug: true,
       secure: true,
       cookieDomain: "subdomain.local",
+      additionalNamespaces: undefined,
     });
+  });
+
+  it("should thread additionalNamespaces through to configure", () => {
+    handler.handler({ additionalNamespaces: ["frontend-ui"] });
+
+    expect(configure.configure).to.have.been.calledWithExactly(
+      sinon.match({ additionalNamespaces: ["frontend-ui"] }),
+    );
+  });
+
+  it("should call onInit with i18next after init", () => {
+    const onInit = sinon.stub();
+    handler.handler({ onInit });
+
+    expect(onInit).to.have.been.calledWithExactly(i18next);
+    expect(onInit).to.have.been.calledAfter(i18next.init);
+  });
+
+  it("should not require onInit to be provided", () => {
+    expect(() => handler.handler()).to.not.throw();
   });
   it("should call init with result from configure", () => {
     handler.handler({

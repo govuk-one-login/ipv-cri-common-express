@@ -18,7 +18,7 @@ describe("configure", () => {
         debug: true,
       });
 
-      expect(defaultConfig).to.include(configWithoutDetection);
+      expect(defaultConfig).to.deep.include(configWithoutDetection);
 
       expect(debug).to.be.true;
 
@@ -27,6 +27,18 @@ describe("configure", () => {
         cookieSecure: true,
         cookieDomain: "localhost",
       });
+    });
+
+    it("should merge additionalNamespaces into ns", () => {
+      const config = configure({ additionalNamespaces: ["frontend-ui"] });
+
+      expect(config.ns).to.deep.equal([...defaultConfig.ns, "frontend-ui"]);
+    });
+
+    it("should not modify ns when additionalNamespaces is empty", () => {
+      const config = configure({ additionalNamespaces: [] });
+
+      expect(config.ns).to.deep.equal(defaultConfig.ns);
     });
   });
 });

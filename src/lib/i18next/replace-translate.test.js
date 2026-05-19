@@ -35,6 +35,40 @@ describe("replaceTranslate", () => {
     expect(req.translate).to.equal(translate);
   });
 
+  it("should set res.locals.translate as a function", () => {
+    replaceTranslate(req, res, next);
+
+    expect(res.locals.translate).to.be.a("function");
+  });
+
+  it("should call translate with res.locals spread as interpolation context", () => {
+    const translate = sinon.stub();
+    req.i18n.getFixedT.returns(translate);
+    res.locals.favFood = "Sausage";
+
+    replaceTranslate(req, res, next);
+    res.locals.translate("some.key");
+
+    expect(translate).to.have.been.calledWithExactly(
+      "some.key",
+      sinon.match({ favFood: "Sausage" }),
+    );
+  });
+
+  it("should allow opts to override res.locals in interpolation context", () => {
+    const translate = sinon.stub();
+    req.i18n.getFixedT.returns(translate);
+    res.locals.favFood = "Sausage";
+
+    replaceTranslate(req, res, next);
+    res.locals.translate("some.key", { favFood: "Saucisson" });
+
+    expect(translate).to.have.been.calledWithExactly(
+      "some.key",
+      sinon.match({ favFood: "Saucisson" }),
+    );
+  });
+
   it("should call next", () => {
     replaceTranslate(req, res, next);
 
