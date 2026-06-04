@@ -27,7 +27,7 @@ const redactQueryParams = (url) => {
 
 const getErrorProperties = (err) => {
   const properties = {};
-  for (const key in err) {
+  for (const key of Object.keys(err)) {
     const value = err[key];
     if (
       typeof value === "string" ||
