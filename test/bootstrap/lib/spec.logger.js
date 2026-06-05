@@ -117,6 +117,82 @@ describe("Logger", () => {
       const logger2 = logger.get("cached-logger");
       expect(logger1).to.equal(logger2);
     });
+
+    describe("serializers", () => {
+      const pino = require("pino");
+
+      const getSerializers = () =>
+        logger.get("serializer-test")[pino.symbols.serializersSym];
+
+      it("serializes error properties for hmpo-logger parity", () => {
+        const err = new Error("Something failed");
+        err.code = "FAIL";
+        err.status = 403;
+
+        const serialized = getSerializers().err(err);
+
+        expect(serialized.type).to.equal("Error");
+        expect(serialized.message).to.equal("Something failed");
+        expect(serialized.stack).to.be.a("string");
+        expect(serialized.code).to.equal("FAIL");
+        expect(serialized.status).to.equal(403);
+      });
+
+      it("serializes the original error when present", () => {
+        const original = new Error("Root cause");
+        original.code = "ROOT";
+        const err = new Error("Something failed");
+        err.original = original;
+
+        const serialized = getSerializers().err(err);
+
+        expect(serialized.original.message).to.equal("Root cause");
+        expect(serialized.original.code).to.equal("ROOT");
+        expect(serialized.original.stack).to.be.a("string");
+      });
+
+      it("serializes request meta for hmpo-logger parity", () => {
+        const serialized = getSerializers().req({
+          method: "GET",
+          url: "/test?code=secret",
+          ip: "127.0.0.1",
+          connection: { remoteAddress: "10.0.0.1" },
+          hostname: "example.com",
+          httpVersionMajor: 1,
+          httpVersionMinor: 1,
+          headers: { "x-uniq-id": "uniq-123" },
+        });
+
+        expect(serialized).to.deep.equal({
+          method: "GET",
+          url: "/test?code=hidden",
+          clientip: "127.0.0.1",
+          remoteAddress: "10.0.0.1",
+          hostname: "example.com",
+          httpversion: "1.1",
+          uniqueID: "uniq-123",
+        });
+      });
+
+      it("serializes response meta for hmpo-logger parity", () => {
+        const headers = {
+          location: "/done?code=secret",
+          "content-length": 1234,
+        };
+        const serialized = getSerializers().res({
+          statusCode: 302,
+          locals: { sessionId: "session-1" },
+          getHeader: (name) => headers[name],
+        });
+
+        expect(serialized).to.deep.equal({
+          statusCode: 302,
+          sessionId: "session-1",
+          location: "/done?code=hidden",
+          bytes: 1234,
+        });
+      });
+    });
   });
 
   describe("logError", () => {
@@ -177,6 +253,51 @@ describe("Logger", () => {
       const arg = mockLogger.error.firstCall.args[0];
 
       expect(arg.message.startsWith("Added Start:")).to.equal(true);
+    });
+
+    it("should include error properties such as status at top level", function () {
+      const err = mockErr();
+      err.status = 403;
+
+      logger.logError(mockReq, err, { logger: mockLogger });
+
+      const arg = mockLogger.error.firstCall.args[0];
+
+      expect(arg.status).to.equal(403);
+      expect(arg.code).to.equal("FAIL");
+    });
+
+    it("should include the stack as an array of lines at top level", function () {
+      const err = mockErr();
+      err.stack = "line one\nline two";
+
+      logger.logError(mockReq, err, { logger: mockLogger });
+
+      const arg = mockLogger.error.firstCall.args[0];
+
+      expect(arg.stack).to.deep.equal(["line one", "line two"]);
+    });
+
+    it("should include the original error at top level", function () {
+      const err = mockErr();
+      err.original = new Error("Root cause");
+
+      logger.logError(mockReq, err, { logger: mockLogger });
+
+      const arg = mockLogger.error.firstCall.args[0];
+
+      expect(arg.original.message).to.equal("Root cause");
+    });
+
+    it("should include clientip and sessionID", function () {
+      logger.logError({ ...mockReq, sessionID: "session-1" }, mockErr(), {
+        logger: mockLogger,
+      });
+
+      const arg = mockLogger.error.firstCall.args[0];
+
+      expect(arg.clientip).to.equal("127.0.0.1");
+      expect(arg.sessionID).to.equal("session-1");
     });
 
     it("should omit code if not present", function () {

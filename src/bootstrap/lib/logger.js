@@ -25,6 +25,45 @@ const redactQueryParams = (url) => {
   return url;
 };
 
+const getErrorProperties = (err) => {
+  const properties = {};
+  for (const key of Object.keys(err)) {
+    const value = err[key];
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      properties[key] = value;
+    }
+  }
+  return properties;
+};
+
+const splitStack = (stack) =>
+  typeof stack === "string" ? stack.split(/[\n\r]+/) : undefined;
+
+const serializeError = (err) => {
+  const serialized = {
+    ...getErrorProperties(err),
+    type: err.name,
+    message: err.message,
+    stack: err.stack,
+  };
+  if (err.original) {
+    serialized.original =
+      err.original instanceof Error
+        ? {
+            ...getErrorProperties(err.original),
+            type: err.original.name,
+            message: err.original.message,
+            stack: err.original.stack,
+          }
+        : err.original;
+  }
+  return serialized;
+};
+
 const setup = (options = config.get("logs", {})) => hmpoLogger.config(options);
 
 const get = (name = ":hmpo-app", level = 1) => {
@@ -48,6 +87,14 @@ const get = (name = ":hmpo-app", level = 1) => {
         return {
           method: req.method,
           url: redactQueryParams(req.url),
+          clientip: req.ip ?? req.connection?.remoteAddress,
+          remoteAddress: req.connection?.remoteAddress,
+          hostname: req.hostname,
+          httpversion:
+            req.httpVersionMajor && req.httpVersionMinor
+              ? `${req.httpVersionMajor}.${req.httpVersionMinor}`
+              : undefined,
+          uniqueID: req.headers?.["x-uniq-id"],
         };
       },
       res: (res) => {
@@ -55,15 +102,10 @@ const get = (name = ":hmpo-app", level = 1) => {
           statusCode: res.statusCode,
           sessionId: res.locals.sessionId,
           location: redactQueryParams(res.getHeader("location")),
+          bytes: res.getHeader("content-length"),
         };
       },
-      err: (err) => {
-        return {
-          type: err.name,
-          message: err.message,
-          stack: err.stack,
-        };
-      },
+      err: serializeError,
     },
   });
   pinoLoggers.set(name, newPinoLogger);
@@ -79,7 +121,16 @@ function logError(req, err, options = {}) {
       : err.message;
 
     logger.error({
-      ...(err.code && { code: err.code }),
+      ...getErrorProperties(err),
+      stack: splitStack(err.stack),
+      ...(err.original && {
+        original:
+          err.original instanceof Error
+            ? serializeError(err.original)
+            : err.original,
+      }),
+      clientip: req.ip ?? req.connection?.remoteAddress,
+      sessionID: req.sessionID,
       method: req.method,
       request: redactQueryParams(req.originalUrl || req.url),
       message,
