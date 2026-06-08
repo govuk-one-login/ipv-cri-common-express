@@ -1,9 +1,11 @@
-const { replaceTranslate } = require("./replace-translate");
+const proxyquire = require("proxyquire");
 
 describe("replaceTranslate", () => {
   let req;
   let res;
   let next;
+  let warn;
+  let replaceTranslate;
 
   beforeEach(() => {
     const setup = setupDefaultMocks();
@@ -17,6 +19,13 @@ describe("replaceTranslate", () => {
       getFixedT: sinon.stub(),
       language: "en",
     };
+
+    warn = sinon.stub();
+    ({ replaceTranslate } = proxyquire("./replace-translate", {
+      "../../bootstrap/lib/logger": {
+        get: sinon.stub().returns({ warn }),
+      },
+    }));
   });
 
   it("should call getFixedT with language", () => {
@@ -67,6 +76,39 @@ describe("replaceTranslate", () => {
       "some.key",
       sinon.match({ favFood: "Saucisson" }),
     );
+  });
+
+  it("should not overwrite an existing res.locals.translate", () => {
+    const existing = sinon.fake();
+    res.locals.translate = existing;
+
+    replaceTranslate(req, res, next);
+
+    expect(res.locals.translate).to.equal(existing);
+  });
+
+  it("should warn when res.locals.translate is already set", () => {
+    res.locals.translate = sinon.fake();
+
+    replaceTranslate(req, res, next);
+
+    expect(warn).to.have.been.calledOnce;
+  });
+
+  it("should only warn once across multiple requests", () => {
+    res.locals.translate = sinon.fake();
+
+    replaceTranslate(req, res, next);
+    replaceTranslate(req, res, next);
+    replaceTranslate(req, res, next);
+
+    expect(warn).to.have.been.calledOnce;
+  });
+
+  it("should not warn when res.locals.translate is unset", () => {
+    replaceTranslate(req, res, next);
+
+    expect(warn).to.not.have.been.called;
   });
 
   it("should call next", () => {
