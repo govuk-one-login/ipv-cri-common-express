@@ -21,11 +21,7 @@ global.setupDefaultMocks = () => {
         fields: {},
       },
     },
-    axios: {
-      get: sinon.fake(),
-      post: sinon.fake(),
-      put: sinon.fake(),
-    },
+    customFetch: sinon.stub(),
   });
 
   req.journeyModel = new JourneyModel(null, {

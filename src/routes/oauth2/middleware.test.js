@@ -5,7 +5,7 @@ const exampleJwt =
 
 const buildMocks = () => ({
   req: {
-    axios: { get: sinon.fake(), post: sinon.fake(), put: sinon.fake() },
+    customFetch: sinon.fake(),
     app: { get: sinon.stub() },
     session: {},
     headers: {},
@@ -16,6 +16,13 @@ const buildMocks = () => ({
   res: { redirect: sinon.spy() },
   next: sinon.fake(),
 });
+
+function buildResponseWithBody(body, statusCode) {
+  return {
+    statusCode: statusCode ?? 200,
+    json: sinon.stub().resolves(body),
+  };
+}
 
 describe("oauth middleware", () => {
   let req;
@@ -95,11 +102,9 @@ describe("oauth middleware", () => {
         },
       };
 
-      response = {
-        data: {
-          session_id: "abc1234",
-        },
-      };
+      response = buildResponseWithBody({
+        session_id: "abc1234",
+      });
     });
 
     context("with missing properties", () => {
@@ -152,28 +157,29 @@ describe("oauth middleware", () => {
         };
       });
 
-      it("should call axios with the correct parameters", async function () {
+      it("should call the authorize endpoint with the correct parameters", async function () {
         await middleware.initSessionWithJWT(req, res, next);
-        expect(req.axios.post).to.have.been.calledWith(
-          "/api/authorize",
-          {
+        expect(req.customFetch).to.have.been.calledWith("/api/authorize", {
+          method: "POST",
+          headers: {
+            "txma-audit-encoded": "dummy-txma-header",
+            "x-forwarded-for": "127.0.0.1",
+          },
+          jsonBody: {
             request: exampleJwt,
             client_id: req.session.authParams.client_id,
           },
-          {
-            headers: {
-              "txma-audit-encoded": "dummy-txma-header",
-              "x-forwarded-for": "127.0.0.1",
-            },
-          },
-        );
+        });
       });
 
       context("with API result", () => {
         beforeEach(async () => {
-          response.data.state = "rAnd0m-i5ed_STring";
-          response.data.redirect_uri = "http://example.org:9001/callback";
-          req.axios.post = sinon.fake.returns(response);
+          response = buildResponseWithBody({
+            session_id: "abc1234",
+            state: "rAnd0m-i5ed_STring",
+            redirect_uri: "http://example.org:9001/callback",
+          });
+          req.customFetch = sinon.fake.returns(response);
 
           await middleware.initSessionWithJWT(req, res, next);
         });
@@ -198,7 +204,7 @@ describe("oauth middleware", () => {
 
       context("with API error", () => {
         beforeEach(async () => {
-          req.axios.post = sinon.fake.throws(new Error("API error"));
+          req.customFetch = sinon.fake.throws(new Error("API error"));
 
           await middleware.initSessionWithJWT(req, res, next);
         });
@@ -231,13 +237,11 @@ describe("oauth middleware", () => {
         },
       };
 
-      response = {
-        data: {
-          authorizationCode: {
-            value: "auth000",
-          },
+      response = buildResponseWithBody({
+        authorizationCode: {
+          value: "auth000",
         },
-      };
+      });
     });
 
     context("with missing properties", () => {
@@ -307,29 +311,31 @@ describe("oauth middleware", () => {
         };
       });
 
-      it("should call axios with the correct parameters", async function () {
+      it("should call the auth code endpoint with the correct parameters", async function () {
         await middleware.retrieveAuthorizationCode(req, res, next);
 
-        expect(req.axios.get).to.have.been.calledWith("/api/authorize", {
-          params: {
-            client_id: req.session.authParams.client_id,
-            redirect_uri: req.session.authParams.redirect_uri,
-            response_type: "code",
-            scope: "openid",
-            state: req.session.authParams.state,
-          },
+        expect(req.customFetch).to.have.been.calledWith("/api/authorize", {
           headers: {
             "session-id": req.session.tokenId,
             session_id: req.session.tokenId,
             "txma-audit-encoded": "dummy-txma-header",
             "x-forwarded-for": "127.0.0.1",
           },
+          jsonBody: {
+            params: {
+              client_id: req.session.authParams.client_id,
+              redirect_uri: req.session.authParams.redirect_uri,
+              response_type: "code",
+              scope: "openid",
+              state: req.session.authParams.state,
+            },
+          },
         });
       });
 
       context("with API result", () => {
         beforeEach(async () => {
-          req.axios.get = sinon.fake.returns(response);
+          req.customFetch = sinon.fake.returns(response);
 
           await middleware.retrieveAuthorizationCode(req, res, next);
         });
@@ -345,7 +351,7 @@ describe("oauth middleware", () => {
 
       context("with API error", () => {
         beforeEach(async () => {
-          req.axios.get = sinon.fake.throws(new Error("API error"));
+          req.customFetch = sinon.fake.throws(new Error("API error"));
 
           await middleware.retrieveAuthorizationCode(req, res, next);
         });
@@ -379,7 +385,7 @@ describe("oauth middleware", () => {
         },
       };
 
-      req.axios.get = sinon.fake.returns({});
+      req.customFetch = sinon.fake.returns({});
     });
 
     it("should successfully redirects when code is valid", async () => {
@@ -424,6 +430,7 @@ describe("oauth middleware", () => {
       let notifySessionSaved;
 
       beforeEach(() => {
+        res.redirect = sinon.stub();
         notifySessionSaved = undefined;
         req.session.save = sinon.stub().callsFake((sessionSavedCallback) => {
           notifySessionSaved = sessionSavedCallback;
@@ -453,10 +460,11 @@ describe("oauth middleware", () => {
 
   describe("redirectToAddress", () => {
     beforeEach(() => {
-      req.axios.get = sinon.fake.returns({});
+      req.customFetch = sinon.fake.returns({});
       req.app = {
         get: sinon.stub(),
       };
+      res.redirect = sinon.stub();
     });
 
     it("should successfully redirect back to address", async function () {
