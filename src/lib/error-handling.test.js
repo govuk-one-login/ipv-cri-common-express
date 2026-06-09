@@ -1,9 +1,24 @@
 const proxyquire = require("proxyquire");
+const { CustomFetchHttpError } = require("./custom-fetch");
 
 const oAuthStub = {};
 const { redirectAsErrorToCallback } = proxyquire("./error-handling", {
   "./oauth": oAuthStub,
 });
+
+function buildErrorWithBody(body) {
+  return new CustomFetchHttpError(
+    {
+      status: 400,
+      statusText: "Bad Request",
+      ok: false,
+      headers: new Headers({
+        "Content-Type": "application/json",
+      }),
+    },
+    JSON.stringify(body),
+  );
+}
 
 describe("error-handling", () => {
   let req;
@@ -25,41 +40,24 @@ describe("error-handling", () => {
   });
 
   describe("redirectAsErrorToCallbackWithoutOauthPrefix", () => {
-    context("with Axios error", () => {
+    context("with HTTP errors", () => {
       beforeEach(() => {
-        err = {
-          isAxiosError: true,
-          response: {
-            data: {
-              redirect_uri: "http://error.example.org",
-              message: "Invalid request JWT",
-              code: "invalid_request_object",
-            },
-          },
-        };
+        err = buildErrorWithBody({
+          redirect_uri: "http://error.example.org",
+          message: "Invalid request JWT",
+          code: "invalid_request_object",
+        });
       });
 
-      it("should override error code if provided in response body without Oauth Prefix", async () => {
+      it("should override error values if provided in response body without Oauth Prefix", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
         expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
           sinon.match({
             authParams: {
+              redirect_uri: "http://error.example.org",
               error: {
                 code: "invalid_request_object",
-              },
-            },
-          }),
-        );
-      });
-
-      it("should override error description if provided in response body without Oauth Prefix", async () => {
-        await redirectAsErrorToCallback(err, req, res, next);
-
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
-              error: {
                 description: "Invalid request JWT",
               },
             },
@@ -67,20 +65,12 @@ describe("error-handling", () => {
         );
       });
 
-      it("should override redirect_uri if provided in response body without Oauth Prefix", async () => {
-        await redirectAsErrorToCallback(err, req, res, next);
-
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
-              redirect_uri: "http://error.example.org",
-            },
-          }),
-        );
-      });
-
       it("should use a default for error code", async () => {
-        delete err.response.data.code;
+        err = buildErrorWithBody({
+          redirect_uri: "http://error.example.org",
+          message: "Invalid request JWT",
+          code: undefined,
+        });
 
         await redirectAsErrorToCallback(err, req, res, next);
 
@@ -95,7 +85,11 @@ describe("error-handling", () => {
         );
       });
       it("should use a default for error description", async () => {
-        delete err.response.data.message;
+        err = buildErrorWithBody({
+          redirect_uri: "http://error.example.org",
+          message: undefined,
+          code: "invalid_request_object",
+        });
 
         await redirectAsErrorToCallback(err, req, res, next);
 
@@ -110,7 +104,11 @@ describe("error-handling", () => {
         );
       });
       it("should use a default for redirect_uri", async () => {
-        delete err.response.data.redirect_uri;
+        err = buildErrorWithBody({
+          redirect_uri: undefined,
+          message: "Invalid request JWT",
+          code: "invalid_request_object",
+        });
 
         await redirectAsErrorToCallback(err, req, res, next);
 
@@ -176,43 +174,26 @@ describe("error-handling", () => {
   });
 
   describe("redirectAsErrorToCallback", () => {
-    context("with Axios error", () => {
+    context("with HTTP errors", () => {
       beforeEach(() => {
-        err = {
-          isAxiosError: true,
-          response: {
-            data: {
-              redirect_uri: "http://error.example.org",
-              oauth_error: {
-                error_description: "Invalid request JWT",
-                error: "invalid_request_object",
-              },
-            },
+        err = buildErrorWithBody({
+          redirect_uri: "http://error.example.org",
+          oauth_error: {
+            error_description: "Invalid request JWT",
+            error: "invalid_request_object",
           },
-        };
+        });
       });
 
-      it("should override error code if provided in response body", async () => {
+      it("should override error values if provided in response body", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
         expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
           sinon.match({
             authParams: {
+              redirect_uri: "http://error.example.org",
               error: {
                 code: "invalid_request_object",
-              },
-            },
-          }),
-        );
-      });
-
-      it("should override error description if provided in response body", async () => {
-        await redirectAsErrorToCallback(err, req, res, next);
-
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
-              error: {
                 description: "Invalid request JWT",
               },
             },
@@ -220,20 +201,14 @@ describe("error-handling", () => {
         );
       });
 
-      it("should override redirect_uri if provided in response body", async () => {
-        await redirectAsErrorToCallback(err, req, res, next);
-
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
-              redirect_uri: "http://error.example.org",
-            },
-          }),
-        );
-      });
-
       it("should use a default for error code", async () => {
-        delete err.response.data.oauth_error.error;
+        err = buildErrorWithBody({
+          redirect_uri: "http://error.example.org",
+          oauth_error: {
+            error_description: "Invalid request JWT",
+            error: undefined,
+          },
+        });
 
         await redirectAsErrorToCallback(err, req, res, next);
 
@@ -248,7 +223,13 @@ describe("error-handling", () => {
         );
       });
       it("should use a default for error description", async () => {
-        delete err.response.data.oauth_error.error_description;
+        err = buildErrorWithBody({
+          redirect_uri: "http://error.example.org",
+          oauth_error: {
+            error_description: undefined,
+            error: "invalid_request_object",
+          },
+        });
 
         await redirectAsErrorToCallback(err, req, res, next);
 
@@ -263,7 +244,13 @@ describe("error-handling", () => {
         );
       });
       it("should use a default for redirect_uri", async () => {
-        delete err.response.data.redirect_uri;
+        err = buildErrorWithBody({
+          redirect_uri: undefined,
+          oauth_error: {
+            error_description: "Invalid request JWT",
+            error: "invalid_request_object",
+          },
+        });
 
         await redirectAsErrorToCallback(err, req, res, next);
 
