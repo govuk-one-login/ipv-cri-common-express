@@ -3,7 +3,7 @@
 The lib folder contains a variety of Express middleware functions, designed to interact with the [Express App](https://expressjs.com/en/4x/api.html#app)s directly, or to work with the `req`/`res`/`next` pattern of [Express middleware](https://expressjs.com/en/guide/writing-middleware.html).
 
 - [`i18next`](./i18next) - Express router module for configuring [i18next](https://www.i18next.com/) for use with CRI paths and templates
-- [`axios`](./axios.js) - shared Axios client with support for [`x-forwarded-for`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For) and `x-scenario-id` headers
+- [`custom-fetch`](./custom-fetch.js) - shared fetch() helper for calling the CRI private API, with support for [`x-forwarded-for`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For) and `x-scenario-id` headers
 - [`error-handling`](./error-handling.js) - global error handler configured to redirect to initial caller of CRI
 - [`headers`](./headers.js) - patch for load balancer forwarding incorrect header value for `x-forwarded-proto`
 - [`helmet`](./helmet.js) - default [Helmet](https://helmetjs.github.io/) configuration
