@@ -54,6 +54,11 @@ const setup = (
       ...options.session,
     });
 
+  if (options.csrf) {
+    const csrf = require("../lib/csrf");
+    app.use(csrf(options.csrf));
+  }
+
   const router = express.Router();
   router.use(protect);
   app.use(router);
