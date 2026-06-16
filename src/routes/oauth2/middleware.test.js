@@ -3,13 +3,27 @@ const middleware = require("./middleware");
 const exampleJwt =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
+const buildMocks = () => ({
+  req: {
+    axios: { get: sinon.fake(), post: sinon.fake(), put: sinon.fake() },
+    app: { get: sinon.stub() },
+    session: {},
+    headers: {},
+    body: {},
+    query: {},
+    ip: "127.0.0.1",
+  },
+  res: { redirect: sinon.spy() },
+  next: sinon.fake(),
+});
+
 describe("oauth middleware", () => {
   let req;
   let res;
   let next;
 
   beforeEach(() => {
-    const setup = setupDefaultMocks();
+    const setup = buildMocks();
     req = setup.req;
     res = setup.res;
     next = setup.next;
@@ -407,22 +421,32 @@ describe("oauth middleware", () => {
     });
 
     context("with session.save available", () => {
+      let notifySessionSaved;
+
       beforeEach(() => {
-        req.session.save = sinon.stub().yields(null);
+        notifySessionSaved = undefined;
+        req.session.save = sinon.stub().callsFake((sessionSavedCallback) => {
+          notifySessionSaved = sessionSavedCallback;
+        });
       });
 
-      it("should save the session before redirecting", async () => {
+      it("does not redirect until the session has finished saving", async () => {
         await middleware.redirectToCallback(req, res, next);
 
-        expect(req.session.save).to.have.been.calledBefore(res.redirect);
+        expect(req.session.save).to.have.been.calledOnce;
+        expect(res.redirect).to.not.have.been.called;
+
+        notifySessionSaved(null); // success
+
+        expect(res.redirect).to.have.been.calledOnce;
       });
 
-      it("should still redirect if session save fails", async () => {
-        req.session.save = sinon.stub().yields(new Error("save failed"));
-
+      it("still redirects if the session save fails", async () => {
         await middleware.redirectToCallback(req, res, next);
 
-        expect(res.redirect).to.have.been.called;
+        notifySessionSaved(new Error("session save failed"));
+
+        expect(res.redirect).to.have.been.calledOnce;
       });
     });
   });
@@ -444,23 +468,33 @@ describe("oauth middleware", () => {
     });
 
     context("with session.save available", () => {
+      let notifySessionSaved;
+
       beforeEach(() => {
         req.app.get.withArgs("APP.PATHS.ENTRYPOINT").returns("/app/entry");
-        req.session.save = sinon.stub().yields(null);
+        notifySessionSaved = undefined;
+        req.session.save = sinon.stub().callsFake((sessionSavedCallback) => {
+          notifySessionSaved = sessionSavedCallback;
+        });
       });
 
-      it("should save the session before redirecting", async () => {
+      it("does not redirect until the session has finished saving", async () => {
         await middleware.redirectToEntryPoint(req, res, next);
 
-        expect(req.session.save).to.have.been.calledBefore(res.redirect);
+        expect(req.session.save).to.have.been.calledOnce;
+        expect(res.redirect).to.not.have.been.called;
+
+        notifySessionSaved(null); // success
+
+        expect(res.redirect).to.have.been.calledOnce;
       });
 
-      it("should still redirect if session save fails", async () => {
-        req.session.save = sinon.stub().yields(new Error("save failed"));
-
+      it("still redirects if the session save fails", async () => {
         await middleware.redirectToEntryPoint(req, res, next);
 
-        expect(res.redirect).to.have.been.called;
+        notifySessionSaved(new Error("session save failed"));
+
+        expect(res.redirect).to.have.been.calledOnce;
       });
     });
 

@@ -9,4 +9,5 @@ module.exports = {
   locals: require("./locals"),
   settings: require("./settings"),
   i18n: require("./i18next"),
+  csrf: require("./csrf"),
 };
