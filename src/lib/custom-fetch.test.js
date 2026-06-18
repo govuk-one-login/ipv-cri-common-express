@@ -16,7 +16,7 @@ const badResponse = {
   headers: new Headers({ "some-header": "illegal" }),
 };
 
-describe("custom-fetch.js", () => {
+describe("custom-fetch.js with global.fetch mock", () => {
   describe("CustomFetchHttpError", () => {
     it("provides response data as expected given valid input", async () => {
       const error = new CustomFetchHttpError(
@@ -36,7 +36,10 @@ describe("custom-fetch.js", () => {
     const next = sinon.stub();
 
     const fetchResponse = { ok: true, statusCode: 200, text: () => "hello" };
-    global.fetch = sinon.stub().returns(fetchResponse);
+
+    before(() => {
+      global.fetch = sinon.stub().returns(fetchResponse);
+    });
 
     beforeEach(() => {
       dummyReq = {
