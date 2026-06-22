@@ -1,5 +1,5 @@
 module.exports = {
-  axios: require("./axios"),
+  customFetch: require("./custom-fetch"),
   oauth: require("./oauth"),
   redis: require("./redis"),
   headers: require("./headers"),

@@ -39,28 +39,28 @@ module.exports = {
           req,
         );
 
-        const apiResponse = await req.axios.post(
-          sessionPath,
-          {
+        const apiResponse = await req.customFetch(sessionPath, {
+          method: "POST",
+          headers,
+          jsonBody: {
             request: req.jwt,
             client_id: req.session.authParams.client_id,
           },
-          {
-            headers,
-          },
-        );
+        });
 
-        if (!apiResponse?.data["session_id"]) {
+        const apiBody = await apiResponse.json();
+
+        if (!apiBody["session_id"]) {
           logger.warn("No session ID in session response");
         }
 
-        if (!apiResponse?.data?.redirect_uri) {
+        if (!apiBody.redirect_uri) {
           logger.warn("No redirect URI in session response");
         }
 
-        req.session.tokenId = apiResponse?.data["session_id"];
-        req.session.authParams.state = apiResponse?.data?.state;
-        req.session.authParams.redirect_uri = apiResponse?.data?.redirect_uri;
+        req.session.tokenId = apiBody["session_id"];
+        req.session.authParams.state = apiBody.state;
+        req.session.authParams.redirect_uri = apiBody.redirect_uri;
       }
       return next();
     } catch (error) {
@@ -100,19 +100,23 @@ module.exports = {
         ),
       };
 
-      const authCode = await req.axios.get(authorizationPath, {
-        params: {
-          client_id: req.session.authParams.client_id,
-          state: req.session.authParams.state,
-          redirect_uri: req.session.authParams.redirect_uri,
-          response_type: "code",
-          scope: "openid",
-        },
+      const authCodeResponse = await req.customFetch(authorizationPath, {
         headers,
+        jsonBody: {
+          params: {
+            client_id: req.session.authParams.client_id,
+            state: req.session.authParams.state,
+            redirect_uri: req.session.authParams.redirect_uri,
+            response_type: "code",
+            scope: "openid",
+          },
+        },
       });
 
+      const authCodeBody = await authCodeResponse.json();
+
       req.session.authParams.authorization_code =
-        authCode.data?.authorizationCode?.value;
+        authCodeBody?.authorizationCode?.value;
 
       return next();
     } catch (e) {
