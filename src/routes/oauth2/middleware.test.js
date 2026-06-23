@@ -314,23 +314,17 @@ describe("oauth middleware", () => {
       it("should call the auth code endpoint with the correct parameters", async function () {
         await middleware.retrieveAuthorizationCode(req, res, next);
 
-        expect(req.customFetch).to.have.been.calledWith("/api/authorize", {
-          headers: {
-            "session-id": req.session.tokenId,
-            session_id: req.session.tokenId,
-            "txma-audit-encoded": "dummy-txma-header",
-            "x-forwarded-for": "127.0.0.1",
-          },
-          jsonBody: {
-            params: {
-              client_id: req.session.authParams.client_id,
-              redirect_uri: req.session.authParams.redirect_uri,
-              response_type: "code",
-              scope: "openid",
-              state: req.session.authParams.state,
+        expect(req.customFetch).to.have.been.calledWith(
+          "/api/authorize?client_id=test_client&state=sT%40t3&redirect_uri=http%3A%2F%2Fexample.net%2F&response_type=code&scope=openid",
+          {
+            headers: {
+              "session-id": req.session.tokenId,
+              session_id: req.session.tokenId,
+              "txma-audit-encoded": "dummy-txma-header",
+              "x-forwarded-for": "127.0.0.1",
             },
           },
-        });
+        );
       });
 
       context("with API result", () => {

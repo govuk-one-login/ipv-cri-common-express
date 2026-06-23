@@ -100,18 +100,20 @@ module.exports = {
         ),
       };
 
-      const authCodeResponse = await req.customFetch(authorizationPath, {
-        headers,
-        jsonBody: {
-          params: {
-            client_id: req.session.authParams.client_id,
-            state: req.session.authParams.state,
-            redirect_uri: req.session.authParams.redirect_uri,
-            response_type: "code",
-            scope: "openid",
-          },
+      const authorizationQuery = new URLSearchParams({
+        client_id: req.session.authParams.client_id,
+        state: req.session.authParams.state,
+        redirect_uri: req.session.authParams.redirect_uri,
+        response_type: "code",
+        scope: "openid",
+      }).toString();
+
+      const authCodeResponse = await req.customFetch(
+        `${authorizationPath}?${authorizationQuery}`,
+        {
+          headers,
         },
-      });
+      );
 
       const authCodeBody = await authCodeResponse.json();
 
