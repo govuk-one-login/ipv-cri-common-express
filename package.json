@@ -1,6 +1,6 @@
 {
   "name": "@govuk-one-login/di-ipv-cri-common-express",
-  "version": "15.1.0",
+  "version": "15.1.1",
   "description": "Express libraries and utilities for use building GOV.UK One Login Credential Issuers",
   "main": "src/index.js",
   "files": [
@@ -54,8 +54,8 @@
     "hmpo-i18n": "7.0.1",
     "hmpo-logger": "7.0.1",
     "i18next": "23.8.1",
-    "i18next-fs-backend": "2.6.5",
-    "i18next-http-middleware": "3.9.6",
+    "i18next-fs-backend": "2.6.6",
+    "i18next-http-middleware": "3.9.7",
     "lodash.differencewith": "4.5.0",
     "nocache": "3.0.4",
     "on-finished": "2.4.1",
