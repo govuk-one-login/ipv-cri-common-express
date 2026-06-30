@@ -16,7 +16,12 @@ jobs:
     steps:
       - name: Get latest release tag
         id: get-latest-tag
-        run: echo "tag=$(gh release view --json tagName --jq .tagName)" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=gh release view --json tagName --jq .tagName
+          echo "Identified latest release tag: '$TAG'"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Publish
         uses: govuk-one-login/github-actions/node/run-script@4616241694c035be4ea4a10fc0fe6521c0f079f8

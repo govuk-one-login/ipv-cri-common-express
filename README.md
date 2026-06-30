@@ -112,6 +112,30 @@ In order to prepare a new release
 5. Once this has been done, a release can be created using GitHub by accessing the [releases](https://github.com/govuk-one-login/ipv-cri-common-express/releases) section.
 6. Choose a new tag matching your version number, prefixed with `v` to avoid Git reference collisions, e.g. `v1.2.3`
 7. Click on the "Generate release notes" button to automatically pull in commit messages for the release notes.
+8. Ensure that you select the 'Latest' tickbox under 'Release label' if you are releasing the new highest-numbered version (usually this is the case, but not true if patching a previous major version)
+
+## `npm` tagging
+
+The 'Latest' label on the GitHub release is used to choose the tag that npm applies to the published package version. If the release being published is 'Latest' then it is published to npm as `latest`, meaning it will be automatically installed when consumers execute either of the following:
+
+```sh
+npm install @govuk-one-login/di-ipv-cri-common-express
+npm install @govuk-one-login/di-ipv-cri-common-express@latest
+```
+
+By contrast, if the release being published is not 'Latest' then it will be given the `legacy` tag in npm. Tags can be seen in the ['Versions' tab on npmjs.com](https://www.npmjs.com/package/@govuk-one-login/di-ipv-cri-common-express?activeTab=versions).
+
+## Supporting legacy versions
+
+In some cases, we may need to patch an older major version of common-express to resolve issues such as vulnerabilities.
+
+This should be done by using the following process, using version 15 as an example:
+
+- Create a new branch, `v15`, at the last `main` commit before version 16
+  - The branch will be automatically covered by branch protection rules so will need PRs to be pushed to
+- Commit your changes on a feature branch `myfeature-v15`, starting at the same commit
+- Raise a pull request from `myfeature-v15` to `v15` and get the necessary approvals
+- Once merged, create a release following the process above and be sure to leave 'Release label' unset (ie, not 'Latest').
 
 # Code Owners
 
