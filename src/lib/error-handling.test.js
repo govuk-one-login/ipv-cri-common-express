@@ -6,15 +6,13 @@ const { redirectAsErrorToCallback } = proxyquire("./error-handling", {
   "./oauth": oAuthStub,
 });
 
-function buildErrorWithBody(body) {
+function buildErrorWithBody(body, contentType = "application/json") {
   return new CustomFetchHttpError(
     {
       status: 400,
       statusText: "Bad Request",
       ok: false,
-      headers: new Headers({
-        "Content-Type": "application/json",
-      }),
+      headers: new Headers(contentType ? { "Content-Type": contentType } : {}),
     },
     JSON.stringify(body),
   );
@@ -258,6 +256,68 @@ describe("error-handling", () => {
           sinon.match({
             authParams: {
               redirect_uri: "http://example.org",
+            },
+          }),
+        );
+      });
+    });
+
+    context("with HTTP errors and no Content-Type header", () => {
+      beforeEach(() => {
+        err = buildErrorWithBody(
+          {
+            redirect_uri: "http://error.example.org",
+            oauth_error: {
+              error_description: "gateway",
+              error: "server_error",
+            },
+          },
+          null,
+        );
+      });
+
+      it("should still parse the body and override error values", async () => {
+        await redirectAsErrorToCallback(err, req, res, next);
+
+        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
+          sinon.match({
+            authParams: {
+              redirect_uri: "http://error.example.org",
+              error: {
+                code: "server_error",
+                description: "gateway",
+              },
+            },
+          }),
+        );
+      });
+    });
+
+    context("with HTTP errors and a Content-Type charset suffix", () => {
+      beforeEach(() => {
+        err = buildErrorWithBody(
+          {
+            redirect_uri: "http://error.example.org",
+            oauth_error: {
+              error_description: "gateway",
+              error: "server_error",
+            },
+          },
+          "application/json; charset=utf-8",
+        );
+      });
+
+      it("should still parse the body and override error values", async () => {
+        await redirectAsErrorToCallback(err, req, res, next);
+
+        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
+          sinon.match({
+            authParams: {
+              redirect_uri: "http://error.example.org",
+              error: {
+                code: "server_error",
+                description: "gateway",
+              },
             },
           }),
         );
