@@ -8,13 +8,11 @@ const DEFAULT_ERROR_DESCRIPTION = "general error";
 
 async function handleHttpError(httpError) {
   let responseObject;
-  if (httpError.headers?.get("Content-Type") === "application/json") {
+  if (httpError.body) {
     try {
       responseObject = JSON.parse(httpError.body);
     } catch {
-      logger.error(
-        `Failed to parse HTTP response body despite "application/json" header`,
-      );
+      logger.warn("Unable to parse HTTP response body as JSON");
     }
   }
 
