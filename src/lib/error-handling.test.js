@@ -324,6 +324,78 @@ describe("error-handling", () => {
       });
     });
 
+    context("with an HTTP error body that is not valid JSON", () => {
+      let warn;
+
+      beforeEach(async () => {
+        warn = require("../bootstrap/lib/logger").get().warn;
+        warn.resetHistory();
+
+        err = new CustomFetchHttpError(
+          {
+            status: 500,
+            statusText: "Internal Server Error",
+            ok: false,
+            headers: new Headers(),
+          },
+          "<html>not json</html>",
+        );
+
+        await redirectAsErrorToCallback(err, req, res, next);
+      });
+
+      it("should log a warning that the body could not be parsed", () => {
+        expect(warn).to.have.been.calledWith(
+          "Unable to parse HTTP response body as JSON",
+        );
+      });
+
+      it("should fall back to the default error code and description", () => {
+        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
+          sinon.match({
+            authParams: {
+              error: { code: "server_error", description: "general error" },
+            },
+          }),
+        );
+      });
+    });
+
+    context("with an HTTP error that has no body", () => {
+      let warn;
+
+      beforeEach(async () => {
+        warn = require("../bootstrap/lib/logger").get().warn;
+        warn.resetHistory();
+
+        err = new CustomFetchHttpError(
+          {
+            status: 500,
+            statusText: "Internal Server Error",
+            ok: false,
+            headers: new Headers(),
+          },
+          "",
+        );
+
+        await redirectAsErrorToCallback(err, req, res, next);
+      });
+
+      it("should not attempt to parse the body or log a warning", () => {
+        expect(warn).not.to.have.been.called;
+      });
+
+      it("should fall back to the default error code and description", () => {
+        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
+          sinon.match({
+            authParams: {
+              error: { code: "server_error", description: "general error" },
+            },
+          }),
+        );
+      });
+    });
+
     context("with default Error object", () => {
       beforeEach(async () => {
         err = new Error("error message");
@@ -390,6 +462,31 @@ describe("error-handling", () => {
       });
 
       it("should call next with err", () => {
+        expect(next).to.have.been.calledWith(
+          sinon.match
+            .instanceOf(Error)
+            .and(sinon.match.has("message", "Missing redirect_uri")),
+        );
+      });
+    });
+
+    context("with no redirect_uri but an existing session", () => {
+      beforeEach(async () => {
+        err = new Error("some other error");
+
+        req.session = {
+          tokenId: "some-token-id",
+          authParams: { redirect_uri: undefined, state: undefined },
+        };
+
+        await redirectAsErrorToCallback(err, req, res, next);
+      });
+
+      it("should not call res.redirect", () => {
+        expect(res.redirect).not.to.have.been.called;
+      });
+
+      it("should call next with a 'Missing redirect_uri' error", () => {
         expect(next).to.have.been.calledWith(
           sinon.match
             .instanceOf(Error)
