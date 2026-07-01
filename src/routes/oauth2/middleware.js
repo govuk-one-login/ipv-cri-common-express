@@ -61,6 +61,8 @@ module.exports = {
         req.session.tokenId = apiBody["session_id"];
         req.session.authParams.state = apiBody.state;
         req.session.authParams.redirect_uri = apiBody.redirect_uri;
+        req.session.govuk_signin_journey_id =
+          apiBody["govuk_signin_journey_id"];
       }
       return next();
     } catch (error) {

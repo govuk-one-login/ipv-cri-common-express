@@ -178,6 +178,7 @@ describe("oauth middleware", () => {
             session_id: "abc1234",
             state: "rAnd0m-i5ed_STring",
             redirect_uri: "http://example.org:9001/callback",
+            govuk_signin_journey_id: "test-journey-id",
           });
           req.customFetch = sinon.fake.returns(response);
 
@@ -195,6 +196,11 @@ describe("oauth middleware", () => {
         it("should save 'redirect_uri' into req.session.authParams", () => {
           expect(req.session.authParams.redirect_uri).to.equal(
             "http://example.org:9001/callback",
+          );
+        });
+        it("should save 'govuk_signin_journey_id' into req.session", () => {
+          expect(req.session.govuk_signin_journey_id).to.equal(
+            "test-journey-id",
           );
         });
         it("should call next", function () {
