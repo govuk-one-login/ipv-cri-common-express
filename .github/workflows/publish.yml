@@ -19,7 +19,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG=gh release view --json tagName --jq .tagName
+          TAG="$(gh release view --json tagName --jq .tagName)"
           echo "Identified latest release tag: '$TAG'"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
