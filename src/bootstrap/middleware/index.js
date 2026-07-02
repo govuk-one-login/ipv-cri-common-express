@@ -39,6 +39,7 @@ const addRequestContext = (req, res, val) => {
     ipvSessionId: safeReq.session?.ipvSessionId,
     sessionId: safeReq.session?.id,
     context: safeReq.session?.context ?? undefined,
+    govuk_signin_journey_id: safeReq.session?.govuk_signin_journey_id,
   };
 };
 
