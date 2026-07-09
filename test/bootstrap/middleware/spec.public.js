@@ -30,7 +30,7 @@ describe("Public static assets", () => {
       const router = publicMiddleware();
 
       express.static.should.have.callCount(3);
-      router.use.should.have.callCount(3);
+      router.use.should.have.callCount(5);
 
       router.use
         .getCall(0)
@@ -64,6 +64,13 @@ describe("Public static assets", () => {
           APP_ROOT + "/node_modules/govuk-frontend/dist/govuk/assets",
           { maxAge: 86400000 },
         );
+
+      router.use
+        .getCall(3)
+        .should.have.been.calledWith("/public", sinon.match.func);
+      router.use
+        .getCall(4)
+        .should.have.been.calledWith("/public/images", sinon.match.func);
     });
 
     it("adds hmpo-components assets when hmpoComponentsDir is provided", () => {
@@ -74,7 +81,7 @@ describe("Public static assets", () => {
       publicMiddleware({ hmpoComponentsDir });
 
       express.static.should.have.callCount(4);
-      router.use.should.have.callCount(4);
+      router.use.should.have.callCount(6);
 
       router.use
         .getCall(2)

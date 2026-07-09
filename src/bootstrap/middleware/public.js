@@ -43,6 +43,9 @@ const middleware = ({
     ),
   );
 
+  router.use(urls.public, (req, res) => res.sendStatus(404));
+  router.use(urls.publicImages, (req, res) => res.sendStatus(404));
+
   return router;
 };
 

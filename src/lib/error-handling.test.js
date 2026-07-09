@@ -518,6 +518,26 @@ describe("error-handling", () => {
       });
     });
 
+    context("with a static asset request", () => {
+      beforeEach(async () => {
+        err = new Error(
+          "Cannot read properties of undefined (reading 'language')",
+        );
+        req.path = "/public/govuk/govuk-frontend.min.js.map";
+
+        await redirectAsErrorToCallback(err, req, res, next);
+      });
+
+      it("should not redirect the asset request to the callback", () => {
+        expect(res.redirect).not.to.have.been.called;
+        expect(oAuthStub.buildRedirectUrl).not.to.have.been.called;
+      });
+
+      it("should pass the error through to next", () => {
+        expect(next).to.have.been.calledWith(err);
+      });
+    });
+
     context("MISSING_SESSION_DATA error", () => {
       beforeEach(() => {
         err = {

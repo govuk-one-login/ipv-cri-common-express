@@ -28,26 +28,49 @@ async function handleHttpError(httpError) {
   };
 }
 
+async function resolveErrorOutput(err) {
+  const outputData = {
+    code: DEFAULT_ERROR_CODE,
+    description: DEFAULT_ERROR_DESCRIPTION,
+  };
+  let redirect_uri;
+
+  if (err instanceof CustomFetchHttpError) {
+    const httpData = await handleHttpError(err);
+
+    if (httpData.code) outputData.code = httpData.code;
+    if (httpData.description) outputData.description = httpData.description;
+    if (httpData.redirect_uri) redirect_uri = httpData.redirect_uri;
+  }
+
+  return { outputData, redirect_uri };
+}
+
 module.exports = {
   redirectAsErrorToCallback: async (err, req, res, next) => {
     if (err.code === "MISSING_SESSION_DATA" && err.status === 401) {
       return next(err);
     }
 
-    let outputData = {
-      code: DEFAULT_ERROR_CODE,
-      description: DEFAULT_ERROR_DESCRIPTION,
-    };
+    logger.error("Handling error in redirectAsErrorToCallback", {
+      errorName: err?.name,
+      errorCode: err?.code,
+      errorStatus: err?.status,
+      path: req.path,
+    });
 
-    let redirect_uri = req.session?.authParams?.redirect_uri;
-
-    if (err instanceof CustomFetchHttpError) {
-      const httpData = await handleHttpError(err);
-
-      if (httpData.code) outputData.code = httpData.code;
-      if (httpData.description) outputData.description = httpData.description;
-      if (httpData.redirect_uri) redirect_uri = httpData.redirect_uri;
+    // Ensure that missing public assets do not redirect to
+    // IPV core error callback silently
+    const assetPath = req.app?.locals?.assetPath || "/public";
+    if (req.path?.startsWith(assetPath)) {
+      return next(err);
     }
+
+    const { outputData, redirect_uri: httpRedirectUri } =
+      await resolveErrorOutput(err);
+
+    const redirect_uri =
+      httpRedirectUri || req.session?.authParams?.redirect_uri;
 
     if (redirect_uri) {
       try {
