@@ -31,6 +31,20 @@ module.exports = {
       return next(err);
     }
 
+    logger.error("Handling error in redirectAsErrorToCallback", {
+      errorName: err?.name,
+      errorCode: err?.code,
+      errorStatus: err?.status,
+      path: req.path,
+    });
+
+    // Ensure that missing public assets do not redirect to
+    // IPV core error callback silently
+    const assetPath = req.app?.locals?.assetPath || "/public";
+    if (req.path?.startsWith(assetPath)) {
+      return next(err);
+    }
+
     if (
       !redirect_uri &&
       !req.session?.tokenId &&
