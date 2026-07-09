@@ -52,18 +52,19 @@ module.exports = {
       return next(err);
     }
 
-    const assetPath = req.app?.locals?.assetPath || "/public";
-
-    if (req.path?.startsWith(assetPath)) {
-      return next(err);
-    }
-
     logger.error("Handling error in redirectAsErrorToCallback", {
       errorName: err?.name,
       errorCode: err?.code,
       errorStatus: err?.status,
       path: req.path,
     });
+
+    // Ensure that missing public assets do not redirect to
+    // IPV core error callback silently
+    const assetPath = req.app?.locals?.assetPath || "/public";
+    if (req.path?.startsWith(assetPath)) {
+      return next(err);
+    }
 
     const { outputData, redirect_uri: httpRedirectUri } =
       await resolveErrorOutput(err);
