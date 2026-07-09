@@ -28,6 +28,24 @@ async function handleHttpError(httpError) {
   };
 }
 
+async function resolveErrorOutput(err) {
+  const outputData = {
+    code: DEFAULT_ERROR_CODE,
+    description: DEFAULT_ERROR_DESCRIPTION,
+  };
+  let redirect_uri;
+
+  if (err instanceof CustomFetchHttpError) {
+    const httpData = await handleHttpError(err);
+
+    if (httpData.code) outputData.code = httpData.code;
+    if (httpData.description) outputData.description = httpData.description;
+    if (httpData.redirect_uri) redirect_uri = httpData.redirect_uri;
+  }
+
+  return { outputData, redirect_uri };
+}
+
 module.exports = {
   redirectAsErrorToCallback: async (err, req, res, next) => {
     if (err.code === "MISSING_SESSION_DATA" && err.status === 401) {
@@ -47,20 +65,11 @@ module.exports = {
       path: req.path,
     });
 
-    let outputData = {
-      code: DEFAULT_ERROR_CODE,
-      description: DEFAULT_ERROR_DESCRIPTION,
-    };
+    const { outputData, redirect_uri: httpRedirectUri } =
+      await resolveErrorOutput(err);
 
-    let redirect_uri = req.session?.authParams?.redirect_uri;
-
-    if (err instanceof CustomFetchHttpError) {
-      const httpData = await handleHttpError(err);
-
-      if (httpData.code) outputData.code = httpData.code;
-      if (httpData.description) outputData.description = httpData.description;
-      if (httpData.redirect_uri) redirect_uri = httpData.redirect_uri;
-    }
+    const redirect_uri =
+      httpRedirectUri || req.session?.authParams?.redirect_uri;
 
     if (redirect_uri) {
       try {
