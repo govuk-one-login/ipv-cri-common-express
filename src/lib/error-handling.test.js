@@ -374,6 +374,24 @@ describe("error-handling", () => {
       });
     });
 
+    context("with a static asset request", () => {
+      beforeEach(async () => {
+        err = new Error("asset error");
+        req.path = "/public/govuk/govuk-frontend.min.js.map";
+
+        await redirectAsErrorToCallback(err, req, res, next);
+      });
+
+      it("should not redirect the asset request to the callback", () => {
+        expect(res.redirect).not.to.have.been.called;
+        expect(oAuthStub.buildRedirectUrl).not.to.have.been.called;
+      });
+
+      it("should call next with err", () => {
+        expect(next).to.have.been.calledWith(err);
+      });
+    });
+
     context("MISSING_SESSION_DATA error", () => {
       beforeEach(() => {
         err = {
