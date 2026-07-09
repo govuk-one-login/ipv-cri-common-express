@@ -1,6 +1,7 @@
 const oAuth = require("./oauth");
 const { PACKAGE_NAME } = require("./constants");
 const { CustomFetchHttpError } = require("./custom-fetch");
+const { logError } = require("../bootstrap/lib/logger");
 const logger = require("../bootstrap/lib/logger").get(PACKAGE_NAME);
 
 const DEFAULT_ERROR_CODE = "server_error";
@@ -52,11 +53,8 @@ module.exports = {
       return next(err);
     }
 
-    logger.error("Handling error in redirectAsErrorToCallback", {
-      errorName: err?.name,
-      errorCode: err?.code,
-      errorStatus: err?.status,
-      path: req.path,
+    logError(req, err, {
+      messagePrefix: "Handling error in redirectAsErrorToCallback",
     });
 
     // Ensure that missing public assets do not redirect to
