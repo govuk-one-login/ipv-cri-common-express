@@ -34,6 +34,19 @@ module.exports = {
       return next(err);
     }
 
+    const assetPath = req.app?.locals?.assetPath || "/public";
+
+    if (req.path?.startsWith(assetPath)) {
+      return next(err);
+    }
+
+    logger.error("Handling error in redirectAsErrorToCallback", {
+      errorName: err?.name,
+      errorCode: err?.code,
+      errorStatus: err?.status,
+      path: req.path,
+    });
+
     let outputData = {
       code: DEFAULT_ERROR_CODE,
       description: DEFAULT_ERROR_DESCRIPTION,
