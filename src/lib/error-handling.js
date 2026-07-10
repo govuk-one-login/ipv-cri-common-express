@@ -52,12 +52,24 @@ module.exports = {
       return next(err);
     }
 
-    logger.error("Handling error in redirectAsErrorToCallback", {
-      errorName: err?.name,
-      errorCode: err?.code,
-      errorStatus: err?.status,
-      path: req.path,
-    });
+    if (process.env.USE_PINO_LOGGER === "true") {
+      logger.error(
+        {
+          errorName: err?.name,
+          errorCode: err?.code,
+          errorStatus: err?.status,
+          path: req.path,
+        },
+        "Handling error in redirectAsErrorToCallback",
+      );
+    } else {
+      logger.error("Handling error in redirectAsErrorToCallback", {
+        errorName: err?.name,
+        errorCode: err?.code,
+        errorStatus: err?.status,
+        path: req.path,
+      });
+    }
 
     // Ensure that missing public assets do not redirect to
     // IPV core error callback silently
