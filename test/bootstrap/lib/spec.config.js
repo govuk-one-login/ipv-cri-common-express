@@ -45,7 +45,7 @@ describe("Config", () => {
         "config/default.yml",
       );
 
-      // expect(hmpoConfig.prototype.addConfig).not.toHaveBeenCalled();
+      expect(hmpoConfig.prototype.addConfig).toHaveBeenCalled();
       expect(hmpoConfig.prototype.addString).not.toHaveBeenCalled();
 
       expect(global.GLOBAL_CONFIG).toEqual({ returned: "config" });
@@ -59,7 +59,7 @@ describe("Config", () => {
       expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith("a.json");
       expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith("b.json");
 
-      // expect(hmpoConfig.prototype.addConfig).not.toHaveBeenCalled();
+      expect(hmpoConfig.prototype.addConfig).toHaveBeenCalled();
       expect(hmpoConfig.prototype.addString).not.toHaveBeenCalled();
 
       expect(global.GLOBAL_CONFIG).toEqual({ returned: "config" });
