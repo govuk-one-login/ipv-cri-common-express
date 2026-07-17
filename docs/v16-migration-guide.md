@@ -98,7 +98,7 @@ const response = await req.customFetch("/some/api/path", {
   method: "POST",
   headers: { "Some-Header": "hello" },
   jsonBody: { someBody: true },
-  timeout: 5000,
+  timeoutMs: 5000,
 });
 
 const responseBody = await response.json();
