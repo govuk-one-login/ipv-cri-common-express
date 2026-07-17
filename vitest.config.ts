@@ -7,7 +7,7 @@ export default defineConfig({
     setupFiles: ["./test/utils/helpers.js", "./test/bootstrap/helper.js"],
     coverage: {
       provider: "v8",
-      reporters: ["text", "lcov"],
+      reporter: ["text", "lcov"],
       include: ["src/**/*"],
       exclude: ["**/*.njk", "**/*.md"],
     },
