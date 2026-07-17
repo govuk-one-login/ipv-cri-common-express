@@ -6,7 +6,10 @@ export default defineConfig({
     include: ["test/**/*.test.js", "**/*.test.js", "**/spec*.js"],
     setupFiles: ["./test/utils/helpers.js", "./test/bootstrap/helper.js"],
     coverage: {
+      provider: "v8",
+      reporters: ["text", "lcov"],
       include: ["src/**/*"],
+      exclude: ["**/*.njk", "**/*.md"],
     },
   },
 });
