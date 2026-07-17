@@ -4,8 +4,7 @@ module.exports = {
   env: {
     browser: true,
     es6: true,
-    es2020: true,
-    mocha: true,
+    es2022: true,
   },
   globals: {
     dataLayer: true,
