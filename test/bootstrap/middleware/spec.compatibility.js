@@ -1,3 +1,5 @@
+import { describe, it, expect, vi } from "vitest";
+
 const compatibility = require(
   APP_ROOT + "/src/bootstrap/middleware/compatibility",
 );
@@ -5,7 +7,8 @@ const compatibility = require(
 describe("Compatibility", () => {
   it("exports a middleware function", () => {
     const fn = compatibility.middleware();
-    fn.should.be.a("function").and.have.length(3);
+    expect(typeof fn).toBe("function");
+    expect(fn).toHaveLength(3);
   });
 
   describe("middleware", () => {
@@ -13,18 +16,18 @@ describe("Compatibility", () => {
       const fn = compatibility.middleware();
       const req = {};
       const res = {
-        setHeader: sinon.stub(),
+        setHeader: vi.fn(),
       };
-      const next = sinon.stub();
+      const next = vi.fn();
 
       fn(req, res, next);
 
-      res.setHeader.should.have.been.calledWithExactly(
+      expect(res.setHeader).toHaveBeenCalledWith(
         "X-UA-Compatible",
         "IE=edge,chrome=1",
       );
 
-      next.should.have.been.calledOnce.and.calledWithExactly();
+      expect(next).toHaveBeenCalled();
     });
   });
 });

@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 const { configure } = require("../../../src/bootstrap/lib/overload-protection");
 
 describe("overload-protection (configure)", () => {
@@ -5,7 +6,7 @@ describe("overload-protection (configure)", () => {
     it("should have default values", () => {
       const values = configure();
 
-      expect(values).to.deep.equal({
+      expect(values).toEqual({
         production: "production",
         clientRetrySecs: 1,
         sampleInterval: 5,
@@ -33,7 +34,7 @@ describe("overload-protection (configure)", () => {
 
       const values = configure(parameters);
 
-      expect(values).to.deep.equal(parameters);
+      expect(values).toEqual(parameters);
     });
 
     it("should have use partial overrides from parameters with fallback defaults", () => {
@@ -44,7 +45,7 @@ describe("overload-protection (configure)", () => {
 
       const values = configure(parameters);
 
-      expect(values).to.deep.equal({
+      expect(values).toEqual({
         clientRetrySecs: 1,
         errorPropagationMode: false,
         logStatsOnReq: false,
@@ -70,7 +71,7 @@ describe("overload-protection (configure)", () => {
     it("should have use overrides for maxEventLoopDelay from environment", () => {
       const values = configure();
 
-      expect(values).to.deep.equal({
+      expect(values).toEqual({
         production: "production",
         clientRetrySecs: 1,
         sampleInterval: 5,
@@ -86,7 +87,7 @@ describe("overload-protection (configure)", () => {
     it("should have use overrides maxEventLoopDelay from parameters before environment", () => {
       const values = configure({ maxEventLoopDelay: 1200 });
 
-      expect(values).to.deep.equal({
+      expect(values).toEqual({
         production: "production",
         clientRetrySecs: 1,
         sampleInterval: 5,

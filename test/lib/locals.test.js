@@ -1,7 +1,7 @@
+import { expect, beforeEach, afterEach, describe, it, vi } from "vitest";
+
 const express = require("express");
 const reqres = require("reqres");
-const sinon = require("sinon");
-const { expect } = require("chai");
 const { setGTM, setDeviceIntelligence } = require("../../src/lib/settings");
 const {
   getGTM,
@@ -39,7 +39,7 @@ describe("setGTM / getGTM", () => {
     req.app = app;
     const res = reqres.res();
     router(req, res, () => {
-      res.locals.should.eql({
+      expect(res.locals).toEqual({
         ga4ContainerId: "ga4ContainerIdTest",
         uaContainerId: "uaContainerIdTest",
         analyticsCookieDomain: "analyticsCookieDomainTest",
@@ -75,7 +75,7 @@ describe("setDeviceIntelligence / getDeviceIntelligence", () => {
     req.app = app;
     const res = reqres.res();
     router(req, res, () => {
-      res.locals.should.eql({
+      expect(res.locals).toEqual({
         deviceIntelligenceEnabled: true,
         deviceIntelligenceDomain: "deviceIntelligenceDomainTest",
       });
@@ -87,12 +87,16 @@ describe("getLanguageToggle middleware", () => {
   let req, res, next;
 
   beforeEach(() => {
+    vi.spyOn(logger, "error").mockImplementation(() => {});
+
     req = {
       app: {
-        get: sinon.stub(),
+        get: vi.fn(),
       },
       protocol: "https",
-      get: sinon.stub().withArgs("host").returns("example.com"), // Default behavior for host,
+      get: vi.fn().mockImplementation((args) => {
+        if (args === "host") return "example.com";
+      }), // Default behavior for host,
       originalUrl: "/test-path",
       i18n: {
         language: "en",
@@ -103,35 +107,35 @@ describe("getLanguageToggle middleware", () => {
       locals: {},
     };
 
-    next = sinon.spy();
+    next = vi.fn();
   });
 
   afterEach(() => {
-    sinon.restore(); // Restore mocked methods
+    vi.restoreAllMocks(); // Restore mocked methods
   });
 
   it("should log an error if constructing currentUrl fails", () => {
-    req.get.throws(new Error("Invalid host"));
+    req.get.mockImplementation(() => {
+      throw new Error("Invalid host");
+    });
 
     getLanguageToggle(req, res, next);
 
-    sinon.assert.calledOnce(logger.error);
-    sinon.assert.calledWithExactly(
-      logger.error,
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith(
       "Error constructing url for language toggle",
       "Invalid host",
     );
 
-    sinon.assert.calledOnce(next);
+    expect(next).toHaveBeenCalledTimes(1);
   });
 
   it("should set res.locals.currentUrl to the correct value", () => {
     getLanguageToggle(req, res, next);
-    expect(res.locals.currentUrl).to.be.an.instanceof(URL); // Check type
-    expect(res.locals.currentUrl.href).to.equal(
-      "https://example.com/test-path",
-    );
 
-    sinon.assert.calledOnce(next);
+    expect(res.locals.currentUrl).toBeInstanceOf(URL); // Check type
+    expect(res.locals.currentUrl.href).toEqual("https://example.com/test-path");
+
+    expect(next).toHaveBeenCalledTimes(1);
   });
 });

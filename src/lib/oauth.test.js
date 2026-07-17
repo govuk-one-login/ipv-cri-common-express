@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach } from "vitest";
+
 const { addOAuthPropertiesToSession, buildRedirectUrl } = require("./oauth");
 
 describe("oauth lib", () => {
@@ -15,7 +17,7 @@ describe("oauth lib", () => {
 
       addOAuthPropertiesToSession({ authParams, data });
 
-      expect(authParams.redirect_uri).to.equal(data.redirect_uri);
+      expect(authParams.redirect_uri).toEqual(data.redirect_uri);
     });
 
     it("should save 'state' to sessionModel", () => {
@@ -23,7 +25,7 @@ describe("oauth lib", () => {
 
       addOAuthPropertiesToSession({ authParams, data });
 
-      expect(authParams.state).to.equal(data.state);
+      expect(authParams.state).toEqual(data.state);
     });
 
     describe("with authorization_code", () => {
@@ -32,7 +34,7 @@ describe("oauth lib", () => {
 
         addOAuthPropertiesToSession({ authParams, data });
 
-        expect(authParams.authorization_code).to.equal(data.code);
+        expect(authParams.authorization_code).toEqual(data.code);
       });
     });
 
@@ -40,7 +42,7 @@ describe("oauth lib", () => {
       it("should save 'error' to sessionModel", () => {
         addOAuthPropertiesToSession({ authParams, data });
 
-        expect(authParams.error).to.deep.equal({
+        expect(authParams.error).toEqual({
           code: "server_error",
           error_description: "Failed to retrieve authorization code",
         });
@@ -70,7 +72,7 @@ describe("oauth lib", () => {
       buildRedirectUrl({ authParams });
     });
 
-    context("with an authorization_code", () => {
+    describe("with an authorization_code", () => {
       beforeEach(() => {
         authParams = {
           redirect_uri: "http://example.org",
@@ -83,23 +85,21 @@ describe("oauth lib", () => {
       it("should add authorization_code", () => {
         redirectUrl = buildRedirectUrl({ authParams });
 
-        expect(redirectUrl.searchParams.get("code")).to.equal(
+        expect(redirectUrl.searchParams.get("code")).toEqual(
           authParams.authorization_code,
         );
       });
       it("should add client_id", () => {
         redirectUrl = buildRedirectUrl({ authParams });
 
-        expect(redirectUrl.searchParams.get("client_id")).to.equal(
+        expect(redirectUrl.searchParams.get("client_id")).toEqual(
           authParams.client_id,
         );
       });
       it("should add state if available", () => {
         redirectUrl = buildRedirectUrl({ authParams });
 
-        expect(redirectUrl.searchParams.get("state")).to.equal(
-          authParams.state,
-        );
+        expect(redirectUrl.searchParams.get("state")).toEqual(authParams.state);
       });
 
       it("should not add state if not available", () => {
@@ -107,60 +107,57 @@ describe("oauth lib", () => {
 
         redirectUrl = buildRedirectUrl({ authParams });
 
-        expect(redirectUrl.searchParams.get("state")).to.be.null;
+        expect(redirectUrl.searchParams.get("state")).toBeNull();
       });
     });
 
-    context("without an authorization_code", () => {
-      describe("with an error object", () => {
-        let error;
-        beforeEach(() => {
-          error = {
-            code: "E_ERROR",
-            message: "Error Message",
-            description: "Error Description",
-          };
+    describe("with an error object", () => {
+      let error;
+      beforeEach(() => {
+        error = {
+          code: "E_ERROR",
+          message: "Error Message",
+          description: "Error Description",
+        };
 
-          authParams = {
-            redirect_uri: "http://example.org",
-            error,
-          };
-        });
-
-        it("should add the error code", () => {
-          redirectUrl = buildRedirectUrl({ authParams });
-
-          expect(redirectUrl.searchParams.get("error")).to.equal(error.code);
-        });
-        it("should add the error description if available", () => {
-          redirectUrl = buildRedirectUrl({ authParams });
-
-          expect(redirectUrl.searchParams.get("error_description")).to.equal(
-            error.description,
-          );
-        });
-        it("should add the error message as a fallback", () => {
-          delete error.description;
-          redirectUrl = buildRedirectUrl({ authParams });
-
-          expect(redirectUrl.searchParams.get("error_description")).to.equal(
-            error.message,
-          );
-        });
-        it("should add state if available", () => {
-          redirectUrl = buildRedirectUrl({
-            authParams: { state: "state-prop", ...authParams },
-          });
-
-          expect(redirectUrl.searchParams.get("state")).to.equal("state-prop");
-        });
-        it("should not add state if not available", () => {
-          redirectUrl = buildRedirectUrl({ authParams });
-
-          expect(redirectUrl.searchParams.get("state")).to.be.null;
-        });
+        authParams = {
+          redirect_uri: "http://example.org",
+          error,
+        };
       });
-      describe("without an error object", () => {});
+
+      it("should add the error code", () => {
+        redirectUrl = buildRedirectUrl({ authParams });
+
+        expect(redirectUrl.searchParams.get("error")).toEqual(error.code);
+      });
+      it("should add the error description if available", () => {
+        redirectUrl = buildRedirectUrl({ authParams });
+
+        expect(redirectUrl.searchParams.get("error_description")).toEqual(
+          error.description,
+        );
+      });
+      it("should add the error message as a fallback", () => {
+        delete error.description;
+        redirectUrl = buildRedirectUrl({ authParams });
+
+        expect(redirectUrl.searchParams.get("error_description")).toEqual(
+          error.message,
+        );
+      });
+      it("should add state if available", () => {
+        redirectUrl = buildRedirectUrl({
+          authParams: { state: "state-prop", ...authParams },
+        });
+
+        expect(redirectUrl.searchParams.get("state")).toEqual("state-prop");
+      });
+      it("should not add state if not available", () => {
+        redirectUrl = buildRedirectUrl({ authParams });
+
+        expect(redirectUrl.searchParams.get("state")).toBeNull();
+      });
     });
   });
 });

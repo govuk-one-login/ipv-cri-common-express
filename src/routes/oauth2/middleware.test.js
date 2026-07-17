@@ -1,3 +1,5 @@
+import { describe, vi, it, expect, beforeEach, afterEach } from "vitest";
+
 const middleware = require("./middleware");
 
 const exampleJwt =
@@ -5,22 +7,22 @@ const exampleJwt =
 
 const buildMocks = () => ({
   req: {
-    customFetch: sinon.fake(),
-    app: { get: sinon.stub() },
+    customFetch: vi.fn(),
+    app: { get: vi.fn() },
     session: {},
     headers: {},
     body: {},
     query: {},
     ip: "127.0.0.1",
   },
-  res: { redirect: sinon.spy() },
-  next: sinon.fake(),
+  res: { redirect: vi.fn() },
+  next: vi.fn(),
 });
 
 function buildResponseWithBody(body, statusCode) {
   return {
     statusCode: statusCode ?? 200,
-    json: sinon.stub().resolves(body),
+    json: vi.fn().mockResolvedValue(body),
   };
 }
 
@@ -37,7 +39,7 @@ describe("oauth middleware", () => {
   });
 
   afterEach(() => {
-    require("../../bootstrap/lib/logger").get().error.resetHistory();
+    require("../../bootstrap/lib/logger").get().error.mockClear();
   });
 
   describe("addAuthParamsToSession", () => {
@@ -54,7 +56,7 @@ describe("oauth middleware", () => {
     it("should save authParams to session", async function () {
       await middleware.addAuthParamsToSession(req, res, next);
 
-      expect(req.session.authParams).to.deep.equal({
+      expect(req.session.authParams).toEqual({
         client_id: req.query.client_id,
       });
     });
@@ -62,7 +64,7 @@ describe("oauth middleware", () => {
     it("should call next", async function () {
       await middleware.addAuthParamsToSession(req, res, next);
 
-      expect(next).to.have.been.called;
+      expect(next).toHaveBeenCalled();
     });
   });
 
@@ -76,15 +78,15 @@ describe("oauth middleware", () => {
     });
 
     it("should save authParams to session", async function () {
-      await middleware.addJWTToRequest(req, res, next);
+      middleware.addJWTToRequest(req, res, next);
 
-      expect(req.jwt).to.equal(req.query.request);
+      expect(req.jwt).toEqual(req.query.request);
     });
 
     it("should call next", async function () {
-      await middleware.addJWTToRequest(req, res, next);
+      middleware.addJWTToRequest(req, res, next);
 
-      expect(next).to.have.been.called;
+      expect(next).toHaveBeenCalled();
     });
   });
 
@@ -107,17 +109,16 @@ describe("oauth middleware", () => {
       });
     });
 
-    context("with missing properties", () => {
+    describe("with missing properties", () => {
       it("should call next with an error when req.jwt is missing", async () => {
         delete req.jwt;
 
         await middleware.initSessionWithJWT(req, res, next);
 
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing JWT")),
-        );
+        expect(next).toHaveBeenCalled();
+        const err = next.mock.calls[0][0];
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toBe("Missing JWT");
       });
 
       it("should call next with an error when req.session.authParams is missing", async () => {
@@ -125,41 +126,40 @@ describe("oauth middleware", () => {
 
         await middleware.initSessionWithJWT(req, res, next);
 
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing client_id")),
-        );
+        expect(next).toHaveBeenCalled();
+        const err = next.mock.calls[0][0];
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toBe("Missing client_id");
       });
 
       it("should call next with an error when API.PATHS.SESSION is missing", async () => {
         await middleware.initSessionWithJWT(req, res, next);
 
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing API.PATHS.SESSION value")),
-        );
+        expect(next).toHaveBeenCalled();
+        const err = next.mock.calls[0][0];
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toBe("Missing API.PATHS.SESSION value");
       });
     });
 
-    context("on authorization request", () => {
+    describe("on authorization request", () => {
       beforeEach(() => {
         req.app = {
-          get: sinon.stub(),
+          get: vi.fn(),
         };
-        req.app.get.withArgs("API.PATHS.SESSION").returns("/api/authorize");
-        req.app.get.withArgs("API.BASE_URL").returns("http://localhost:3000");
-
+        req.app.get.mockImplementation((arg) => {
+          if (arg === "API.PATHS.SESSION") return "/api/authorize";
+          if (arg === "API.BASE_URL") return "http://localhost:3000";
+        });
         req.headers = {
           "txma-audit-encoded": "dummy-txma-header",
           "x-forwarded-for": "198.51.100.10:46532",
         };
       });
-
       it("should call the authorize endpoint with the correct parameters", async function () {
         await middleware.initSessionWithJWT(req, res, next);
-        expect(req.customFetch).to.have.been.calledWith("/api/authorize", {
+
+        expect(req.customFetch).toHaveBeenCalledWith("/api/authorize", {
           method: "POST",
           headers: {
             "txma-audit-encoded": "dummy-txma-header",
@@ -172,7 +172,7 @@ describe("oauth middleware", () => {
         });
       });
 
-      context("with API result", () => {
+      describe("with API result", () => {
         beforeEach(async () => {
           response = buildResponseWithBody({
             session_id: "abc1234",
@@ -180,46 +180,49 @@ describe("oauth middleware", () => {
             redirect_uri: "http://example.org:9001/callback",
             govuk_signin_journey_id: "test-journey-id",
           });
-          req.customFetch = sinon.fake.returns(response);
+          req.customFetch = vi.fn().mockReturnValue(response);
 
           await middleware.initSessionWithJWT(req, res, next);
         });
 
         it("should save 'session_id' into req.session", () => {
-          expect(req.session.tokenId).to.equal("abc1234");
+          expect(req.session.tokenId).toEqual("abc1234");
         });
 
         it("should save 'state' into req.session.authParams", () => {
-          expect(req.session.authParams.state).to.equal("rAnd0m-i5ed_STring");
+          expect(req.session.authParams.state).toEqual("rAnd0m-i5ed_STring");
         });
 
         it("should save 'redirect_uri' into req.session.authParams", () => {
-          expect(req.session.authParams.redirect_uri).to.equal(
+          expect(req.session.authParams.redirect_uri).toEqual(
             "http://example.org:9001/callback",
           );
         });
         it("should save 'govuk_signin_journey_id' into req.session", () => {
-          expect(req.session.govuk_signin_journey_id).to.equal(
+          expect(req.session.govuk_signin_journey_id).toEqual(
             "test-journey-id",
           );
         });
         it("should call next", function () {
-          expect(next).to.have.been.called;
+          expect(next).toHaveBeenCalled();
         });
       });
 
-      context("with API error", () => {
+      describe("with API error", () => {
         beforeEach(async () => {
-          req.customFetch = sinon.fake.throws(new Error("API error"));
+          req.customFetch = vi.fn(() => {
+            throw new Error("API error");
+          });
 
           await middleware.initSessionWithJWT(req, res, next);
         });
 
         it("should call next with error", () => {
-          expect(next).to.have.been.calledWith(
-            sinon.match
-              .instanceOf(Error)
-              .and(sinon.match.has("message", "API error")),
+          expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
+          expect(next).toHaveBeenCalledWith(
+            expect.objectContaining({
+              message: "API error",
+            }),
           );
         });
       });
@@ -231,7 +234,7 @@ describe("oauth middleware", () => {
 
     beforeEach(() => {
       req.app = {
-        get: sinon.stub(),
+        get: vi.fn(),
       };
 
       req.session = {
@@ -250,17 +253,16 @@ describe("oauth middleware", () => {
       });
     });
 
-    context("with missing properties", () => {
+    describe("with missing properties", () => {
       it("should call next with an error when req.session.tokenId is missing", async () => {
         delete req.session.tokenId;
 
         await middleware.retrieveAuthorizationCode(req, res, next);
 
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing session-id")),
-        );
+        expect(next).toHaveBeenCalled();
+        const err = next.mock.calls[0][0];
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toBe("Missing session-id");
       });
 
       it("should call next with an error when req.session.authParams.client_id is missing", async () => {
@@ -268,11 +270,10 @@ describe("oauth middleware", () => {
 
         await middleware.retrieveAuthorizationCode(req, res, next);
 
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing client_id")),
-        );
+        expect(next).toHaveBeenCalled();
+        const err = next.mock.calls[0][0];
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toBe("Missing client_id");
       });
 
       it("should call next with an error when req.session.authParams.redirect_uri is missing", async () => {
@@ -280,37 +281,29 @@ describe("oauth middleware", () => {
 
         await middleware.retrieveAuthorizationCode(req, res, next);
 
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing redirect_uri")),
-        );
+        expect(next).toHaveBeenCalled();
+        const err = next.mock.calls[0][0];
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toBe("Missing redirect_uri");
       });
 
       it("should call next with an error when API.PATHS.AUTHORIZATION is missing", async () => {
         await middleware.retrieveAuthorizationCode(req, res, next);
 
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(
-              sinon.match.has(
-                "message",
-                "Missing API.PATHS.AUTHORIZATION value",
-              ),
-            ),
-        );
+        expect(next).toHaveBeenCalled();
+        const err = next.mock.calls[0][0];
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toBe("Missing API.PATHS.AUTHORIZATION value");
       });
     });
 
-    context("on authorization request", () => {
+    describe("on authorization request", () => {
       beforeEach(() => {
-        req.app.get
-          .withArgs("API.PATHS.AUTHORIZATION")
-          .returns("/api/authorize");
-        req.app.get.withArgs("API.PATHS.SESSION").returns("/api/authorize");
-        req.app.get.withArgs("API.BASE_URL").returns("http://localhost:3000");
-
+        req.app.get.mockImplementation((arg) => {
+          if (arg === "API.PATHS.AUTHORIZATION") return "/api/authorize";
+          if (arg === "API.PATHS.SESSION") return "/api/authorize";
+          if (arg === "API.BASE_URL") return "http://localhost:3000";
+        });
         req.headers = {
           "txma-audit-encoded": "dummy-txma-header",
           "x-forwarded-for": "198.51.100.10:46532",
@@ -320,7 +313,7 @@ describe("oauth middleware", () => {
       it("should call the auth code endpoint with the correct parameters", async function () {
         await middleware.retrieveAuthorizationCode(req, res, next);
 
-        expect(req.customFetch).to.have.been.calledWith(
+        expect(req.customFetch).toHaveBeenCalledWith(
           "/api/authorize?client_id=test_client&state=sT%40t3&redirect_uri=http%3A%2F%2Fexample.net%2F&response_type=code&scope=openid",
           {
             headers: {
@@ -333,35 +326,36 @@ describe("oauth middleware", () => {
         );
       });
 
-      context("with API result", () => {
+      describe("with API result", () => {
         beforeEach(async () => {
-          req.customFetch = sinon.fake.returns(response);
+          req.customFetch = vi.fn().mockReturnValue(response);
 
           await middleware.retrieveAuthorizationCode(req, res, next);
         });
 
         it("should save 'authorization_code' into req.session.authParams", () => {
-          expect(req.session.authParams.authorization_code).to.equal("auth000");
+          expect(req.session.authParams.authorization_code).toEqual("auth000");
         });
 
         it("should call next", function () {
-          expect(next).to.have.been.calledWith();
+          expect(next).toHaveBeenCalledWith();
         });
       });
 
-      context("with API error", () => {
+      describe("with API error", () => {
         beforeEach(async () => {
-          req.customFetch = sinon.fake.throws(new Error("API error"));
+          req.customFetch = vi.fn(() => {
+            throw new Error("API error");
+          });
 
           await middleware.retrieveAuthorizationCode(req, res, next);
         });
 
         it("should call next with error", () => {
-          expect(next).to.have.been.calledWith(
-            sinon.match
-              .instanceOf(Error)
-              .and(sinon.match.has("message", "API error")),
-          );
+          expect(next).toHaveBeenCalled();
+          const err = next.mock.calls[0][0];
+          expect(err).toBeInstanceOf(Error);
+          expect(err.message).toBe("API error");
         });
       });
     });
@@ -385,13 +379,13 @@ describe("oauth middleware", () => {
         },
       };
 
-      req.customFetch = sinon.fake.returns({});
+      req.customFetch = vi.fn().mockReturnValue({});
     });
 
     it("should successfully redirects when code is valid", async () => {
       await middleware.redirectToCallback(req, res, next);
 
-      expect(res.redirect).to.have.been.calledWith(
+      expect(res.redirect).toHaveBeenCalledWith(
         `${redirect}?client_id=${clientId}&code=${code}&state=${state}`,
       );
     });
@@ -409,7 +403,7 @@ describe("oauth middleware", () => {
 
       await middleware.redirectToCallback(req, res, next);
 
-      expect(res.redirect).to.have.been.calledWith(
+      expect(res.redirect).toHaveBeenCalledWith(
         `${redirect}?error=${errorCode}&error_description=${description}&state=${state}`,
       );
     });
@@ -419,20 +413,19 @@ describe("oauth middleware", () => {
 
       await middleware.redirectToCallback(req, res, next);
 
-      expect(next).to.have.been.calledWith(
-        sinon.match
-          .instanceOf(TypeError)
-          .and(sinon.match.has("code", "ERR_INVALID_URL")),
-      );
+      expect(next).toHaveBeenCalled();
+      const err = next.mock.calls[0][0];
+      expect(err).toBeInstanceOf(TypeError);
+      expect(err.code).toBe("ERR_INVALID_URL");
     });
 
-    context("with session.save available", () => {
+    describe("with session.save available", () => {
       let notifySessionSaved;
 
       beforeEach(() => {
-        res.redirect = sinon.stub();
+        res.redirect = vi.fn();
         notifySessionSaved = undefined;
-        req.session.save = sinon.stub().callsFake((sessionSavedCallback) => {
+        req.session.save = vi.fn((sessionSavedCallback) => {
           notifySessionSaved = sessionSavedCallback;
         });
       });
@@ -440,12 +433,12 @@ describe("oauth middleware", () => {
       it("does not redirect until the session has finished saving", async () => {
         await middleware.redirectToCallback(req, res, next);
 
-        expect(req.session.save).to.have.been.calledOnce;
-        expect(res.redirect).to.not.have.been.called;
+        expect(req.session.save).toHaveBeenCalledTimes(1);
+        expect(res.redirect).not.toHaveBeenCalled();
 
         notifySessionSaved(null); // success
 
-        expect(res.redirect).to.have.been.calledOnce;
+        expect(res.redirect).toHaveBeenCalledTimes(1);
       });
 
       it("still redirects if the session save fails", async () => {
@@ -453,35 +446,38 @@ describe("oauth middleware", () => {
 
         notifySessionSaved(new Error("session save failed"));
 
-        expect(res.redirect).to.have.been.calledOnce;
+        expect(res.redirect).toHaveBeenCalledTimes(1);
       });
     });
   });
 
   describe("redirectToAddress", () => {
     beforeEach(() => {
-      req.customFetch = sinon.fake.returns({});
+      req.customFetch = vi.fn().mockReturnValue({});
       req.app = {
-        get: sinon.stub(),
+        get: vi.fn(),
       };
-      res.redirect = sinon.stub();
+      res.redirect = vi.fn();
     });
 
     it("should successfully redirect back to address", async function () {
-      req.app.get.withArgs("APP.PATHS.ENTRYPOINT").returns("/app/entry");
-
+      req.app.get.mockImplementation((arg) => {
+        if (arg === "APP.PATHS.ENTRYPOINT") return "/app/entry";
+      });
       await middleware.redirectToEntryPoint(req, res, next);
 
-      expect(res.redirect).to.have.been.calledWith("/app/entry");
+      expect(res.redirect).toHaveBeenCalledWith("/app/entry");
     });
 
-    context("with session.save available", () => {
+    describe("with session.save available", () => {
       let notifySessionSaved;
 
       beforeEach(() => {
-        req.app.get.withArgs("APP.PATHS.ENTRYPOINT").returns("/app/entry");
+        req.app.get.mockImplementation((arg) => {
+          if (arg === "APP.PATHS.ENTRYPOINT") return "/app/entry";
+        });
         notifySessionSaved = undefined;
-        req.session.save = sinon.stub().callsFake((sessionSavedCallback) => {
+        req.session.save = vi.fn((sessionSavedCallback) => {
           notifySessionSaved = sessionSavedCallback;
         });
       });
@@ -489,12 +485,12 @@ describe("oauth middleware", () => {
       it("does not redirect until the session has finished saving", async () => {
         await middleware.redirectToEntryPoint(req, res, next);
 
-        expect(req.session.save).to.have.been.calledOnce;
-        expect(res.redirect).to.not.have.been.called;
+        expect(req.session.save).toHaveBeenCalledTimes(1);
+        expect(res.redirect).not.toHaveBeenCalled();
 
         notifySessionSaved(null); // success
 
-        expect(res.redirect).to.have.been.calledOnce;
+        expect(res.redirect).toHaveBeenCalledTimes(1);
       });
 
       it("still redirects if the session save fails", async () => {
@@ -502,21 +498,19 @@ describe("oauth middleware", () => {
 
         notifySessionSaved(new Error("session save failed"));
 
-        expect(res.redirect).to.have.been.calledOnce;
+        expect(res.redirect).toHaveBeenCalledTimes(1);
       });
-    });
 
-    context("with missing APP.PATHS.ENTRYPOINT", () => {
-      it("should call next with error", async () => {
-        await middleware.redirectToEntryPoint(req, res, next);
+      describe("with missing APP.PATHS.ENTRYPOINT", () => {
+        it("should call next with error", async () => {
+          req.app.get.mockImplementation(() => {});
+          await middleware.redirectToEntryPoint(req, res, next);
 
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(
-              sinon.match.has("message", "Missing APP.PATHS.ENTRYPOINT value"),
-            ),
-        );
+          expect(next).toHaveBeenCalled();
+          const err = next.mock.calls[0][0];
+          expect(err).toBeInstanceOf(Error);
+          expect(err.message).toBe("Missing APP.PATHS.ENTRYPOINT value");
+        });
       });
     });
   });

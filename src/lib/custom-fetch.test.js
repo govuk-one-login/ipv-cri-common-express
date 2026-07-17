@@ -1,7 +1,4 @@
-const logger = require("../bootstrap/lib/logger");
-const { PACKAGE_NAME } = require("./constants");
-
-const logInfo = logger.get(PACKAGE_NAME).info;
+import { expect, it, describe, vi, beforeEach } from "vitest";
 
 const {
   CustomFetchHttpError,
@@ -23,57 +20,69 @@ describe("custom-fetch.js with global.fetch mock", () => {
         badResponse,
         await badResponse.text(),
       );
-      expect(error.code).to.equal(418);
-      expect(error.body).to.equal("no coffee for you");
-      expect(error.message).to.equal(`Response not OK: I'm a Teapot`);
-      expect(error.headers.get("some-header")).to.equal("illegal");
+      expect(error.code).toEqual(418);
+      expect(error.body).toEqual("no coffee for you");
+      expect(error.message).toEqual(`Response not OK: I'm a Teapot`);
+      expect(error.headers.get("some-header")).toEqual("illegal");
     });
   });
 
   describe("customFetch()", () => {
     let dummyReq;
+    let loggerStub;
     const res = {};
-    const next = sinon.stub();
+    const next = vi.fn();
 
     const fetchResponse = { ok: true, statusCode: 200, text: () => "hello" };
 
-    before(() => {
-      global.fetch = sinon.stub().returns(fetchResponse);
-    });
+    global.fetch = vi.fn().mockReturnValue(fetchResponse);
 
     beforeEach(() => {
+      vi.clearAllMocks();
+
       dummyReq = {
         app: {
-          get: sinon.stub().withArgs("API.BASE_URL").returns("https://gov.uk"),
+          get: vi.fn().mockImplementation((arg) => {
+            if (arg === "API.BASE_URL") return "https://gov.uk";
+          }),
         },
       };
-      sinon.resetHistory();
+      loggerStub = LOGGER_RESET();
     });
 
     describe("customFetchMiddleware()", () => {
       it("runs the middleware to attach the customFetch function to the req object", () => {
         customFetchMiddleware(dummyReq, res, next);
-        expect(typeof dummyReq.customFetch).to.equal("function");
-        sinon.assert.calledOnce(next);
+        expect(typeof dummyReq.customFetch).toEqual("function");
+        expect(next).toHaveBeenCalledTimes(1);
       });
 
       it("calls next(error) if an error is thrown while building the fetch function", () => {
         const badReq = { ...dummyReq, headers: { forwarded: 1000 } };
 
         customFetchMiddleware(badReq, res, next);
-        sinon.assert.calledOnce(next);
-        expect(next.lastCall.firstArg).to.be.instanceof(Error);
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next.mock.calls.at(-1)[0]).toBeInstanceOf(Error);
       });
 
       [
-        ["empty", { app: { get: sinon.stub().returns("") } }],
-        ["null", { app: { get: sinon.stub().returns(null) } }],
-        ["error", { app: { get: sinon.stub().throws(new Error()) } }],
+        ["empty", { app: { get: vi.fn().mockReturnValueOnce("") } }],
+        ["null", { app: { get: vi.fn().mockReturnValueOnce(null) } }],
+        [
+          "error",
+          {
+            app: {
+              get: vi.fn().mockImplementation(() => {
+                throw new Error();
+              }),
+            },
+          },
+        ],
       ].forEach(([scenario, badReq]) => {
         it(`passes an error if it cannot get the base URL (${scenario} scenario)`, () => {
           customFetchMiddleware(badReq, res, next);
-          sinon.assert.calledOnce(next);
-          expect(next.lastCall.firstArg).to.be.instanceof(Error);
+          expect(next).toHaveBeenCalledTimes(1);
+          expect(next.mock.calls.at(-1)[0]).toBeInstanceOf(Error);
         });
       });
     });
@@ -88,13 +97,12 @@ describe("custom-fetch.js with global.fetch mock", () => {
           method: "GET",
         });
 
-        sinon.assert.calledWith(
-          global.fetch,
+        expect(global.fetch).toHaveBeenCalledWith(
           "https://gov.uk/path/something/here",
           { method: "GET", headers: {} },
         );
 
-        expect(response).to.equal(fetchResponse);
+        expect(response).toEqual(fetchResponse);
       });
 
       it("throws if a path is given without a leading slash", async () => {
@@ -103,12 +111,12 @@ describe("custom-fetch.js with global.fetch mock", () => {
         try {
           await dummyReq.customFetch("path/something/here");
         } catch (error) {
-          expect(error instanceof Error).to.equal(true);
-          expect(error.message).to.equal("Given path should start with '/'");
+          expect(error instanceof Error).toEqual(true);
+          expect(error.message).toEqual("Given path should start with '/'");
           errorThrown = true;
         }
 
-        expect(errorThrown).to.equal(true);
+        expect(errorThrown).toEqual(true);
       });
 
       it("logs the correct request information", async () => {
@@ -117,7 +125,8 @@ describe("custom-fetch.js with global.fetch mock", () => {
           timeoutMs: 10000,
         });
 
-        sinon.assert.calledWith(logInfo, "API request", {
+        const logInfo = loggerStub.info;
+        expect(logInfo).toHaveBeenCalledWith("API request", {
           config: {
             baseURL: "https://gov.uk",
             method: "GET",
@@ -133,8 +142,7 @@ describe("custom-fetch.js with global.fetch mock", () => {
           jsonBody: { hello: true, good: 1 },
         });
 
-        sinon.assert.calledWith(
-          global.fetch,
+        expect(global.fetch).toHaveBeenCalledWith(
           "https://gov.uk/path/something/here",
           {
             method: "POST",
@@ -146,20 +154,19 @@ describe("custom-fetch.js with global.fetch mock", () => {
 
       it("correctly passes an AbortSignal to the fetch API", async () => {
         const fakeAbortSignal = { isAbortSignal: true };
-        const abortSignalMock = sinon
-          .stub(global.AbortSignal, "timeout")
-          .returns(fakeAbortSignal);
+        const abortSignalMock = vi
+          .spyOn(global.AbortSignal, "timeout")
+          .mockReturnValue(fakeAbortSignal);
 
         await dummyReq.customFetch("/path/something/here", {
           method: "GET",
           timeoutMs: 50,
         });
 
-        sinon.assert.calledOnce(abortSignalMock);
-        sinon.assert.calledWith(abortSignalMock, 50);
+        expect(abortSignalMock).toHaveBeenCalledTimes(1);
+        expect(abortSignalMock).toHaveBeenCalledWith(50);
 
-        sinon.assert.calledWith(
-          global.fetch,
+        expect(global.fetch).toHaveBeenCalledWith(
           "https://gov.uk/path/something/here",
           {
             method: "GET",
@@ -167,31 +174,30 @@ describe("custom-fetch.js with global.fetch mock", () => {
             signal: fakeAbortSignal,
           },
         );
-
-        abortSignalMock.restore();
+        abortSignalMock.mockReset();
       });
 
       it("throws CustomFetchHttpError if the request fails", async () => {
         let didItThrow = false;
 
-        global.fetch.returns(badResponse);
+        global.fetch = vi.fn().mockResolvedValue(badResponse);
         try {
           await dummyReq.customFetch("/path/something/here", {
             method: "GET",
           });
         } catch (error) {
-          global.fetch.returns(fetchResponse);
+          global.fetch = vi.fn().mockResolvedValue(fetchResponse);
 
-          expect(error).to.be.an.instanceof(CustomFetchHttpError);
-          expect(error.code).to.equal(418);
-          expect(error.body).to.equal("no coffee for you");
-          expect(error.message).to.equal(`Response not OK: I'm a Teapot`);
-          expect(error.headers.get("some-header")).to.equal("illegal");
+          expect(error).toBeInstanceOf(CustomFetchHttpError);
+          expect(error.code).toEqual(418);
+          expect(error.body).toEqual("no coffee for you");
+          expect(error.message).toEqual(`Response not OK: I'm a Teapot`);
+          expect(error.headers.get("some-header")).toEqual("illegal");
 
           didItThrow = true;
         }
 
-        expect(didItThrow).to.equal(true);
+        expect(didItThrow).toEqual(true);
       });
     });
 
@@ -203,8 +209,7 @@ describe("custom-fetch.js with global.fetch mock", () => {
 
         await scenarioReq.customFetch("/path/something/here");
 
-        sinon.assert.calledWith(
-          global.fetch,
+        expect(global.fetch).toHaveBeenCalledWith(
           "https://gov.uk/path/something/here",
           {
             headers: {
@@ -227,8 +232,7 @@ describe("custom-fetch.js with global.fetch mock", () => {
 
         await forwardedReq.customFetch("/path/something/here");
 
-        sinon.assert.calledWith(
-          global.fetch,
+        expect(global.fetch).toHaveBeenCalledWith(
           "https://gov.uk/path/something/here",
           {
             headers: {
@@ -251,8 +255,7 @@ describe("custom-fetch.js with global.fetch mock", () => {
 
         await forwardedReq.customFetch("/path/something/here");
 
-        sinon.assert.calledWith(
-          global.fetch,
+        expect(global.fetch).toHaveBeenCalledWith(
           "https://gov.uk/path/something/here",
           {
             headers: {
@@ -278,8 +281,7 @@ describe("custom-fetch.js with global.fetch mock", () => {
           headers: { "x-scenario-id": "no!", "x-forwarded-for": "bad!" },
         });
 
-        sinon.assert.calledWith(
-          global.fetch,
+        expect(global.fetch).toHaveBeenCalledWith(
           "https://gov.uk/path/something/here",
           {
             headers: {

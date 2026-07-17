@@ -1,3 +1,5 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 const cookies = require(APP_ROOT + "/src/bootstrap/middleware/cookies");
 
 describe("Cookies", () => {
@@ -6,37 +8,41 @@ describe("Cookies", () => {
 
     beforeEach(() => {
       [parser, fn] = cookies.middleware({ secret: "abc123" });
-      cookieStub = sinon.stub();
+      cookieStub = vi.fn();
       req = {
         protocol: "http",
       };
       res = {
         cookie: cookieStub,
       };
-      next = sinon.stub();
+      next = vi.fn();
     });
 
     it("should create a cookie middleware", () => {
-      parser.should.be.a("function").and.have.length(3);
-      fn.should.be.a("function").and.have.length(3);
+      expect(typeof parser).toBe("function");
+      expect(parser).toHaveLength(3);
+      expect(typeof fn).toBe("function");
+      expect(fn).toHaveLength(3);
     });
 
     it("should default options to an empty object", () => {
       [parser, fn] = cookies.middleware();
-      parser.should.be.a("function").and.have.length(3);
-      fn.should.be.a("function").and.have.length(3);
+      expect(typeof parser).toBe("function");
+      expect(parser).toHaveLength(3);
+      expect(typeof fn).toBe("function");
+      expect(fn).toHaveLength(3);
     });
 
     it("should replace res.cookie with a function", () => {
       fn(req, res, next);
-      res.cookie.should.not.equal(cookieStub);
+      expect(res.cookie).not.toEqual(cookieStub);
     });
 
     it("should call the original res.cookie with secure values", () => {
       fn(req, res, next);
       res.cookie("name", "value");
-      cookieStub.should.have.been.calledOnce;
-      cookieStub.should.have.been.calledWithExactly("name", "value", {
+      expect(cookieStub).toHaveBeenCalledTimes(1);
+      expect(cookieStub).toHaveBeenCalledWith("name", "value", {
         secure: false,
         httpOnly: true,
         path: "/",
@@ -47,8 +53,8 @@ describe("Cookies", () => {
       fn(req, res, next);
       req.protocol = "https";
       res.cookie("name", "value");
-      cookieStub.should.have.been.calledOnce;
-      cookieStub.should.have.been.calledWithExactly("name", "value", {
+      expect(cookieStub).toHaveBeenCalledTimes(1);
+      expect(cookieStub).toHaveBeenCalledWith("name", "value", {
         secure: true,
         httpOnly: true,
         path: "/",
@@ -58,8 +64,8 @@ describe("Cookies", () => {
     it("should extend and override supplied options", () => {
       fn(req, res, next);
       res.cookie("name", "value", { expires: "now", httpOnly: false });
-      cookieStub.should.have.been.calledOnce;
-      cookieStub.should.have.been.calledWithExactly("name", "value", {
+      expect(cookieStub).toHaveBeenCalledTimes(1);
+      expect(cookieStub).toHaveBeenCalledWith("name", "value", {
         expires: "now",
         secure: false,
         httpOnly: true,

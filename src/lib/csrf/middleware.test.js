@@ -1,3 +1,5 @@
+import { vi, expect, describe, beforeEach, it } from "vitest";
+
 const csrf = require("./middleware");
 const CsrfError = require("./error");
 const token = require("./token");
@@ -19,32 +21,32 @@ describe("lib/csrf/middleware", () => {
   let next;
 
   beforeEach(() => {
-    next = sinon.fake();
+    next = vi.fn();
   });
 
   describe("configuration", () => {
     it("throws when no secret is provided", () => {
-      expect(() => csrf()).to.throw(/secret/);
-      expect(() => csrf({})).to.throw(/secret/);
-      expect(() => csrf({ secret: "" })).to.throw(/secret/);
-      expect(() => csrf({ secret: 123 })).to.throw(/secret/);
+      expect(() => csrf()).toThrow(/secret/);
+      expect(() => csrf({})).toThrow(/secret/);
+      expect(() => csrf({ secret: "" })).toThrow(/secret/);
+      expect(() => csrf({ secret: 123 })).toThrow(/secret/);
     });
 
     it("throws when secret is an empty array", () => {
-      expect(() => csrf({ secret: [] })).to.throw(/secret/);
+      expect(() => csrf({ secret: [] })).toThrow(/secret/);
     });
 
     it("throws when secret array contains invalid entries", () => {
-      expect(() => csrf({ secret: ["valid", ""] })).to.throw(/secret/);
-      expect(() => csrf({ secret: ["valid", 42] })).to.throw(/secret/);
+      expect(() => csrf({ secret: ["valid", ""] })).toThrow(/secret/);
+      expect(() => csrf({ secret: ["valid", 42] })).toThrow(/secret/);
     });
 
     it("returns middleware when given a secret string", () => {
-      expect(csrf({ secret: SECRET })).to.be.a("function");
+      expect(typeof csrf({ secret: SECRET })).toBe("function");
     });
 
     it("returns middleware when given a secret array", () => {
-      expect(csrf({ secret: [SECRET, "previous"] })).to.be.a("function");
+      expect(typeof csrf({ secret: [SECRET, "previous"] })).toBe("function");
     });
   });
 
@@ -55,11 +57,11 @@ describe("lib/csrf/middleware", () => {
 
       csrf({ secret: SECRET })(req, buildRes(), next);
 
-      expect(next).to.have.been.calledOnce;
-      const err = next.firstCall.args[0];
-      expect(err).to.be.instanceOf(CsrfError);
-      expect(err.status).to.equal(403);
-      expect(err.code).to.equal("BAD_CSRF_TOKEN");
+      expect(next).toHaveBeenCalledTimes(1);
+      const err = next.mock.calls[0][0];
+      expect(err).toBeInstanceOf(CsrfError);
+      expect(err.status).toEqual(403);
+      expect(err.code).toEqual("BAD_CSRF_TOKEN");
     });
   });
 
@@ -71,11 +73,11 @@ describe("lib/csrf/middleware", () => {
 
         csrf({ secret: SECRET })(req, res, next);
 
-        expect(next).to.have.been.calledOnceWithExactly();
-        expect(res.locals.csrfToken).to.be.a("string");
+        expect(next).toHaveBeenCalled();
+        expect(typeof res.locals.csrfToken).toBe("string");
         expect(
           token.verify([SECRET], req.session.csrfSecret, res.locals.csrfToken),
-        ).to.equal(true);
+        ).toEqual(true);
       });
     });
 
@@ -84,17 +86,17 @@ describe("lib/csrf/middleware", () => {
 
       csrf({ secret: SECRET })(req, buildRes(), next);
 
-      expect(req.session.csrfSecret).to.be.a("string");
-      expect(req.session.csrfSecret.length).to.be.greaterThan(0);
+      expect(typeof req.session.csrfSecret).toBe("string");
+      expect(req.session.csrfSecret.length).toBeGreaterThan(0);
     });
 
     it("reuses an existing session csrf secret", () => {
       const session = {};
       const middleware = csrf({ secret: SECRET });
 
-      middleware(buildReq({ session }), buildRes(), sinon.fake());
+      middleware(buildReq({ session }), buildRes(), vi.fn());
       const first = session.csrfSecret;
-      middleware(buildReq({ session }), buildRes(), sinon.fake());
+      middleware(buildReq({ session }), buildRes(), vi.fn());
 
       expect(session.csrfSecret).to.equal(first);
     });
@@ -103,9 +105,9 @@ describe("lib/csrf/middleware", () => {
       const middleware = csrf({ secret: SECRET });
 
       const res1 = buildRes();
-      middleware(buildReq(), res1, sinon.fake());
+      middleware(buildReq(), res1, vi.fn());
       const res2 = buildRes();
-      middleware(buildReq(), res2, sinon.fake());
+      middleware(buildReq(), res2, vi.fn());
 
       expect(res1.locals.csrfToken).to.not.equal(res2.locals.csrfToken);
     });
@@ -125,7 +127,7 @@ describe("lib/csrf/middleware", () => {
         const req = buildReq({ method, body: { _csrf: validToken } });
         middleware(req, buildRes(), next);
 
-        expect(next).to.have.been.calledOnceWithExactly();
+        expect(next).toHaveBeenCalled();
       });
     });
 
@@ -136,7 +138,7 @@ describe("lib/csrf/middleware", () => {
       });
       middleware(req, buildRes(), next);
 
-      expect(next).to.have.been.calledOnceWithExactly();
+      expect(next).toHaveBeenCalled();
     });
 
     it("prefers the body field over the header", () => {
@@ -147,24 +149,24 @@ describe("lib/csrf/middleware", () => {
       });
       middleware(req, buildRes(), next);
 
-      expect(next).to.have.been.calledOnceWithExactly();
+      expect(next).toHaveBeenCalled();
     });
 
     it("calls next with CsrfError when token is missing", () => {
       const req = buildReq({ method: "POST" });
       middleware(req, buildRes(), next);
 
-      const err = next.firstCall.args[0];
-      expect(err).to.be.instanceOf(CsrfError);
-      expect(err.status).to.equal(403);
-      expect(err.code).to.equal("BAD_CSRF_TOKEN");
+      const err = next.mock.calls[0][0];
+      expect(err).toBeInstanceOf(CsrfError);
+      expect(err.status).toEqual(403);
+      expect(err.code).toEqual("BAD_CSRF_TOKEN");
     });
 
     it("calls next with CsrfError when token is invalid", () => {
       const req = buildReq({ method: "POST", body: { _csrf: "BAAD.F00D" } });
       middleware(req, buildRes(), next);
 
-      expect(next.firstCall.args[0]).to.be.instanceOf(CsrfError);
+      expect(next.mock.calls[0][0]).toBeInstanceOf(CsrfError);
     });
 
     it("rejects a token created for a different session", () => {
@@ -172,7 +174,7 @@ describe("lib/csrf/middleware", () => {
       const req = buildReq({ method: "POST", body: { _csrf: otherToken } });
       middleware(req, buildRes(), next);
 
-      expect(next.firstCall.args[0]).to.be.instanceOf(CsrfError);
+      expect(next.mock.calls[0][0]).toBeInstanceOf(CsrfError);
     });
 
     it("sets res.locals.csrfToken when verification succeeds", () => {
@@ -180,7 +182,7 @@ describe("lib/csrf/middleware", () => {
       const res = buildRes();
       middleware(req, res, next);
 
-      expect(res.locals.csrfToken).to.be.a("string");
+      expect(typeof res.locals.csrfToken).toBe("string");
     });
   });
 
@@ -192,7 +194,7 @@ describe("lib/csrf/middleware", () => {
 
       middleware(req, buildRes(), next);
 
-      expect(next).to.have.been.calledOnceWithExactly();
+      expect(next).toHaveBeenCalled();
     });
 
     it("signs new tokens with the first secret during rotation", () => {
@@ -208,14 +210,14 @@ describe("lib/csrf/middleware", () => {
           req.session.csrfSecret,
           res.locals.csrfToken,
         ),
-      ).to.equal(true);
+      ).toEqual(true);
       expect(
         token.verify(
           ["old-secret"],
           req.session.csrfSecret,
           res.locals.csrfToken,
         ),
-      ).to.equal(false);
+      ).toEqual(false);
     });
 
     it("rejects tokens signed by the old secret once it's removed from the list", () => {
@@ -225,7 +227,7 @@ describe("lib/csrf/middleware", () => {
 
       middleware(req, buildRes(), next);
 
-      expect(next.firstCall.args[0]).to.be.instanceOf(CsrfError);
+      expect(next.mock.calls[0][0]).toBeInstanceOf(CsrfError);
     });
   });
 });

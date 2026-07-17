@@ -1,3 +1,5 @@
+import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
+
 const nock = require("nock");
 
 const {
@@ -8,21 +10,23 @@ const {
 describe("custom-fetch.js with nock stub", () => {
   let dummyReq = {
     app: {
-      get: sinon.stub().withArgs("API.BASE_URL").returns("https://gov.uk"),
+      get: vi.fn().mockImplementation((args) => {
+        if (args === "API.BASE_URL") return "https://gov.uk";
+      }),
     },
   };
   const res = {};
-  const next = sinon.stub();
+  const next = vi.fn();
 
   // Nock injects a stub into Node's internal HTTP code, which means we can get real fetch()
   // behaviour without making network calls
   let nockMock = nock("https://gov.uk");
 
-  before(() => {
+  beforeAll(() => {
     customFetchMiddleware(dummyReq, res, next);
   });
 
-  after(() => {
+  afterAll(() => {
     nock.restore();
   });
 
@@ -35,9 +39,9 @@ describe("custom-fetch.js with nock stub", () => {
 
     const responseBody = await response.json();
 
-    expect(response.status).to.equal(200);
-    expect(response.headers.get("someHeader")).to.equal("very good");
-    expect(responseBody).to.deep.equal({ success: true });
+    expect(response.status).toEqual(200);
+    expect(response.headers.get("someHeader")).toEqual("very good");
+    expect(responseBody).toEqual({ success: true });
   });
 
   it("handles a 4xx response correctly", async () => {
@@ -49,19 +53,19 @@ describe("custom-fetch.js with nock stub", () => {
       await dummyReq.customFetch("/failure");
     } catch (error) {
       if (error instanceof CustomFetchHttpError) {
-        expect(error.code).to.equal(418);
-        expect(error.message).to.equal(`Response not OK: I'm a Teapot`);
+        expect(error.code).toEqual(418);
+        expect(error.message).toEqual(`Response not OK: I'm a Teapot`);
 
-        expect(error.headers.get("content-type")).to.equal("application/json");
+        expect(error.headers.get("content-type")).toEqual("application/json");
 
         const responseBody = JSON.parse(error.body);
-        expect(responseBody).to.deep.equal({ coffeeForYou: false });
+        expect(responseBody).toEqual({ coffeeForYou: false });
 
         didItThrow = true;
       }
     }
 
-    expect(didItThrow).to.equal(true);
+    expect(didItThrow).toEqual(true);
   });
 
   it("handles a 5xx response correctly", async () => {
@@ -79,20 +83,18 @@ describe("custom-fetch.js with nock stub", () => {
       });
     } catch (error) {
       if (error instanceof CustomFetchHttpError) {
-        expect(error.code).to.equal(500);
-        expect(error.message).to.equal(
-          "Response not OK: Internal Server Error",
-        );
+        expect(error.code).toEqual(500);
+        expect(error.message).toEqual("Response not OK: Internal Server Error");
 
-        expect(error.headers.get("content-type")).to.equal("text/plain");
+        expect(error.headers.get("content-type")).toEqual("text/plain");
 
-        expect(error.body).to.equal("who knocked over the server");
+        expect(error.body).toEqual("who knocked over the server");
 
         didItThrow = true;
       }
     }
 
-    expect(didItThrow).to.equal(true);
+    expect(didItThrow).toEqual(true);
   });
 
   it("sends method, body and headers correctly", async () => {
@@ -110,11 +112,11 @@ describe("custom-fetch.js with nock stub", () => {
       jsonBody: { veryGood: "yes" },
     });
 
-    expect(response.status).to.equal(200);
+    expect(response.status).toEqual(200);
 
     const responseBody = await response.json();
 
-    expect(responseBody).to.deep.equal({
+    expect(responseBody).toEqual({
       yourPath: "/echo",
       yourBody: { veryGood: "yes" },
       yourHeaders: {
@@ -141,14 +143,12 @@ describe("custom-fetch.js with nock stub", () => {
       nock.abortPendingRequests();
       expect(timeElapsed).to.be.closeTo(100, 10);
 
-      expect(error instanceof DOMException).to.equal(true);
-      expect(error.name).to.equal("TimeoutError");
-      expect(error.message).to.equal(
-        "The operation was aborted due to timeout",
-      );
+      expect(error instanceof DOMException).toEqual(true);
+      expect(error.name).toEqual("TimeoutError");
+      expect(error.message).toEqual("The operation was aborted due to timeout");
       hasThrown = true;
     }
 
-    expect(hasThrown).to.equal(true);
+    expect(hasThrown).toEqual(true);
   });
 });

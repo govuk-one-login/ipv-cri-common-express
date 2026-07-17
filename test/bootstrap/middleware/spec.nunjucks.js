@@ -1,3 +1,5 @@
+import { describe, vi, expect, it, beforeEach, afterEach } from "vitest";
+
 const nunjucks = require("nunjucks");
 const { setup: setupNunjucks } = require(
   APP_ROOT + "/src/bootstrap/middleware/nunjucks",
@@ -8,24 +10,24 @@ describe("nunjucks middleware", () => {
 
   beforeEach(() => {
     app = {
-      set: sinon.stub(),
-      get: sinon.stub(),
+      set: vi.fn(),
+      get: vi.fn(),
     };
-    app.get.withArgs("dev").returns(true);
+    app.get.mockReturnValue(true);
 
-    sinon.stub(nunjucks, "configure");
+    vi.spyOn(nunjucks, "configure");
     nunjucksEnv = {};
-    nunjucksEnv.addGlobal = sinon.stub();
-    nunjucks.configure.returns(nunjucksEnv);
+    nunjucksEnv.addGlobal = vi.fn();
+    nunjucks.configure.mockReturnValue(nunjucksEnv);
   });
 
   afterEach(() => {
-    nunjucks.configure.restore();
+    nunjucks.configure.mockRestore();
   });
 
   it("should configure nunjucks with a default set of views and options", () => {
     setupNunjucks(app);
-    nunjucks.configure.should.have.been.calledWithExactly(
+    expect(nunjucks.configure).toHaveBeenCalledWith(
       [
         APP_ROOT + "/test/bootstrap/fixtures/views",
         APP_ROOT + "/node_modules/govuk-frontend/dist",
@@ -43,34 +45,34 @@ describe("nunjucks middleware", () => {
   it("should configure nunjucks with hmpo-components views when hmpoComponentsDir is provided", () => {
     const hmpoComponentsDir = APP_ROOT + "/node_modules/hmpo-components";
     setupNunjucks(app, { hmpoComponentsDir });
-    nunjucks.configure.should.have.been.calledWithExactly(
+    expect(nunjucks.configure).toHaveBeenCalledWith(
       [
         APP_ROOT + "/test/bootstrap/fixtures/views",
         APP_ROOT + "/node_modules/hmpo-components/components",
         APP_ROOT + "/node_modules/govuk-frontend/dist",
         APP_ROOT + "/node_modules/@govuk-one-login",
       ],
-      sinon.match.object,
+      expect.any(Object),
     );
   });
 
   it("should filter out a view if not present", () => {
     setupNunjucks(app, { views: ["views", "not_found"] });
-    nunjucks.configure.should.have.been.calledWithExactly(
+    expect(nunjucks.configure).toHaveBeenCalledWith(
       [
         APP_ROOT + "/test/bootstrap/fixtures/views",
         APP_ROOT + "/node_modules/govuk-frontend/dist",
         APP_ROOT + "/node_modules/@govuk-one-login",
       ],
-      sinon.match.object,
+      expect.any(Object),
     );
   });
 
   it("should run in prod mode if dev flag not set", () => {
-    app.get.withArgs("dev").returns(false);
+    app.get.mockReturnValue(false);
 
     setupNunjucks(app);
-    nunjucks.configure.should.have.been.calledWithExactly(sinon.match.array, {
+    expect(nunjucks.configure).toHaveBeenCalledWith(expect.any(Array), {
       express: app,
       dev: false,
       noCache: false,
@@ -80,11 +82,11 @@ describe("nunjucks middleware", () => {
 
   it("should set the view engine value", () => {
     setupNunjucks(app);
-    app.set.should.have.been.calledWithExactly("view engine", "html");
+    expect(app.set).toHaveBeenCalledWith("view engine", "html");
   });
 
   it("should set the Nunjucks environment", () => {
     const result = setupNunjucks(app);
-    result.should.equal(nunjucksEnv);
+    expect(result).toEqual(nunjucksEnv);
   });
 });

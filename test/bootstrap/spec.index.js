@@ -1,19 +1,23 @@
+import { expect, describe, it, vi, beforeEach, afterEach } from "vitest";
+
 const index = require(APP_ROOT + "/src/bootstrap");
 const express = require("express");
 
 describe("hmpo-app", () => {
   it("should export setup functions and libs", () => {
-    index.should.contain.all.keys([
-      "setup",
-      "middleware",
-      "config",
-      "logger",
-      "redisClient",
-      "translation",
-      "nunjucks",
-      "linkedFiles",
-      "featureFlag",
-    ]);
+    expect(Object.keys(index)).toEqual(
+      expect.arrayContaining([
+        "setup",
+        "middleware",
+        "config",
+        "logger",
+        "redisClient",
+        "translation",
+        "nunjucks",
+        "linkedFiles",
+        "featureFlag",
+      ]),
+    );
   });
 
   describe("setup", () => {
@@ -22,8 +26,16 @@ describe("hmpo-app", () => {
     let router;
     let errorRouter;
     let publicFallbackRouter;
+    let routerSpy;
 
     beforeEach(() => {
+      const redisStub = {
+        del: vi.fn(),
+        expire: vi.fn(),
+        get: vi.fn(),
+        setex: vi.fn(),
+      };
+
       app = {
         use: sinon.stub(),
         get: sinon.stub(),
@@ -31,15 +43,18 @@ describe("hmpo-app", () => {
       };
       publicFallbackRouter = {
         use: sinon.stub(),
+        use: vi.fn(),
+        get: vi.fn(),
+        listen: vi.fn(),
       };
       staticRouter = {
-        use: sinon.stub(),
+        use: vi.fn(),
       };
       router = {
-        use: sinon.stub(),
+        use: vi.fn(),
       };
       errorRouter = {
-        use: sinon.stub(),
+        use: vi.fn(),
       };
       sinon.stub(express, "Router");
       express.Router.onCall(0).returns(staticRouter);
@@ -54,38 +69,56 @@ describe("hmpo-app", () => {
       sinon.stub(index.middleware, "session");
       sinon.stub(index.middleware, "errorHandler");
       sinon.stub(index.middleware, "listen");
+      routerSpy = vi.spyOn(express, "Router");
+      routerSpy
+        .mockReturnValueOnce(staticRouter)
+        .mockReturnValueOnce(router)
+        .mockReturnValueOnce(errorRouter);
+      vi.spyOn(index.config, "get");
+      vi.spyOn(index.config, "setup");
+      vi.spyOn(index.logger, "setup");
+      vi.spyOn(index.redisClient, "setup").mockImplementation(() => {});
+      vi.spyOn(index.redisClient, "getClient").mockReturnValue(redisStub);
+      vi.spyOn(index.middleware, "setup").mockReturnValue(app);
+      vi.spyOn(index.middleware, "session");
+      vi.spyOn(index.middleware, "errorHandler");
+      vi.spyOn(index.middleware, "listen");
     });
     afterEach(() => {
-      express.Router.restore();
-      index.config.get.restore();
-      index.config.setup.restore();
-      index.logger.setup.restore();
-      index.redisClient.setup.restore();
-      index.middleware.setup.restore();
-      index.middleware.session.restore();
-      index.middleware.errorHandler.restore();
-      index.middleware.listen.restore();
+      routerSpy.mockClear();
+      index.config.get.mockClear();
+      index.config.setup.mockClear();
+      index.logger.setup.mockClear();
+      index.redisClient.setup.mockClear();
+      index.middleware.setup.mockClear();
+      index.middleware.session.mockClear();
+      index.middleware.errorHandler.mockClear();
+      index.middleware.listen.mockClear();
     });
 
     it("calls config.setup", () => {
       index.setup();
-      index.config.setup.should.have.been.calledWithExactly(undefined);
+      expect(index.config.setup).toHaveBeenCalledWith(undefined);
     });
 
     it("calls config.setup with options", () => {
       index.setup({ config: { option: true } });
-      index.config.setup.should.have.been.calledWithExactly({ option: true });
+      expect(index.config.setup).toHaveBeenCalledWith({
+        option: true,
+      });
     });
 
     it("should not call config.setup if option is false", () => {
       index.setup({ config: false });
-      index.config.setup.should.not.have.been.called;
+      expect(index.config.setup).not.toHaveBeenCalled();
     });
 
     it("calls logger.setup with options", () => {
-      index.config.get.withArgs("logs").returns({ config: true });
+      index.config.get.mockImplementation((arg) => {
+        if (arg === "logs") return { config: true };
+      });
       index.setup({ logs: { option: true } });
-      index.logger.setup.should.have.been.calledWithExactly({
+      expect(index.logger.setup).toHaveBeenCalledWith({
         option: true,
         config: true,
       });
@@ -93,13 +126,15 @@ describe("hmpo-app", () => {
 
     it("should not call logger.setup if option is false", () => {
       index.setup({ logs: false });
-      index.logger.setup.should.not.have.been.called;
+      expect(index.logger.setup).not.toHaveBeenCalled();
     });
 
     it("calls redisClient.setup with options", () => {
-      index.config.get.withArgs("redis").returns({ config: true });
+      index.config.get.mockImplementation((arg) => {
+        if (arg === "redis") return { config: true };
+      });
       index.setup({ redis: { option: true } });
-      index.redisClient.setup.should.have.been.calledWithExactly({
+      expect(index.redisClient.setup).toHaveBeenCalledWith({
         option: true,
         config: true,
       });
@@ -107,22 +142,24 @@ describe("hmpo-app", () => {
 
     it("should not call redisClient.setup if option is false", () => {
       index.setup({ redis: false });
-      index.redisClient.setup.should.not.have.been.called;
+      expect(index.redisClient.setup).not.toHaveBeenCalled();
     });
 
     it("calls middleware.setup with options", () => {
-      index.config.get.withArgs().returns({ config: true });
+      index.config.get.mockReturnValue({ config: true });
       index.setup({ option: true });
-      index.middleware.setup.should.have.been.calledWithExactly({
+      expect(index.middleware.setup).toHaveBeenCalledWith({
         option: true,
         config: true,
       });
     });
 
     it("calls middleware.session with options", () => {
-      index.config.get.withArgs("session").returns({ config: true });
+      index.config.get.mockImplementation((arg) => {
+        if (arg === "session") return { config: true };
+      });
       index.setup({ session: { option: true } });
-      index.middleware.session.should.have.been.calledWithExactly(app, {
+      expect(index.middleware.session).toHaveBeenCalledWith(app, {
         option: true,
         config: true,
       });
@@ -130,13 +167,15 @@ describe("hmpo-app", () => {
 
     it("should not call middleware.session if option is false", () => {
       index.setup({ session: false });
-      index.middleware.session.should.not.have.been.called;
+      expect(index.middleware.session).not.toHaveBeenCalled();
     });
 
     it("calls middleware.errorHandler with options", () => {
-      index.config.get.withArgs("errors").returns({ config: true });
+      index.config.get.mockImplementation((arg) => {
+        if (arg === "errors") return { config: true };
+      });
       index.setup({ errors: { option: true } });
-      index.middleware.errorHandler.should.have.been.calledWithExactly(app, {
+      expect(index.middleware.errorHandler).toHaveBeenCalledWith(app, {
         option: true,
         config: true,
       });
@@ -144,13 +183,13 @@ describe("hmpo-app", () => {
 
     it("should not call middleware.errorHandler if option is false", () => {
       index.setup({ errors: false });
-      index.middleware.errorHandler.should.not.have.been.called;
+      expect(index.middleware.errorHandler).not.toHaveBeenCalled();
     });
 
     it("should call middlewareSetupFn if option is defined", () => {
-      const callbackStub = sinon.stub();
+      const callbackStub = vi.fn();
       index.setup({ middlewareSetupFn: callbackStub });
-      callbackStub.should.have.been.called;
+      expect(callbackStub).toHaveBeenCalled();
     });
 
     it("mounts the public 404 fallback after staticRouter", () => {
@@ -167,10 +206,13 @@ describe("hmpo-app", () => {
     });
 
     it("calls middleware.listen with options", () => {
-      index.config.get.withArgs("host").returns("hostname");
-      index.config.get.withArgs("port").returns(1234);
+      index.config.get.mockImplementation((arg) => {
+        if (arg === "host") return "hostname";
+        if (arg === "port") return 1234;
+      });
+
       index.setup({ port: 5678 });
-      index.middleware.listen.should.have.been.calledWithExactly(app, {
+      expect(index.middleware.listen).toHaveBeenCalledWith(app, {
         port: 5678,
         host: "hostname",
       });
@@ -178,12 +220,12 @@ describe("hmpo-app", () => {
 
     it("should not call middleware.listen if port is false", () => {
       index.setup({ port: false });
-      index.middleware.listen.should.not.have.been.called;
+      expect(index.middleware.listen).not.toHaveBeenCalled();
     });
 
     it("returns apps and routers", () => {
       const routers = index.setup();
-      routers.should.eql({
+      expect(routers).toEqual({
         app,
         staticRouter: staticRouter,
         router: router,

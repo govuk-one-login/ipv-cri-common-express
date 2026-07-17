@@ -1,4 +1,4 @@
-const { expect } = require("chai");
+import { describe, beforeEach, afterEach, it, expect } from "vitest";
 
 describe("Core", () => {
   beforeEach(async () => {
@@ -44,13 +44,13 @@ describe("Core", () => {
 
   it("Sends data to the data layer", function () {
     global.window.DI.core.sendData({ foo: "bar" });
-    expect(global.window.dataLayer[0]).to.deep.equal({ foo: "bar" });
+    expect(global.window.dataLayer[0]).toEqual({ foo: "bar" });
   });
 
   it("Creates gtmscript tag", function () {
     global.window.DI.core.load("12345");
     var gtmElement = global.document.documentElement.firstChild.child;
-    expect(gtmElement.src).to.deep.equal(
+    expect(gtmElement.src).toEqual(
       "https://www.googletagmanager.com/gtm.js?id=12345",
     );
   });

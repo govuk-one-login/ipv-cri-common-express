@@ -1,4 +1,5 @@
-const { expect } = require("chai");
+import { expect, describe, it } from "vitest";
+
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
 
@@ -18,17 +19,17 @@ describe("checkTranslation", () => {
       warnings.shift();
       errors.shift();
 
-      expect(warnings.length).to.equal(2);
+      expect(warnings.length).toEqual(2);
 
       for (const message of warnings) {
-        expect(message).to.contain("warning");
-        expect(message).to.contain("length do not match");
+        expect(message).toContain("warning");
+        expect(message).toContain("length do not match");
       }
 
-      expect(errors.length).to.equal(4);
+      expect(errors.length).toEqual(4);
 
       for (const message of errors) {
-        expect(message).to.satisfy((val) => {
+        expect(message).toSatisfy((val) => {
           if (val.includes("ENGLISH - Missing default.root.field3")) {
             return true;
           } else if (
@@ -60,7 +61,7 @@ describe("checkTranslation", () => {
       val.includes("Translation files look good"),
     );
 
-    expect(successMessage).to.be.true;
+    expect(successMessage).toBe(true);
   });
 
   it("should pass plurals with no errors", async () => {
@@ -72,6 +73,6 @@ describe("checkTranslation", () => {
       val.includes("Translation files look good"),
     );
 
-    expect(successMessage).to.be.true;
+    expect(successMessage).toBe(true);
   });
 });

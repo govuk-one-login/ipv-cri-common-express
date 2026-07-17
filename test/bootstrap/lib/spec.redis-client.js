@@ -1,3 +1,5 @@
+import { describe, vi, expect, beforeEach, afterEach, it } from "vitest";
+
 const redis = require("redis");
 const fakeredis = require("fakeredis");
 const redisClient = require(APP_ROOT + "/src/bootstrap/lib/redis-client");
@@ -8,73 +10,73 @@ describe("Redis Client", () => {
   beforeEach(() => {
     redisStub = {
       connected: true,
-      connect: sinon.stub(),
-      sendCommand: sinon.stub(),
-      on: sinon.stub(),
-      once: sinon.stub(),
-      quit: sinon.stub(),
+      connect: vi.fn(),
+      sendCommand: vi.fn(),
+      on: vi.fn(),
+      once: vi.fn(),
+      quit: vi.fn(),
     };
     fakeredisStub = { ...redisStub };
 
-    sinon.stub(redis, "createClient").returns(redisStub);
-    sinon.stub(fakeredis, "createClient").returns(fakeredisStub);
+    vi.spyOn(redis, "createClient").mockReturnValue(redisStub);
+    vi.spyOn(fakeredis, "createClient").mockReturnValue(fakeredisStub);
     redisClient.client = null;
 
     loggerStub = LOGGER_RESET();
   });
 
   afterEach(() => {
-    redis.createClient.restore();
-    fakeredis.createClient.restore();
+    redis.createClient.mockRestore();
+    fakeredis.createClient.mockRestore();
   });
 
   it("exports functions", () => {
-    redisClient.should.be.a("function");
-    redisClient.getClient.should.equal(redisClient);
-    redisClient.setup.should.be.a("function");
-    redisClient.close.should.be.a("function");
+    expect(typeof redisClient).toBe("function");
+    expect(redisClient.getClient).toEqual(redisClient);
+    expect(typeof redisClient.setup).toBe("function");
+    expect(typeof redisClient.close).toBe("function");
   });
 
   describe("setup", () => {
     it("creates a new redis client", () => {
       const client = redisClient.setup({ host: "abc123", port: 123 });
-      redis.createClient.should.have.been.calledOnce;
-      redis.createClient.should.have.been.calledWithExactly({
+      expect(redis.createClient).toHaveBeenCalledTimes(1);
+      expect(redis.createClient).toHaveBeenCalledWith({
         legacyMode: true,
         socket: {
           port: 123,
           host: "abc123",
         },
       });
-      redisStub.connect.should.have.been.called;
-      client.should.equal(redisStub);
-      redisClient.client.should.equal(client);
+      expect(redisStub.connect).toHaveBeenCalled();
+      expect(client).toEqual(redisStub);
+      expect(redisClient.client).toEqual(client);
     });
 
     it("creates a new redis client using default port", () => {
       redisClient.setup({ host: "abc123" });
-      redis.createClient.should.have.been.calledWithExactly({
+      expect(redis.createClient).toHaveBeenCalledWith({
         legacyMode: true,
         socket: {
           port: 6379,
           host: "abc123",
         },
       });
-      redisStub.connect.should.have.been.called;
+      expect(redisStub.connect).toHaveBeenCalled();
     });
 
     it("creates a new redis client with a connection string", () => {
       const client = redisClient.setup({
         connectionString: "user:pass@host:port",
       });
-      redis.createClient.should.have.been.calledOnce;
-      redis.createClient.should.have.been.calledWithExactly({
+      expect(redis.createClient).toHaveBeenCalledTimes(1);
+      expect(redis.createClient).toHaveBeenCalledWith({
         legacyMode: true,
         url: "user:pass@host:port",
       });
-      redisStub.connect.should.have.been.called;
-      client.should.equal(redisStub);
-      redisClient.client.should.equal(client);
+      expect(redisStub.connect).toHaveBeenCalled();
+      expect(client).toEqual(redisStub);
+      expect(redisClient.client).toEqual(client);
     });
 
     it("passes other redis options to redis", () => {
@@ -82,12 +84,12 @@ describe("Redis Client", () => {
         connectionString: "user:pass@host:port",
         foo: "bar",
       });
-      redis.createClient.should.have.been.calledWithExactly({
+      expect(redis.createClient).toHaveBeenCalledWith({
         legacyMode: true,
         foo: "bar",
         url: "user:pass@host:port",
       });
-      redisStub.connect.should.have.been.called;
+      expect(redisStub.connect).toHaveBeenCalled();
     });
 
     it("reconnects to redis if there is an existing redis client", () => {
@@ -95,107 +97,123 @@ describe("Redis Client", () => {
       const client = redisClient.setup({
         connectionString: "user:pass@host:port",
       });
-      redisStub.quit.should.have.been.called;
-      redis.createClient.should.have.been.calledOnce;
-      redis.createClient.should.have.been.calledWithExactly({
+      expect(redisStub.quit).toHaveBeenCalled();
+      expect(redis.createClient).toHaveBeenCalledTimes(1);
+      expect(redis.createClient).toHaveBeenCalledWith({
         legacyMode: true,
         url: "user:pass@host:port",
       });
-      redisStub.connect.should.have.been.called;
-      redisClient.client.should.equal(client);
+      expect(redisStub.connect).toHaveBeenCalled();
+      expect(redisClient.client).toEqual(client);
     });
 
     it("should log an error redis error event", () => {
-      redisStub.on.withArgs("error").yields(new Error());
+      redisStub.on.mockImplementation((event, callback) => {
+        if (event === "error") {
+          callback(new Error());
+        }
+      });
       redisClient.setup({ connectionString: "user:pass@host:port" });
-      loggerStub.error.should.have.been.called;
+      expect(loggerStub.error).toHaveBeenCalled();
     });
 
     it("should handle connect events", () => {
-      redisStub.on.withArgs("connect").yields();
+      redisStub.on.mockImplementationOnce((event, callback) => {
+        if (event === "connect") {
+          callback();
+        }
+      });
       redisClient.setup({ connectionString: "user:pass@host:port" });
-      loggerStub.info.should.have.been.called;
-      redisStub.sendCommand.should.have.been.calledWithExactly("CLIENT", [
+      expect(loggerStub.info).toHaveBeenCalled();
+      expect(redisStub.sendCommand).toHaveBeenCalledWith("CLIENT", [
         "SETNAME",
-        sinon.match.string,
+        expect.any(String),
       ]);
     });
 
     it("should handle reconnect events", () => {
-      redisStub.on.withArgs("reconnecting").yields();
+      redisStub.on.mockImplementation((event, callback) => {
+        if (event === "reconnecting") {
+          callback();
+        }
+      });
       redisClient.setup({ connectionString: "user:pass@host:port" });
-      loggerStub.info.should.have.been.called;
+      expect(loggerStub.info).toHaveBeenCalled();
     });
 
     it("should create a in-memory redis server with no connection details", () => {
       let client = redisClient.setup();
 
-      redis.createClient.should.not.have.been.called;
+      expect(redis.createClient).not.toHaveBeenCalled();
 
-      fakeredis.createClient.should.have.been.calledOnce;
-      fakeredis.createClient.should.have.been.calledWithExactly();
+      expect(fakeredis.createClient).toHaveBeenCalledTimes(1);
+      expect(fakeredis.createClient).toHaveBeenCalledWith();
 
-      client.should.equal(fakeredisStub);
-      redisClient.client.should.equal(client);
+      expect(client).toEqual(fakeredisStub);
+      expect(redisClient.client).toEqual(client);
     });
 
     it("should log an error fake redis error event", () => {
-      redisStub.on.withArgs("error").yields(new Error());
+      redisStub.on.mockImplementationOnce((event, callback) => {
+        if (event === "error") {
+          callback(new Error());
+        }
+      });
       redisClient.setup();
-      loggerStub.error.should.have.been.called;
+      expect(loggerStub.error).toHaveBeenCalled();
     });
   });
 
   describe("close", () => {
     it("closes an existing connected client connection", () => {
-      let cb = sinon.stub();
+      let cb = vi.fn();
       redisClient.client = redisStub;
       redisClient.close(cb);
-      redisStub.once.should.have.been.calledWithExactly("end", cb);
-      redisStub.quit.should.have.been.calledWithExactly();
-      expect(redisClient.client).to.be.null;
+      expect(redisStub.once).toHaveBeenCalledWith("end", cb);
+      expect(redisStub.quit).toHaveBeenCalledWith();
+      expect(redisClient.client).toBe(null);
     });
 
     it("calls the callback if the client is not connected", () => {
-      let cb = sinon.stub();
+      let cb = vi.fn();
       redisStub.connected = false;
       redisClient.client = redisStub;
       redisClient.close(cb);
-      cb.should.have.been.calledOnce;
-      redisStub.quit.should.not.have.been.called;
-      expect(redisClient.client).to.be.null;
+      expect(cb).toHaveBeenCalledTimes(1);
+      expect(redisStub.quit).not.toHaveBeenCalled();
+      expect(redisClient.client).toBe(null);
     });
 
     it("calls the callback if there is no redis client", () => {
-      let cb = sinon.stub();
+      let cb = vi.fn();
       redisClient.close(cb);
-      cb.should.have.been.calledOnce;
-      redisStub.quit.should.not.have.been.called;
-      expect(redisClient.client).to.be.null;
+      expect(cb).toHaveBeenCalledTimes(1);
+      expect(redisStub.quit).not.toHaveBeenCalled();
+      expect(redisClient.client).toBe(null);
     });
 
     it("does nothing if there is no redis client and no callback specified", () => {
       redisClient.close();
-      redisStub.quit.should.not.have.been.called;
-      expect(redisClient.client).to.be.null;
+      expect(redisStub.quit).not.toHaveBeenCalled();
+      expect(redisClient.client).toBe(null);
     });
   });
 
   describe("getClient", () => {
     it("should return the current client", () => {
-      expect(redisClient.getClient()).to.be.null;
-      expect(redisClient()).to.be.null;
+      expect(redisClient.getClient()).toBe(null);
+      expect(redisClient()).toBe(null);
 
       redisClient.setup();
 
-      redisClient.getClient().should.equal(fakeredisStub);
-      redisClient.getClient().should.equal(redisClient.client);
-      redisClient().should.equal(redisClient.client);
+      expect(redisClient.getClient()).toEqual(fakeredisStub);
+      expect(redisClient.getClient()).toEqual(redisClient.client);
+      expect(redisClient()).toEqual(redisClient.client);
 
       redisClient.close();
 
-      expect(redisClient.getClient()).to.be.null;
-      expect(redisClient()).to.be.null;
+      expect(redisClient.getClient()).toBe(null);
+      expect(redisClient()).toBe(null);
     });
   });
 });
