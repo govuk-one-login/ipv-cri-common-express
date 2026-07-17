@@ -37,15 +37,12 @@ describe("hmpo-app", () => {
       };
 
       app = {
-        use: sinon.stub(),
-        get: sinon.stub(),
+        use: vi.fn(),
+        get: vi.fn(),
         locals: { urls: { public: "/public", publicImages: "/public/images" } },
       };
       publicFallbackRouter = {
-        use: sinon.stub(),
         use: vi.fn(),
-        get: vi.fn(),
-        listen: vi.fn(),
       };
       staticRouter = {
         use: vi.fn(),
@@ -56,22 +53,10 @@ describe("hmpo-app", () => {
       errorRouter = {
         use: vi.fn(),
       };
-      sinon.stub(express, "Router");
-      express.Router.onCall(0).returns(staticRouter);
-      express.Router.onCall(1).returns(publicFallbackRouter);
-      express.Router.onCall(2).returns(router);
-      express.Router.onCall(3).returns(errorRouter);
-      sinon.stub(index.config, "get");
-      sinon.stub(index.config, "setup");
-      sinon.stub(index.logger, "setup");
-      sinon.stub(index.redisClient, "setup");
-      sinon.stub(index.middleware, "setup").returns(app);
-      sinon.stub(index.middleware, "session");
-      sinon.stub(index.middleware, "errorHandler");
-      sinon.stub(index.middleware, "listen");
       routerSpy = vi.spyOn(express, "Router");
       routerSpy
         .mockReturnValueOnce(staticRouter)
+        .mockReturnValueOnce(publicFallbackRouter)
         .mockReturnValueOnce(router)
         .mockReturnValueOnce(errorRouter);
       vi.spyOn(index.config, "get");
@@ -82,18 +67,10 @@ describe("hmpo-app", () => {
       vi.spyOn(index.middleware, "setup").mockReturnValue(app);
       vi.spyOn(index.middleware, "session");
       vi.spyOn(index.middleware, "errorHandler");
-      vi.spyOn(index.middleware, "listen");
+      vi.spyOn(index.middleware, "listen").mockImplementation(() => {});
     });
     afterEach(() => {
-      routerSpy.mockClear();
-      index.config.get.mockClear();
-      index.config.setup.mockClear();
-      index.logger.setup.mockClear();
-      index.redisClient.setup.mockClear();
-      index.middleware.setup.mockClear();
-      index.middleware.session.mockClear();
-      index.middleware.errorHandler.mockClear();
-      index.middleware.listen.mockClear();
+      vi.restoreAllMocks();
     });
 
     it("calls config.setup", () => {
@@ -194,15 +171,13 @@ describe("hmpo-app", () => {
 
     it("mounts the public 404 fallback after staticRouter", () => {
       index.setup();
-      app.use.getCall(0).should.have.been.calledWithExactly(staticRouter);
-      app.use
-        .getCall(1)
-        .should.have.been.calledWithExactly(publicFallbackRouter);
+      expect(app.use).toHaveBeenNthCalledWith(1, staticRouter);
+      expect(app.use).toHaveBeenNthCalledWith(2, publicFallbackRouter);
     });
 
     it("does not mount the public 404 fallback if public option is false", () => {
       index.setup({ public: false });
-      express.Router.should.have.callCount(3);
+      expect(express.Router).toHaveBeenCalledTimes(3);
     });
 
     it("calls middleware.listen with options", () => {

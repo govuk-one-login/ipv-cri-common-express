@@ -3,9 +3,6 @@ const publicMiddleware = publicModule.middleware;
 const notFoundFallback = publicModule.notFoundFallback;
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
-const publicMiddleware = require(
-  APP_ROOT + "/src/bootstrap/middleware/public",
-).middleware;
 const express = require("express");
 
 describe("Public static assets", () => {
@@ -34,10 +31,10 @@ describe("Public static assets", () => {
     it("adds default public directories", () => {
       const router = publicMiddleware();
 
-      express.static.should.have.callCount(3);
-      router.use.should.have.callCount(3);
+      // expect(express.static).should.have.callCount(3);
+      // router.use.should.have.callCount(3);
       expect(express.static).toHaveBeenCalledTimes(3);
-      expect(router.use).toHaveBeenCalledTimes(5);
+      expect(router.use).toHaveBeenCalledTimes(3);
 
       expect(router.use).toHaveBeenNthCalledWith(
         1,
@@ -62,15 +59,6 @@ describe("Public static assets", () => {
         { maxAge: 86400000 },
       );
 
-      router.use
-        .getCall(2)
-        .should.have.been.calledWithExactly("/public", "static middleware");
-      express.static
-        .getCall(2)
-        .should.have.been.calledWithExactly(
-          APP_ROOT + "/node_modules/govuk-frontend/dist/govuk/assets",
-          { maxAge: 86400000 },
-        );
       expect(router.use).toHaveBeenNthCalledWith(
         3,
         "/public",
@@ -81,17 +69,6 @@ describe("Public static assets", () => {
         APP_ROOT + "/node_modules/govuk-frontend/dist/govuk/assets",
         { maxAge: 86400000 },
       );
-
-      expect(router.use).toHaveBeenNthCalledWith(
-        4,
-        "/public",
-        expect.any(Function),
-      );
-      expect(router.use).toHaveBeenNthCalledWith(
-        5,
-        "/public/images",
-        expect.any(Function),
-      );
     });
 
     it("adds hmpo-components assets when hmpoComponentsDir is provided", () => {
@@ -101,10 +78,8 @@ describe("Public static assets", () => {
       );
       publicMiddleware({ hmpoComponentsDir });
 
-      express.static.should.have.callCount(4);
-      router.use.should.have.callCount(4);
       expect(express.static).toHaveBeenCalledTimes(4);
-      expect(router.use).toHaveBeenCalledTimes(6);
+      expect(router.use).toHaveBeenCalledTimes(4);
 
       expect(router.use).toHaveBeenNthCalledWith(
         3,
@@ -125,13 +100,17 @@ describe("Public static assets", () => {
         urls: { public: "/public", publicImages: "/public/images" },
       });
 
-      router.use.should.have.callCount(2);
-      router.use
-        .getCall(0)
-        .should.have.been.calledWith("/public", sinon.match.func);
-      router.use
-        .getCall(1)
-        .should.have.been.calledWith("/public/images", sinon.match.func);
+      expect(router.use).toHaveBeenCalledTimes(2);
+      expect(router.use).toHaveBeenNthCalledWith(
+        1,
+        "/public",
+        expect.any(Function),
+      );
+      expect(router.use).toHaveBeenNthCalledWith(
+        2,
+        "/public/images",
+        expect.any(Function),
+      );
     });
 
     it("responds with 404 for unmatched requests", () => {
@@ -139,12 +118,12 @@ describe("Public static assets", () => {
         urls: { public: "/public", publicImages: "/public/images" },
       });
 
-      const [, handler] = router.use.getCall(0).args;
+      const [, handler] = router.use.mock.calls[0];
       const req = { url: "/i-dont-exist" };
-      const res = { sendStatus: sinon.stub() };
+      const res = { sendStatus: vi.fn() };
       handler(req, res);
 
-      res.sendStatus.should.have.been.calledWithExactly(404);
+      expect(res.sendStatus).toHaveBeenCalledWith(404);
     });
   });
 });
