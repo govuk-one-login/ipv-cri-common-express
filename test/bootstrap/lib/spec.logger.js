@@ -311,7 +311,7 @@ describe("Logger", () => {
 
       const arg = mockLogger.error.mock.calls[0][0];
 
-      expect(arg.code).toEqual(undefined);
+      expect(arg.code).toBeUndefined();
     });
 
     it("should redact sensitive query params from request", function () {

@@ -143,7 +143,7 @@ describe("custom-fetch.js with nock stub", () => {
       nock.abortPendingRequests();
       expect(timeElapsed).to.be.closeTo(100, 10);
 
-      expect(error instanceof DOMException).toEqual(true);
+      expect(error).toBeInstanceOf(DOMException);
       expect(error.name).toEqual("TimeoutError");
       expect(error.message).toEqual("The operation was aborted due to timeout");
       hasThrown = true;

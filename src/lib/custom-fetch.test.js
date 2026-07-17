@@ -111,7 +111,7 @@ describe("custom-fetch.js with global.fetch mock", () => {
         try {
           await dummyReq.customFetch("path/something/here");
         } catch (error) {
-          expect(error instanceof Error).toEqual(true);
+          expect(error).toBeInstanceOf(Error);
           expect(error.message).toEqual("Given path should start with '/'");
           errorThrown = true;
         }

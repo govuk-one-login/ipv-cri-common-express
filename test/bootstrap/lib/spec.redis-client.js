@@ -171,7 +171,7 @@ describe("Redis Client", () => {
       redisClient.close(cb);
       expect(redisStub.once).toHaveBeenCalledWith("end", cb);
       expect(redisStub.quit).toHaveBeenCalledWith();
-      expect(redisClient.client).toBe(null);
+      expect(redisClient.client).toBeNull();
     });
 
     it("calls the callback if the client is not connected", () => {
@@ -181,7 +181,7 @@ describe("Redis Client", () => {
       redisClient.close(cb);
       expect(cb).toHaveBeenCalledTimes(1);
       expect(redisStub.quit).not.toHaveBeenCalled();
-      expect(redisClient.client).toBe(null);
+      expect(redisClient.client).toBeNull();
     });
 
     it("calls the callback if there is no redis client", () => {
@@ -189,20 +189,20 @@ describe("Redis Client", () => {
       redisClient.close(cb);
       expect(cb).toHaveBeenCalledTimes(1);
       expect(redisStub.quit).not.toHaveBeenCalled();
-      expect(redisClient.client).toBe(null);
+      expect(redisClient.client).toBeNull();
     });
 
     it("does nothing if there is no redis client and no callback specified", () => {
       redisClient.close();
       expect(redisStub.quit).not.toHaveBeenCalled();
-      expect(redisClient.client).toBe(null);
+      expect(redisClient.client).toBeNull();
     });
   });
 
   describe("getClient", () => {
     it("should return the current client", () => {
-      expect(redisClient.getClient()).toBe(null);
-      expect(redisClient()).toBe(null);
+      expect(redisClient.getClient()).toBeNull();
+      expect(redisClient()).toBeNull();
 
       redisClient.setup();
 
@@ -212,8 +212,8 @@ describe("Redis Client", () => {
 
       redisClient.close();
 
-      expect(redisClient.getClient()).toBe(null);
-      expect(redisClient()).toBe(null);
+      expect(redisClient.getClient()).toBeNull();
+      expect(redisClient()).toBeNull();
     });
   });
 });

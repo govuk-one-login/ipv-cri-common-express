@@ -179,7 +179,7 @@ describe("Linked Files", () => {
     it("should remove the linked file id from the session", () => {
       req.session.linkedFiles = { foo: true, [testuuid]: true };
       linkedFiles.del(req, testuuid, cb);
-      req.session.linkedFiles = { foo: true };
+      expect(req.session.linkedFiles).toEqual({ foo: true });
     });
   });
 

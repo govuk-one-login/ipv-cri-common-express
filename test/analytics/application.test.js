@@ -44,7 +44,7 @@ describe("Init", () => {
         "ga4ContainerId",
         "gtmJourney",
       );
-      expect(events.length).toEqual(2);
+      expect(events).toHaveLength(2);
       expect(events[0]).toContain("init new cookie banner");
       expect(events[1]).toContain("init new analytics");
     });
@@ -62,7 +62,7 @@ describe("Init", () => {
           "ga4ContainerId",
           "gtmJourney",
         );
-        expect(events.length).toEqual(2);
+        expect(events).toHaveLength(2);
         expect(events).toContain("init existing analytics");
         expect(events).toContain("init existing cookie banner");
       });
@@ -84,7 +84,7 @@ describe("Init", () => {
           isGa4Enabled,
           gtmContainerId: "gtmContainerId",
         });
-        expect(events.length).toEqual(1);
+        expect(events).toHaveLength(1);
         expect(events).toContain("init existing cookie banner");
       });
     });

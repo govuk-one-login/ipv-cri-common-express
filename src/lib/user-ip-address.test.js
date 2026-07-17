@@ -7,7 +7,7 @@ describe("user ip address", () => {
     const forwarded = null;
     const ipAddress = userIpAddress(forwarded);
 
-    expect(ipAddress).toEqual(null);
+    expect(ipAddress).toBeNull();
   });
 
   it("should return Ip Address in forwarded header", () => {
@@ -41,7 +41,7 @@ describe("user ip address", () => {
 
     const ipAddress = userIpAddress(forwarded);
 
-    expect(ipAddress).toEqual(null);
+    expect(ipAddress).toBeNull();
   });
 
   it("should return null address when we have empty ip address in for item", () => {
@@ -49,6 +49,6 @@ describe("user ip address", () => {
 
     const ipAddress = userIpAddress(forwarded);
 
-    expect(ipAddress).toEqual(null);
+    expect(ipAddress).toBeNull();
   });
 });
