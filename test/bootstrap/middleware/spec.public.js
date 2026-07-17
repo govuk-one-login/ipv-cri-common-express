@@ -31,8 +31,6 @@ describe("Public static assets", () => {
     it("adds default public directories", () => {
       const router = publicMiddleware();
 
-      // expect(express.static).should.have.callCount(3);
-      // router.use.should.have.callCount(3);
       expect(express.static).toHaveBeenCalledTimes(3);
       expect(router.use).toHaveBeenCalledTimes(3);
 

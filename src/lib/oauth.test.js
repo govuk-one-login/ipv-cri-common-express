@@ -113,7 +113,7 @@ describe("oauth lib", () => {
       });
     });
 
-    describe("with an error object", () => {
+    describe("without an authorization_code with an error object", () => {
       let error;
       beforeEach(() => {
         error = {

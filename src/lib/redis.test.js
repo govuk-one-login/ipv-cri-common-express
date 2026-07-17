@@ -10,7 +10,7 @@ describe("redis", () => {
     });
   });
 
-  it("should return empty config", () => {
+  it("should return empty config when no environment variables are given", () => {
     const redisConfig = redis();
 
     expect(redisConfig).toEqual({});
