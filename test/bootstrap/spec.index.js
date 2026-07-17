@@ -21,11 +21,16 @@ describe("hmpo-app", () => {
     let staticRouter;
     let router;
     let errorRouter;
+    let publicFallbackRouter;
 
     beforeEach(() => {
       app = {
         use: sinon.stub(),
         get: sinon.stub(),
+        locals: { urls: { public: "/public", publicImages: "/public/images" } },
+      };
+      publicFallbackRouter = {
+        use: sinon.stub(),
       };
       staticRouter = {
         use: sinon.stub(),
@@ -38,8 +43,9 @@ describe("hmpo-app", () => {
       };
       sinon.stub(express, "Router");
       express.Router.onCall(0).returns(staticRouter);
-      express.Router.onCall(1).returns(router);
-      express.Router.onCall(2).returns(errorRouter);
+      express.Router.onCall(1).returns(publicFallbackRouter);
+      express.Router.onCall(2).returns(router);
+      express.Router.onCall(3).returns(errorRouter);
       sinon.stub(index.config, "get");
       sinon.stub(index.config, "setup");
       sinon.stub(index.logger, "setup");
@@ -145,6 +151,19 @@ describe("hmpo-app", () => {
       const callbackStub = sinon.stub();
       index.setup({ middlewareSetupFn: callbackStub });
       callbackStub.should.have.been.called;
+    });
+
+    it("mounts the public 404 fallback after staticRouter", () => {
+      index.setup();
+      app.use.getCall(0).should.have.been.calledWithExactly(staticRouter);
+      app.use
+        .getCall(1)
+        .should.have.been.calledWithExactly(publicFallbackRouter);
+    });
+
+    it("does not mount the public 404 fallback if public option is false", () => {
+      index.setup({ public: false });
+      express.Router.should.have.callCount(3);
     });
 
     it("calls middleware.listen with options", () => {

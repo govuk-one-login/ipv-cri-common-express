@@ -43,12 +43,17 @@ const middleware = ({
     ),
   );
 
-  router.use(urls.public, (req, res) => res.sendStatus(404));
-  router.use(urls.publicImages, (req, res) => res.sendStatus(404));
+  return router;
+};
 
+const notFoundFallback = ({ urls: { public: pub, publicImages } }) => {
+  const router = express.Router();
+  router.use(pub, (_req, res) => res.sendStatus(404));
+  router.use(publicImages, (_req, res) => res.sendStatus(404));
   return router;
 };
 
 module.exports = {
   middleware,
+  notFoundFallback,
 };

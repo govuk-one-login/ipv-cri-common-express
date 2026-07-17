@@ -1,6 +1,6 @@
-const publicMiddleware = require(
-  APP_ROOT + "/src/bootstrap/middleware/public",
-).middleware;
+const publicModule = require(APP_ROOT + "/src/bootstrap/middleware/public");
+const publicMiddleware = publicModule.middleware;
+const notFoundFallback = publicModule.notFoundFallback;
 const express = require("express");
 
 describe("Public static assets", () => {
@@ -30,7 +30,7 @@ describe("Public static assets", () => {
       const router = publicMiddleware();
 
       express.static.should.have.callCount(3);
-      router.use.should.have.callCount(5);
+      router.use.should.have.callCount(3);
 
       router.use
         .getCall(0)
@@ -64,13 +64,6 @@ describe("Public static assets", () => {
           APP_ROOT + "/node_modules/govuk-frontend/dist/govuk/assets",
           { maxAge: 86400000 },
         );
-
-      router.use
-        .getCall(3)
-        .should.have.been.calledWith("/public", sinon.match.func);
-      router.use
-        .getCall(4)
-        .should.have.been.calledWith("/public/images", sinon.match.func);
     });
 
     it("adds hmpo-components assets when hmpoComponentsDir is provided", () => {
@@ -81,7 +74,7 @@ describe("Public static assets", () => {
       publicMiddleware({ hmpoComponentsDir });
 
       express.static.should.have.callCount(4);
-      router.use.should.have.callCount(6);
+      router.use.should.have.callCount(4);
 
       router.use
         .getCall(2)
@@ -95,6 +88,35 @@ describe("Public static assets", () => {
           hmpoComponentsDir + "/assets/images",
           { maxAge: 86400000 },
         );
+    });
+  });
+
+  describe("notFoundFallback", () => {
+    it("registers handlers on the public and public images paths", () => {
+      notFoundFallback({
+        urls: { public: "/public", publicImages: "/public/images" },
+      });
+
+      router.use.should.have.callCount(2);
+      router.use
+        .getCall(0)
+        .should.have.been.calledWith("/public", sinon.match.func);
+      router.use
+        .getCall(1)
+        .should.have.been.calledWith("/public/images", sinon.match.func);
+    });
+
+    it("responds with 404 for unmatched requests", () => {
+      notFoundFallback({
+        urls: { public: "/public", publicImages: "/public/images" },
+      });
+
+      const [, handler] = router.use.getCall(0).args;
+      const req = { url: "/i-dont-exist" };
+      const res = { sendStatus: sinon.stub() };
+      handler(req, res);
+
+      res.sendStatus.should.have.been.calledWithExactly(404);
     });
   });
 });
