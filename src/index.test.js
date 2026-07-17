@@ -9,12 +9,12 @@ describe("root module file", () => {
     );
 
     expect(typeof index.lib).toEqual("object");
-    expect(index.lib).not.toEqual(null);
+    expect(index.lib).not.toBeNull();
 
     expect(typeof index.routes).toEqual("object");
-    expect(index.routes).not.toEqual(null);
+    expect(index.routes).not.toBeNull();
 
     expect(typeof index.bootstrap).toEqual("object");
-    expect(index.bootstrap).not.toEqual(null);
+    expect(index.bootstrap).not.toBeNull();
   });
 });

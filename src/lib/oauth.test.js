@@ -69,7 +69,9 @@ describe("oauth lib", () => {
         redirect_uri: "http://example.org",
       };
 
-      buildRedirectUrl({ authParams });
+      const result = buildRedirectUrl({ authParams });
+      expect(result).toBeInstanceOf(URL);
+      expect(result.origin).toBe("http://example.org");
     });
 
     describe("with an authorization_code", () => {
