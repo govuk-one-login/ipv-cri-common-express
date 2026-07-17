@@ -1,10 +1,7 @@
-const chai = require("chai");
-const resolve = require("path").resolve;
-chai.use(require("sinon-chai"));
+import { vi } from "vitest";
 
-global.should = chai.should();
-global.expect = chai.expect;
-global.sinon = require("sinon");
+const resolve = require("path").resolve;
+
 global.APP_ROOT = resolve(__dirname, "..", "..");
 
 global.CONFIG_RESET = () => {
@@ -23,14 +20,16 @@ global.CONFIG_RESET = () => {
 
 global.LOGGER_RESET = () => {
   const loggerStub = {
-    info: sinon.stub(),
-    error: sinon.stub(),
-    warn: sinon.stub(),
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
   };
 
   const logger = require(APP_ROOT + "/src/bootstrap/lib/logger");
-  if (logger.get.restore) logger.get.restore();
-  sinon.stub(logger, "get").returns(loggerStub);
+  if (vi.isMockFunction(logger.get)) {
+    logger.get.mockRestore();
+  }
+  vi.spyOn(logger, "get").mockReturnValue(loggerStub);
 
   return loggerStub;
 };
