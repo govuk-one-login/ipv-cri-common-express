@@ -2,6 +2,7 @@ const express = require("express");
 const config = require("./lib/config");
 const logger = require("./lib/logger");
 const middleware = require("./middleware");
+const { notFoundFallback } = require("./middleware/public");
 const redisClient = require("./lib/redis-client");
 const {
   configure: configureOverloadProtection,
@@ -47,6 +48,10 @@ const setup = (
   const staticRouter = express.Router();
   staticRouter.use(protect);
   app.use(staticRouter);
+
+  if (options.public !== false) {
+    app.use(notFoundFallback({ urls: app.locals.urls }));
+  }
 
   if (options.session !== false)
     middleware.session(app, {
