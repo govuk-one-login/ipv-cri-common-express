@@ -71,8 +71,8 @@ function customFetch(
 There are some differences compared to axios:
 
 - If an HTTP status code >= 400 is returned, CustomFetchHttpError is thrown.
-  - CustomFetchHttpError stores the response object at `error.response` for
-    examination if necessary.
+  - CustomFetchHttpError stores data from the response at `error.code`,
+    `error.headers` and `error.body` (as a string) for examination if necessary.
 - The `customFetch` utility only allows calls against the configured base URL.
 - Paths should always have a leading slash (`/some/path` ✅, `some/path` ❌).
 - The response object is the standard Fetch API `Response` object. The response
@@ -98,7 +98,7 @@ const response = await req.customFetch("/some/api/path", {
   method: "POST",
   headers: { "Some-Header": "hello" },
   jsonBody: { someBody: true },
-  timeout: 5000,
+  timeoutMs: 5000,
 });
 
 const responseBody = await response.json();
