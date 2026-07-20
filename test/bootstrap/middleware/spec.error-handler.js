@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
 const loggerModule = require("../../../src/bootstrap/lib/logger");
 const request = require("hmpo-reqres").req;
 
@@ -5,7 +7,7 @@ describe("Error Handler", () => {
   let req, res, next, errorhandler, middleware;
 
   beforeEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
 
     req = request({
       baseUrl: "/my-app",
@@ -13,15 +15,15 @@ describe("Error Handler", () => {
       method: "GET",
     });
     res = {
-      render: sinon.stub(),
-      redirect: sinon.stub(),
+      render: vi.fn(),
+      redirect: vi.fn(),
       locals: {
         backLink: "/back",
       },
     };
-    next = sinon.stub();
+    next = vi.fn();
 
-    sinon.spy(loggerModule, "logError");
+    vi.spyOn(loggerModule, "logError");
 
     middleware = require(
       APP_ROOT + "/src/bootstrap/middleware/error-handler",
@@ -34,23 +36,23 @@ describe("Error Handler", () => {
 
   describe("middleware", () => {
     it("exports a function with length 4 - express identifies error handling middleware by its arguments length", () => {
-      errorhandler.should.be.a("function");
-      errorhandler.length.should.equal(4);
+      expect(typeof errorhandler).toBe("function");
+      expect(errorhandler).toHaveLength(4);
     });
 
     describe("redirects", () => {
       it("redirect instead of showing error page if redirect is present in error", () => {
         const err = { redirect: "/redirect/location" };
         errorhandler(err, req, res, next);
-        res.redirect.should.have.been.calledOnce;
-        res.redirect.should.have.been.calledWithExactly("/redirect/location");
+        expect(res.redirect).toHaveBeenCalledTimes(1);
+        expect(res.redirect).toHaveBeenCalledWith("/redirect/location");
       });
 
       it("does not redirect if path matches the redirect", () => {
         req.path = "location///";
         const err = { redirect: "location" };
         errorhandler(err, req, res, next);
-        res.redirect.should.not.have.been.called;
+        expect(res.redirect).not.toHaveBeenCalled();
       });
 
       it("does redirect if on the POST of destination page", () => {
@@ -58,15 +60,15 @@ describe("Error Handler", () => {
         req.method = "POST";
         const err = { redirect: "/redirect/location" };
         errorhandler(err, req, res, next);
-        res.redirect.should.have.been.calledOnce;
-        res.redirect.should.have.been.calledWithExactly("/redirect/location");
+        expect(res.redirect).toHaveBeenCalledTimes(1);
+        expect(res.redirect).toHaveBeenCalledWith("/redirect/location");
       });
 
       it("does not redirect if on a GET of the destination page", () => {
         req.path = "/redirect/location";
         const err = { redirect: "/redirect/location" };
         errorhandler(err, req, res, next);
-        res.redirect.should.not.have.been.called;
+        expect(res.redirect).not.toHaveBeenCalled();
       });
     });
 
@@ -80,10 +82,10 @@ describe("Error Handler", () => {
       it("does not include a back link for SESSION_TIMEOUT errors", () => {
         err.code = "SESSION_TIMEOUT";
         errorhandler(err, req, res, next);
-        res.render.should.have.been.calledOnce;
-        res.render.should.have.been.calledWith(
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith(
           "errors/session-ended",
-          sinon.match({ backLink: null }),
+          expect.objectContaining({ backLink: null }),
         );
       });
 
@@ -91,19 +93,19 @@ describe("Error Handler", () => {
         req.path = "/foo";
         req.method = "POST";
         errorhandler(err, req, res, next);
-        res.render.should.have.been.calledOnce;
-        res.render.should.have.been.calledWith(
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith(
           "errors/error",
-          sinon.match({ backLink: "/foo" }),
+          expect.objectContaining({ backLink: "/foo" }),
         );
       });
 
       it("sets res.locals.backLink as the back link for GETs", () => {
         errorhandler(err, req, res, next);
-        res.render.should.have.been.calledOnce;
-        res.render.should.have.been.calledWith(
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith(
           "errors/error",
-          sinon.match({ backLink: "/back" }),
+          expect.objectContaining({ backLink: "/back" }),
         );
       });
     });
@@ -121,29 +123,29 @@ describe("Error Handler", () => {
 
       it("sets a default template and clears backlink", () => {
         errorhandler(err, req, res, next);
-        res.render.should.have.been.calledOnce;
-        res.render.should.have.been.calledWith(
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith(
           "errors/session-ended",
-          sinon.match({ backLink: null }),
+          expect.objectContaining({ backLink: null }),
         );
       });
 
       it("doesn't overwrite a custom timeout template", () => {
         err.template = "test/template";
         errorhandler(err, req, res, next);
-        res.render.should.have.been.calledOnce;
-        res.render.should.have.been.calledWith(
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith(
           "test/template",
-          sinon.match({ backLink: null }),
+          expect.objectContaining({ backLink: null }),
         );
       });
 
       it("redirects to the base page if this is a new browser", () => {
         req.isNewBrowser = true;
         errorhandler(err, req, res, next);
-        res.redirect.should.have.been.calledOnce;
-        res.redirect.should.have.been.calledWith("/start");
-        res.render.should.not.have.been.called;
+        expect(res.redirect).toHaveBeenCalledTimes(1);
+        expect(res.redirect).toHaveBeenCalledWith("/start");
+        expect(res.render).not.toHaveBeenCalled();
       });
 
       it("redirects to a start page specified by a startUrl function", () => {
@@ -154,33 +156,33 @@ describe("Error Handler", () => {
             res.locals.htmlLang === "cy" ? "/welsh" : "/english",
         });
         errorhandler(err, req, res, next);
-        res.redirect.should.have.been.calledOnce;
-        res.redirect.should.have.been.calledWith("/welsh");
-        res.render.should.not.have.been.called;
+        expect(res.redirect).toHaveBeenCalledTimes(1);
+        expect(res.redirect).toHaveBeenCalledWith("/welsh");
+        expect(res.render).not.toHaveBeenCalled();
       });
 
       it("redirects to / if no startUrl is specified", () => {
         req.isNewBrowser = true;
         errorhandler = middleware();
         errorhandler(err, req, res, next);
-        res.redirect.should.have.been.calledWith("/");
+        expect(res.redirect).toHaveBeenCalledWith("/");
       });
 
       it("doesn't redirect to the base page if a custom template is given", () => {
         req.isNewBrowser = true;
         err.template = "test/template";
         errorhandler(err, req, res, next);
-        res.redirect.should.not.have.been.called;
-        res.render.should.have.been.calledOnce;
-        res.render.should.have.been.calledWith(
+        expect(res.redirect).not.toHaveBeenCalled();
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith(
           "test/template",
-          sinon.match({ backLink: null }),
+          expect.objectContaining({ backLink: null }),
         );
       });
 
       it("sets the status code to 403", () => {
         errorhandler(err, req, res, next);
-        res.statusCode.should.equal(403);
+        expect(res.statusCode).toEqual(403);
       });
     });
 
@@ -195,31 +197,38 @@ describe("Error Handler", () => {
 
       it("redirects to the start page if the error contains no redirect location", () => {
         errorhandler(err, req, res, next);
-        res.redirect.should.have.been.calledOnce;
-        res.redirect.should.have.been.calledWith("/start");
-        res.render.should.not.have.been.called;
+        expect(res.redirect).toHaveBeenCalledTimes(1);
+        expect(res.redirect).toHaveBeenCalledWith("/start");
+        expect(res.render).not.toHaveBeenCalled();
       });
 
       it("redirects to a specific location if given", () => {
         err.redirect = "/redirect/step";
         errorhandler(err, req, res, next);
-        res.redirect.should.have.been.calledOnce;
-        res.redirect.should.have.been.calledWith("/redirect/step");
-        res.render.should.not.have.been.called;
+        expect(res.redirect).toHaveBeenCalledTimes(1);
+        expect(res.redirect).toHaveBeenCalledWith("/redirect/step");
+        expect(res.render).not.toHaveBeenCalled();
       });
 
       it("shows error template if a custom template is given and no redirect location is specified", () => {
         err.template = "test/template";
         errorhandler(err, req, res, next);
-        res.redirect.should.not.have.been.called;
-        res.render.should.have.been.calledOnce;
-        res.render.should.have.been.calledWith("test/template");
+        expect(res.redirect).not.toHaveBeenCalled();
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith(
+          "test/template",
+          expect.objectContaining({
+            error: expect.objectContaining({
+              code: "MISSING_PREREQ",
+            }),
+          }),
+        );
       });
 
       it("sets the status code to 403", () => {
         err.template = "test/template";
         errorhandler(err, req, res, next);
-        res.statusCode.should.equal(403);
+        expect(res.statusCode).toEqual(403);
       });
     });
 
@@ -233,50 +242,50 @@ describe("Error Handler", () => {
       it("should set status code to 403 for MISSING_AUTHPARAMS error", () => {
         err = { code: "MISSING_AUTHPARAMS" };
         errorhandler(err, req, res, next);
-        res.statusCode.should.equal(403);
+        expect(res.statusCode).toEqual(403);
       });
 
       it("sets a default template if no template is specified", () => {
         errorhandler(err, req, res, next);
-        res.render.should.have.been.calledOnce;
-        res.render.should.have.been.calledWith(
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith(
           "errors/error",
-          sinon.match({ backLink: "/back" }),
+          expect.objectContaining({ backLink: "/back" }),
         );
       });
 
       it("doesn't overwrite a custom template", () => {
         err.template = "test/template";
         errorhandler(err, req, res, next);
-        res.render.should.have.been.calledOnce;
-        res.render.should.have.been.calledWith(
+        expect(res.render).toHaveBeenCalledTimes(1);
+        expect(res.render).toHaveBeenCalledWith(
           "test/template",
-          sinon.match({ backLink: "/back" }),
+          expect.objectContaining({ backLink: "/back" }),
         );
       });
 
       it("should log the error if no template is specified", () => {
         errorhandler(err, req, res, next);
-        loggerModule.logError.should.have.been.calledOnce;
-        loggerModule.logError.should.have.been.calledWithExactly(req, err);
+        expect(loggerModule.logError).toHaveBeenCalledTimes(1);
+        expect(loggerModule.logError).toHaveBeenCalledWith(req, err);
       });
 
       it("should not log the error if a template is specified", () => {
         err.template = "test/template";
         errorhandler(err, req, res, next);
-        loggerModule.logError.should.not.have.been.called;
+        expect(loggerModule.logError).not.toHaveBeenCalled();
       });
 
       it("should only log the error if the header has been sent", () => {
         res._headerSent = true;
         err.template = "test/template";
         errorhandler(err, req, res, next);
-        loggerModule.logError.should.have.been.calledOnce;
-        loggerModule.logError.should.have.been.calledWithExactly(req, err, {
+        expect(loggerModule.logError).toHaveBeenCalledTimes(1);
+        expect(loggerModule.logError).toHaveBeenCalledWith(req, err, {
           messagePrefix: "Error after response",
         });
-        res.render.should.not.have.been.called;
-        next.should.not.have.been.called;
+        expect(res.render).not.toHaveBeenCalled();
+        expect(next).not.toHaveBeenCalled();
       });
     });
   });

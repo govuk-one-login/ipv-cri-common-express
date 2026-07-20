@@ -1,67 +1,75 @@
+import { describe, beforeEach, afterEach, it, vi, expect } from "vitest";
+
 const hmpoConfig = require("hmpo-config");
 const config = require(APP_ROOT + "/src/bootstrap/lib/config");
 
 describe("Config", () => {
   beforeEach(() => {
-    sinon.stub(hmpoConfig.prototype, "addConfig");
-    sinon.stub(hmpoConfig.prototype, "addFile");
-    sinon.stub(hmpoConfig.prototype, "addString");
-    sinon.stub(hmpoConfig.prototype, "toJSON").returns({ returned: "config" });
+    vi.spyOn(hmpoConfig.prototype, "addConfig");
+    vi.spyOn(hmpoConfig.prototype, "addFile");
+    vi.spyOn(hmpoConfig.prototype, "addString");
+    vi.spyOn(hmpoConfig.prototype, "toJSON").mockReturnValue({
+      returned: "config",
+    });
     delete global.GLOBAL_CONFIG;
   });
 
   afterEach(() => {
-    hmpoConfig.prototype.addConfig.restore();
-    hmpoConfig.prototype.addFile.restore();
-    hmpoConfig.prototype.addString.restore();
-    hmpoConfig.prototype.toJSON.restore();
+    hmpoConfig.prototype.addConfig.mockRestore();
+    hmpoConfig.prototype.addFile.mockRestore();
+    hmpoConfig.prototype.addString.mockRestore();
+    hmpoConfig.prototype.toJSON.mockRestore();
     CONFIG_RESET();
   });
 
   it("exports functions", () => {
-    config.should.be.a("function");
-    config.setup.should.be.a("function");
-    config.get.should.be.a("function");
-    config.get.should.equal(config);
+    expect(typeof config).toBe("function");
+    expect(typeof config.setup).toBe("function");
+    expect(typeof config.get).toBe("function");
+    expect(config.get).toEqual(config);
   });
 
   describe("setup", () => {
     it("loads config using defaults", () => {
       config.setup();
 
-      hmpoConfig.prototype.addFile.should.have.been.calledThrice;
-      hmpoConfig.prototype.addFile.should.have.been.calledWithExactly(
+      expect(hmpoConfig.prototype.addFile).toHaveBeenCalledTimes(3);
+
+      expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith(
         "config/default.json",
       );
-      hmpoConfig.prototype.addFile.should.have.been.calledWithExactly(
+      expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith(
         "config/default.yaml",
       );
-      hmpoConfig.prototype.addFile.should.have.been.calledWithExactly(
+      expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith(
         "config/default.yml",
       );
-      hmpoConfig.prototype.addConfig.should.not.have.been.called;
-      hmpoConfig.prototype.addString.should.not.have.been.called;
 
-      global.GLOBAL_CONFIG.should.eql({ returned: "config" });
+      expect(hmpoConfig.prototype.addConfig).toHaveBeenCalled();
+      expect(hmpoConfig.prototype.addString).not.toHaveBeenCalled();
+
+      expect(global.GLOBAL_CONFIG).toEqual({ returned: "config" });
     });
 
     it("loads config using specified files", () => {
       config.setup({ files: ["a.json", "b.json"] });
 
-      hmpoConfig.prototype.addFile.should.have.been.calledTwice;
-      hmpoConfig.prototype.addFile.should.have.been.calledWithExactly("a.json");
-      hmpoConfig.prototype.addFile.should.have.been.calledWithExactly("b.json");
-      hmpoConfig.prototype.addConfig.should.not.have.been.called;
-      hmpoConfig.prototype.addString.should.not.have.been.called;
+      expect(hmpoConfig.prototype.addFile).toHaveBeenCalledTimes(2);
 
-      global.GLOBAL_CONFIG.should.eql({ returned: "config" });
+      expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith("a.json");
+      expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith("b.json");
+
+      expect(hmpoConfig.prototype.addConfig).toHaveBeenCalled();
+      expect(hmpoConfig.prototype.addString).not.toHaveBeenCalled();
+
+      expect(global.GLOBAL_CONFIG).toEqual({ returned: "config" });
     });
 
     it("merges config config using defaults", () => {
       config.setup();
       config.setup();
 
-      hmpoConfig.prototype.addConfig.should.have.been.calledWithExactly({
+      expect(hmpoConfig.prototype.addConfig).toHaveBeenCalledWith({
         returned: "config",
       });
     });
@@ -72,7 +80,7 @@ describe("Config", () => {
       };
       config.setup({ _environmentVariables: env });
 
-      hmpoConfig.prototype.addString.should.have.been.calledWithExactly(
+      expect(hmpoConfig.prototype.addString).toHaveBeenCalledWith(
         '{ config: "string" }',
       );
     });
@@ -90,56 +98,56 @@ describe("Config", () => {
       ];
       config.setup({ _commandLineArgs: args });
 
-      hmpoConfig.prototype.addFile.should.have.been.calledWithExactly(
+      expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith(
         "configfile.json",
       );
-      hmpoConfig.prototype.addFile.should.have.been.calledWithExactly(
+      expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith(
         "configfile.yaml",
       );
     });
 
     it("sets the timezone if specified in config", () => {
       const env = {};
-      hmpoConfig.prototype.toJSON.returns({ timezone: "BST" });
+      hmpoConfig.prototype.toJSON.mockReturnValue({ timezone: "BST" });
       config.setup({ _environmentVariables: env });
 
-      env.TZ.should.equal("BST");
+      expect(env.TZ).toEqual("BST");
     });
   });
 
   describe("get", () => {
     it("throws an error if no config is loaded", () => {
-      expect(() => config.get("key")).to.throw("Config not loaded");
+      expect(() => config.get("key")).toThrow("Config not loaded");
     });
 
     it("returns a value from config", () => {
       global.GLOBAL_CONFIG = { key: "value" };
       const result = config.get("key");
-      result.should.equal("value");
+      expect(result).toEqual("value");
     });
 
     it("returns a deep value from config", () => {
       global.GLOBAL_CONFIG = { obj: { obj2: { key: "value" } } };
       const result = config.get("obj.obj2.key");
-      result.should.equal("value");
+      expect(result).toEqual("value");
     });
 
     it("returns undefined if any part of the path is not found", () => {
       global.GLOBAL_CONFIG = { obj: { obj2: { key: "value" } } };
       const result = config.get("obj.obj3.key");
-      expect(result).to.be.undefined;
+      expect(result).toBeUndefined();
     });
 
     it("returns default value if any part of the path is not found", () => {
       global.GLOBAL_CONFIG = { obj: { obj2: { key: "value" } } };
       const result = config.get("obj.obj3.key", "default");
-      result.should.equal("default");
+      expect(result).toEqual("default");
     });
 
     it("returns config root with no path specified", () => {
       global.GLOBAL_CONFIG = { obj: { obj2: { key: "value" } } };
       const result = config.get();
-      result.should.equal(global.GLOBAL_CONFIG);
+      expect(result).toEqual(global.GLOBAL_CONFIG);
     });
   });
 });

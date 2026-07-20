@@ -1,5 +1,7 @@
+import { describe, vi, it, expect, beforeEach, afterEach } from "vitest";
+
 const proxyquire = require("proxyquire");
-const expressSession = sinon.stub();
+const expressSession = vi.fn();
 const session = proxyquire(APP_ROOT + "/src/bootstrap/middleware/session", {
   "express-session": expressSession,
 });
@@ -10,18 +12,18 @@ describe("Session", () => {
 
   beforeEach(() => {
     redisStub = {
-      on: sinon.stub(),
+      on: vi.fn(),
     };
-    sinon.stub(redisClient, "getClient").returns(redisStub);
-    expressSession.reset();
+    vi.spyOn(redisClient, "getClient").mockReturnValue(redisStub);
+    expressSession.mockReset();
   });
 
   afterEach(() => {
-    redisClient.getClient.restore();
+    redisClient.getClient.mockRestore();
   });
 
   it("exports an object of middleware", () => {
-    session.should.be.an("object");
+    expect(typeof session).toBe("object");
   });
 
   describe("session middleware", () => {
@@ -29,14 +31,14 @@ describe("Session", () => {
       let sessionStore;
       beforeEach(() => {
         sessionStore = {
-          on: sinon.stub(),
+          on: vi.fn(),
         };
       });
 
       it("should be set with default properties", () => {
         session.middleware({ sessionStore });
 
-        expect(expressSession).to.have.been.calledWith({
+        expect(expressSession).toHaveBeenCalledWith({
           store: sessionStore,
           cookie: { secure: "auto" },
           key: "hmpo.sid",
@@ -49,8 +51,8 @@ describe("Session", () => {
       it("should allow override of cookie key", () => {
         session.middleware({ cookieName: "cookie-name", sessionStore });
 
-        expect(expressSession).to.have.been.calledWith(
-          sinon.match({
+        expect(expressSession).toHaveBeenCalledWith(
+          expect.objectContaining({
             key: "cookie-name",
           }),
         );
@@ -59,14 +61,14 @@ describe("Session", () => {
       it("should allow override of secret", () => {
         session.middleware({ secret: "very-secret", sessionStore });
 
-        expect(expressSession).to.have.been.calledWith(
-          sinon.match({
+        expect(expressSession).toHaveBeenCalledWith(
+          expect.objectContaining({
             secret: "very-secret",
           }),
         );
       });
 
-      context("with cookieOptions", () => {
+      describe("with cookieOptions", () => {
         let cookieOptions;
 
         it("should add additional properties", () => {
@@ -76,9 +78,9 @@ describe("Session", () => {
 
           session.middleware({ cookieOptions, sessionStore });
 
-          expect(expressSession).to.have.been.calledWith(
-            sinon.match({
-              cookie: { domain: ".example.com" },
+          expect(expressSession).toHaveBeenCalledWith(
+            expect.objectContaining({
+              cookie: expect.objectContaining({ domain: ".example.com" }),
             }),
           );
         });
@@ -90,8 +92,8 @@ describe("Session", () => {
 
           session.middleware({ cookieOptions, sessionStore });
 
-          expect(expressSession).to.have.been.calledWith(
-            sinon.match({
+          expect(expressSession).toHaveBeenCalledWith(
+            expect.objectContaining({
               cookie: { secure: "false" },
             }),
           );
@@ -104,9 +106,9 @@ describe("Session", () => {
 
           session.middleware({ cookieOptions, sessionStore });
 
-          expect(expressSession).to.have.been.calledWith(
-            sinon.match({
-              cookie: { secure: "auto" },
+          expect(expressSession).toHaveBeenCalledWith(
+            expect.objectContaining({
+              cookie: expect.objectContaining({ secure: "auto" }),
             }),
           );
         });

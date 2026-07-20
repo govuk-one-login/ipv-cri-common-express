@@ -1,3 +1,6 @@
+import { describe, expect, beforeEach, it } from "vitest";
+import { createDefaultReqResNext } from "../../test/utils/helpers";
+
 const scenarioHeaders = require("./scenario-headers");
 
 describe("scenario-headers", () => {
@@ -6,13 +9,13 @@ describe("scenario-headers", () => {
   let next;
 
   beforeEach(() => {
-    const setup = setupDefaultMocks();
+    const setup = createDefaultReqResNext();
     req = setup.req;
     res = setup.res;
     next = setup.next;
   });
 
-  context("with 'NODE_ENV' as 'development'", () => {
+  describe("with 'NODE_ENV' as 'development'", () => {
     beforeEach(() => {
       process.env.NODE_ENV = "development";
       req.headers["x-scenario-id"] = "scenario-number-1";
@@ -20,15 +23,15 @@ describe("scenario-headers", () => {
     });
 
     it("should set scenarioHeader on req", () => {
-      expect(req.scenarioIDHeader).to.equal("scenario-number-1");
+      expect(req.scenarioIDHeader).toEqual("scenario-number-1");
     });
 
     it("should call next", () => {
-      expect(next).to.have.been.called;
+      expect(next).toHaveBeenCalled();
     });
   });
 
-  context("with 'NODE_ENV' not as 'development'", () => {
+  describe("with 'NODE_ENV' not as 'development'", () => {
     beforeEach(() => {
       process.env.NODE_ENV = "production";
       req.headers["x-scenario-id"] = "scenario-number-1";
@@ -36,26 +39,26 @@ describe("scenario-headers", () => {
     });
 
     it("should not set scenarioHeader on req", () => {
-      expect(req.scenarioIDHeader).to.be.undefined;
+      expect(req.scenarioIDHeader).toBeUndefined();
     });
 
     it("should call next", () => {
-      expect(next).to.have.been.called;
+      expect(next).toHaveBeenCalled();
     });
   });
 
-  context('with missing "x-scenario-id" header', () => {
+  describe('with missing "x-scenario-id" header', () => {
     beforeEach(() => {
       process.env.NODE_ENV = "development";
       scenarioHeaders(req, res, next);
     });
 
     it("should not set scenarioHeader on req", () => {
-      expect(req.scenarioIDHeader).to.be.undefined;
+      expect(req.scenarioIDHeader).toBeUndefined();
     });
 
     it("should call next", () => {
-      expect(next).to.have.been.called;
+      expect(next).toHaveBeenCalled();
     });
   });
 });

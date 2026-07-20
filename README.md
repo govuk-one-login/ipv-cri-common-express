@@ -65,7 +65,7 @@ npm install
 
 ## Tests
 
-[mocha](https://mochajs.org/) is used as the testing framework.
+[vitest](https://vitest.dev/) is used as the testing framework.
 
 To run the tests:
 

@@ -1,3 +1,5 @@
+import { describe, it, beforeEach, vi, expect } from "vitest";
+
 const featureFlag = require(
   APP_ROOT + "/src/bootstrap/middleware/feature-flag",
 );
@@ -29,8 +31,8 @@ describe("Feature Flag", () => {
     };
 
     res = require("hmpo-reqres").res();
-    res.redirect = sinon.stub();
-    next = sinon.stub();
+    res.redirect = vi.fn();
+    next = vi.fn();
 
     middleware = featureFlag.middleware(options);
   });
@@ -39,7 +41,7 @@ describe("Feature Flag", () => {
     it("should copy options.featureFlags and session.featureFlags to req.featureFlags", () => {
       middleware(req, res, next);
 
-      req.featureFlags.should.deep.equal({
+      expect(req.featureFlags).toEqual({
         enabledFlag: true,
         disabledFlag: false,
         flagFromConfig: true,
@@ -54,31 +56,31 @@ describe("Feature Flag", () => {
 
       middleware(req, res, next);
 
-      req.featureFlags.should.deep.equal({});
+      expect(req.featureFlags).toEqual({});
     });
 
     it("should deep clone featureFlags", () => {
       middleware(req, res, next);
 
-      req.featureFlags.should.not.equal(options.featureFlags);
-      req.featureFlags.should.not.equal(req.session.featureFlags);
+      expect(req.featureFlags).not.toEqual(options.featureFlags);
+      expect(req.featureFlags).not.toEqual(req.session.featureFlags);
       req.featureFlags.flagFromConfig = false;
-      options.featureFlags.flagFromConfig.should.be.true;
+      expect(options.featureFlags.flagFromConfig).toBe(true);
     });
 
     it("should keep existing object reference", () => {
       const originalFlags = { originalFlag: true };
       req.featureFlags = originalFlags;
       middleware(req, res, next);
-      req.featureFlags.should.equal(originalFlags);
-      req.featureFlags.originalFlag.should.be.true;
-      req.featureFlags.flagFromConfig.should.be.true;
+      expect(req.featureFlags).toEqual(originalFlags);
+      expect(req.featureFlags.originalFlag).toBe(true);
+      expect(req.featureFlags.flagFromConfig).toBe(true);
     });
 
     it("should set the res.locals.featureFlags object to the updated featureflags", () => {
       req.featureFlags = { originalFlag: true };
       middleware(req, res, next);
-      res.locals.featureFlags.should.deep.equal({
+      expect(res.locals.featureFlags).toEqual({
         originalFlag: true,
         flagFromConfig: true,
         flagFromSession: true,
@@ -87,13 +89,13 @@ describe("Feature Flag", () => {
 
     it("should call next with no arguments", () => {
       middleware(req, res, next);
-      next.should.have.been.calledWithExactly();
+      expect(next).toHaveBeenCalled();
     });
   });
 
   describe("#getFlags", () => {
     it("should return the current flags from the req", () => {
-      featureFlag.getFlags(req).should.deep.equal({
+      expect(featureFlag.getFlags(req)).toEqual({
         enabledFlag: true,
         disabledFlag: false,
       });
@@ -101,51 +103,51 @@ describe("Feature Flag", () => {
 
     it("should return en empty object if there are no flags in the req", () => {
       delete req.featureFlags;
-      featureFlag.getFlags(req).should.deep.equal({});
+      expect(featureFlag.getFlags(req)).toEqual({});
     });
 
     it("should not cache flag results", () => {
       req.featureFlags.varyingFlag = true;
 
       let flags = featureFlag.getFlags(req);
-      flags.varyingFlag.should.equal(true);
+      expect(flags.varyingFlag).toEqual(true);
 
       req.featureFlags.varyingFlag = false;
 
       flags = featureFlag.getFlags(req);
-      flags.varyingFlag.should.equal(false);
+      expect(flags.varyingFlag).toEqual(false);
     });
   });
 
   describe("#isEnabled", () => {
     it("should call getFlags to fetch the current flags from the req", () => {
-      featureFlag.isEnabled("enabledFlag", req).should.be.true;
+      expect(featureFlag.isEnabled("enabledFlag", req)).toBe(true);
     });
 
     it("should be true with an enabled flag", () => {
-      featureFlag.isEnabled("enabledFlag", req).should.be.true;
+      expect(featureFlag.isEnabled("enabledFlag", req)).toBe(true);
     });
 
     it("should be false with an disabled flag", () => {
-      featureFlag.isEnabled("disabledFlag", req).should.be.false;
+      expect(featureFlag.isEnabled("disabledFlag", req)).toBe(false);
     });
 
     it("should be false with a non existing flag", () => {
-      featureFlag.isEnabled("nonExistingFlag", req).should.be.false;
+      expect(featureFlag.isEnabled("nonExistingFlag", req)).toBe(false);
     });
   });
 
   describe("#isDisabled", () => {
     it("should be false with an enabled flag", () => {
-      featureFlag.isDisabled("enabledFlag", req).should.be.false;
+      expect(featureFlag.isDisabled("enabledFlag", req)).toBe(false);
     });
 
     it("should be true with an disabled flag", () => {
-      featureFlag.isDisabled("disabledFlag", req).should.be.true;
+      expect(featureFlag.isDisabled("disabledFlag", req)).toBe(true);
     });
 
     it("should be true with an non existing flag", () => {
-      featureFlag.isDisabled("nonExistingFlag", req).should.be.true;
+      expect(featureFlag.isDisabled("nonExistingFlag", req)).toBe(true);
     });
   });
 
@@ -156,7 +158,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      res.redirect.should.have.been.calledWith("http://example.org");
+      expect(res.redirect).toHaveBeenCalledWith("http://example.org");
     });
 
     it("should not call next with an enabled flag", () => {
@@ -165,7 +167,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      next.should.not.have.been.called;
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should not redirect with a disabled flag", () => {
@@ -174,7 +176,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      res.redirect.should.not.have.been.called;
+      expect(res.redirect).not.toHaveBeenCalled();
     });
 
     it("should call next with a disabled flag", () => {
@@ -183,7 +185,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      next.should.have.been.called;
+      expect(next).toHaveBeenCalled();
     });
 
     it("should not redirect with a non existing flag", () => {
@@ -192,7 +194,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      res.redirect.should.not.have.been.called;
+      expect(res.redirect).not.toHaveBeenCalled();
     });
 
     it("should call next with a non existing flag", () => {
@@ -201,7 +203,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      next.should.have.been.called;
+      expect(next).toHaveBeenCalled();
     });
   });
 
@@ -212,7 +214,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      res.redirect.should.not.have.been.called;
+      expect(res.redirect).not.toHaveBeenCalled();
     });
 
     it("should call next with an enabled flag", () => {
@@ -221,7 +223,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      next.should.have.been.called;
+      expect(next).toHaveBeenCalled();
     });
 
     it("should redirect with a disabled flag", () => {
@@ -230,7 +232,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      res.redirect.should.have.been.calledWith("http://example.org");
+      expect(res.redirect).toHaveBeenCalledWith("http://example.org");
     });
 
     it("should not call next with a disabled flag", () => {
@@ -239,7 +241,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      next.should.not.have.been.called;
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should redirect with a non existing flag", () => {
@@ -248,7 +250,7 @@ describe("Feature Flag", () => {
         "http://example.org",
       );
       middleware(req, res, next);
-      res.redirect.should.have.been.called;
+      expect(res.redirect).toHaveBeenCalled();
     });
 
     it("should not call next with a non existing flag", () => {
@@ -258,7 +260,7 @@ describe("Feature Flag", () => {
       );
       middleware(req, res, next);
 
-      next.should.not.have.been.called;
+      expect(next).not.toHaveBeenCalled();
     });
   });
 
@@ -266,8 +268,8 @@ describe("Feature Flag", () => {
     let ifMiddleware, elseMiddleware;
 
     beforeEach(() => {
-      ifMiddleware = sinon.stub();
-      elseMiddleware = sinon.stub();
+      ifMiddleware = vi.fn();
+      elseMiddleware = vi.fn();
     });
 
     it("should route to ifMiddleware with an enabled flag", () => {
@@ -279,8 +281,8 @@ describe("Feature Flag", () => {
 
       middleware(req, res, next);
 
-      ifMiddleware.should.have.been.calledWithExactly(req, res, next);
-      elseMiddleware.should.not.have.been.called;
+      expect(ifMiddleware).toHaveBeenCalledWith(req, res, next);
+      expect(elseMiddleware).not.toHaveBeenCalled();
     });
 
     it("should route to elseMiddleware with a disabled flag", () => {
@@ -292,8 +294,8 @@ describe("Feature Flag", () => {
 
       middleware(req, res, next);
 
-      elseMiddleware.should.have.been.calledWithExactly(req, res, next);
-      ifMiddleware.should.not.have.been.called;
+      expect(elseMiddleware).toHaveBeenCalledWith(req, res, next);
+      expect(ifMiddleware).not.toHaveBeenCalled();
     });
 
     it("should route to elseMiddleware with a non existing flag", () => {
@@ -305,8 +307,8 @@ describe("Feature Flag", () => {
 
       middleware(req, res, next);
 
-      elseMiddleware.should.have.been.calledWithExactly(req, res, next);
-      ifMiddleware.should.not.have.been.called;
+      expect(elseMiddleware).toHaveBeenCalledWith(req, res, next);
+      expect(ifMiddleware).not.toHaveBeenCalled();
     });
 
     it("should route to elseMiddleware with a no flag", () => {
@@ -314,8 +316,8 @@ describe("Feature Flag", () => {
 
       middleware(req, res, next);
 
-      elseMiddleware.should.have.been.calledWithExactly(req, res, next);
-      ifMiddleware.should.not.have.been.called;
+      expect(elseMiddleware).toHaveBeenCalledWith(req, res, next);
+      expect(ifMiddleware).not.toHaveBeenCalled();
     });
   });
 });

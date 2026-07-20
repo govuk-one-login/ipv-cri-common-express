@@ -1,3 +1,5 @@
+import { describe, it, vi, beforeEach, expect } from "vitest";
+
 const path = require("path");
 const proxyquire = require("proxyquire").noPreserveCache();
 const hmpoComponentsDir = path.dirname(require.resolve("hmpo-components"));
@@ -8,42 +10,42 @@ describe("middleware functions", () => {
   beforeEach(() => {
     app = {
       locals: { existing: "local" },
-      set: sinon.stub(),
-      enable: sinon.stub(),
-      disable: sinon.stub(),
-      engine: sinon.stub(),
-      use: sinon.stub(),
-      get: sinon.stub(),
-      listen: sinon.stub().yields(),
+      set: vi.fn(),
+      enable: vi.fn(),
+      disable: vi.fn(),
+      engine: vi.fn(),
+      use: vi.fn(),
+      get: vi.fn(),
+      listen: vi.fn(),
     };
   });
 
   it("exports middleware functions", () => {
     middleware = require(APP_ROOT + "/src/bootstrap/middleware");
-    middleware.setup.should.be.a("function");
-    middleware.session.should.be.a("function");
-    middleware.errorHandler.should.be.a("function");
-    middleware.listen.should.be.a("function");
+    expect(typeof middleware.setup).toBe("function");
+    expect(typeof middleware.session).toBe("function");
+    expect(typeof middleware.errorHandler).toBe("function");
+    expect(typeof middleware.listen).toBe("function");
   });
 
   describe("requiredArgument", () => {
     it("should throw an error when the required argument is not provided in session", () => {
-      expect(() => middleware.session()).to.throw(
-        Error,
+      expect(() => middleware.session()).toThrow(Error);
+      expect(() => middleware.session()).toThrow(
         "Argument 'app' must be specified",
       );
     });
 
     it("should throw an error when the required argument is not provided in errorHandler", () => {
-      expect(() => middleware.errorHandler()).to.throw(
-        Error,
+      expect(() => middleware.errorHandler()).toThrow(Error);
+      expect(() => middleware.errorHandler()).toThrow(
         "Argument 'app' must be specified",
       );
     });
 
     it("should throw an error when the required argument is not provided in listen", () => {
-      expect(() => middleware.listen()).to.throw(
-        Error,
+      expect(() => middleware.listen()).toThrow(Error);
+      expect(() => middleware.listen()).toThrow(
         "Argument 'app' must be specified",
       );
     });
@@ -54,43 +56,44 @@ describe("middleware functions", () => {
 
     beforeEach(() => {
       nunjucksEnv = {};
+      vi.stubEnv("NODE_ENV", "development");
       stubs = {
-        express: sinon.stub().returns(app),
+        express: vi.fn().mockReturnValue(app),
         hmpoLogger: {
-          middleware: sinon.stub().returns("hmpoLogger middleware"),
+          middleware: vi.fn().mockReturnValue("hmpoLogger middleware"),
         },
         bodyParser: {
-          urlencoded: sinon.stub().returns("bodyParser middleware"),
+          urlencoded: vi.fn().mockReturnValue("bodyParser middleware"),
         },
         cookies: {
-          middleware: sinon.stub().returns("cookies middleware"),
+          middleware: vi.fn().mockReturnValue("cookies middleware"),
         },
         headers: {
-          setup: sinon.stub().returns({}),
+          setup: vi.fn().mockReturnValue({}),
         },
         healthcheck: {
-          middleware: sinon.stub().returns("healthcheck middleware"),
+          middleware: vi.fn().mockReturnValue("healthcheck middleware"),
         },
         version: {
-          middleware: sinon.stub().returns("version middleware"),
+          middleware: vi.fn().mockReturnValue("version middleware"),
         },
         featureFlag: {
-          middleware: sinon.stub().returns("featureFlag middleware"),
+          middleware: vi.fn().mockReturnValue("featureFlag middleware"),
         },
         modelOptions: {
-          middleware: sinon.stub().returns("modelOptions middleware"),
+          middleware: vi.fn().mockReturnValue("modelOptions middleware"),
         },
         public: {
-          middleware: sinon.stub().returns("public middleware"),
+          middleware: vi.fn().mockReturnValue("public middleware"),
         },
         nunjucks: {
-          setup: sinon.stub().returns(nunjucksEnv),
+          setup: vi.fn().mockReturnValue(nunjucksEnv),
         },
         translation: {
-          setup: sinon.stub(),
+          setup: vi.fn(),
         },
         hmpoComponents: {
-          setup: sinon.stub(),
+          setup: vi.fn(),
         },
       };
 
@@ -122,8 +125,8 @@ describe("middleware functions", () => {
         requestLogging: false,
         stubs,
       });
-      expect(stubs.hmpoLogger.middleware).to.not.have.been.called;
-      expect(app.use).to.not.have.been.calledWith("hmpoLogger middleware");
+      expect(stubs.hmpoLogger.middleware).not.toHaveBeenCalled();
+      expect(app.use).not.toHaveBeenCalledWith("hmpoLogger middleware");
     });
 
     it("should use the public middleware when publicOptions is true or not set", () => {
@@ -136,7 +139,7 @@ describe("middleware functions", () => {
         public: { maxAge: 3600 }, // publicOptions is set
       });
 
-      stubs.public.middleware.should.have.been.calledWithExactly({
+      expect(stubs.public.middleware).toHaveBeenCalledWith({
         urls: {
           public: "/public-url",
           publicImages: "/public-url/images",
@@ -148,7 +151,7 @@ describe("middleware functions", () => {
         public: { maxAge: 3600 },
         hmpoComponentsDir,
       });
-      app.use.should.have.been.calledWithExactly("public middleware");
+      expect(app.use).toHaveBeenCalledWith("public middleware");
     });
 
     it("should not use public middleware when publicOptions is false", () => {
@@ -164,8 +167,8 @@ describe("middleware functions", () => {
         public: publicOptions,
       });
 
-      stubs.public.middleware.should.not.have.been.called;
-      app.use.should.not.have.been.calledWith("public middleware");
+      expect(stubs.public.middleware).not.toHaveBeenCalled();
+      expect(app.use).not.toHaveBeenCalledWith("public middleware");
     });
 
     it("should set default version and healthcheck URLs if not provided", () => {
@@ -173,8 +176,8 @@ describe("middleware functions", () => {
 
       middleware.setup({ urls });
 
-      expect(urls.version).to.equal("/version");
-      expect(urls.healthcheck).to.equal("/healthcheck");
+      expect(urls.version).toEqual("/version");
+      expect(urls.healthcheck).toEqual("/healthcheck");
     });
 
     it("should retain provided version and healthcheck URLs", () => {
@@ -185,39 +188,36 @@ describe("middleware functions", () => {
 
       middleware.setup({ urls });
 
-      expect(urls.version).to.equal("/custom-version");
-      expect(urls.healthcheck).to.equal("/custom-healthcheck");
+      expect(urls.version).toEqual("/custom-version");
+      expect(urls.healthcheck).toEqual("/custom-healthcheck");
     });
 
     it("should create a new express app", () => {
       const returnedApp = middleware.setup();
-      stubs.express.should.have.been.calledWithExactly();
-      returnedApp.should.equal(app);
+      expect(stubs.express).toHaveBeenCalledWith();
+      expect(returnedApp).toEqual(app);
     });
 
     it("should set the express env value", () => {
       middleware.setup();
-      app.set.should.have.been.calledWithExactly("env", "development");
+      expect(app.set).toHaveBeenCalledWith("env", "development");
     });
 
     it("should use the env value specified in options", () => {
       middleware.setup({ env: "production" });
-      app.set.should.have.been.calledWithExactly("env", "production");
+      expect(app.set).toHaveBeenCalledWith("env", "production");
     });
 
     it("should use the /version middleware", () => {
       middleware.setup();
-      stubs.version.middleware.should.have.been.calledWithExactly();
-      app.get.should.have.been.calledWithExactly(
-        "/version",
-        "version middleware",
-      );
+      expect(stubs.version.middleware).toHaveBeenCalledWith();
+      expect(app.get).toHaveBeenCalledWith("/version", "version middleware");
     });
 
     it("should not use the /version middleware", () => {
       middleware.setup({ urls: { version: false } });
-      stubs.version.middleware.should.not.have.been.called;
-      app.get.should.not.have.been.calledWithExactly(
+      expect(stubs.version.middleware).not.toHaveBeenCalled();
+      expect(app.get).not.toHaveBeenCalledWith(
         "/version",
         "version middleware",
       );
@@ -225,8 +225,8 @@ describe("middleware functions", () => {
 
     it("should use the /healthcheck middleware", () => {
       middleware.setup();
-      stubs.healthcheck.middleware.should.have.been.calledWithExactly();
-      app.get.should.have.been.calledWithExactly(
+      expect(stubs.healthcheck.middleware).toHaveBeenCalledWith();
+      expect(app.get).toHaveBeenCalledWith(
         "/healthcheck",
         "healthcheck middleware",
       );
@@ -234,8 +234,8 @@ describe("middleware functions", () => {
 
     it("should not use the /healthcheck middleware", () => {
       middleware.setup({ urls: { healthcheck: false } });
-      stubs.healthcheck.middleware.should.not.have.been.called;
-      app.get.should.not.have.been.calledWithExactly(
+      expect(stubs.healthcheck.middleware).not.toHaveBeenCalled();
+      expect(app.get).not.toHaveBeenCalledWith(
         "/healthcheck",
         "healthcheck middleware",
       );
@@ -250,7 +250,7 @@ describe("middleware functions", () => {
         publicImagesDirs: ["assets/images"],
         public: { maxAge: 3600 },
       });
-      stubs.public.middleware.should.have.been.calledWithExactly({
+      expect(stubs.public.middleware).toHaveBeenCalledWith({
         urls: {
           public: "/public-url",
           publicImages: "/public-url/images",
@@ -262,54 +262,52 @@ describe("middleware functions", () => {
         public: { maxAge: 3600 },
         hmpoComponentsDir,
       });
-      app.use.should.have.been.calledWithExactly("public middleware");
+      expect(app.use).toHaveBeenCalledWith("public middleware");
     });
 
     it("should use the hmpoLogger middleware", () => {
       middleware.setup();
-      stubs.hmpoLogger.middleware.should.have.been.calledWithExactly(
-        ":request",
-      );
-      app.use.should.have.been.calledWithExactly("hmpoLogger middleware");
+      expect(stubs.hmpoLogger.middleware).toHaveBeenCalledWith(":request");
+      expect(app.use).toHaveBeenCalledWith("hmpoLogger middleware");
     });
 
     it("should use the modelOptions middleware", () => {
       middleware.setup({ modelOptions: { sessionIDHeader: "ID" } });
-      stubs.modelOptions.middleware.should.have.been.calledWithExactly({
+      expect(stubs.modelOptions.middleware).toHaveBeenCalledWith({
         sessionIDHeader: "ID",
       });
-      app.use.should.have.been.calledWithExactly("modelOptions middleware");
+      expect(app.use).toHaveBeenCalledWith("modelOptions middleware");
     });
 
     it("should use the feature flag setup middleware", () => {
       middleware.setup({
         featureFlags: { testFeature: true },
       });
-      stubs.featureFlag.middleware.should.have.been.calledWithExactly({
+      expect(stubs.featureFlag.middleware).toHaveBeenCalledWith({
         featureFlags: { testFeature: true },
       });
-      app.use.should.have.been.calledWithExactly("featureFlag middleware");
+      expect(app.use).toHaveBeenCalledWith("featureFlag middleware");
     });
 
     it("should use the cookies middleware", () => {
       middleware.setup({ cookies: { secret: "test" } });
-      stubs.cookies.middleware.should.have.been.calledWithExactly({
+      expect(stubs.cookies.middleware).toHaveBeenCalledWith({
         secret: "test",
       });
-      app.use.should.have.been.calledWithExactly("cookies middleware");
+      expect(app.use).toHaveBeenCalledWith("cookies middleware");
     });
 
     it("should use the body parser middleware", () => {
       middleware.setup();
-      stubs.bodyParser.urlencoded.should.have.been.calledWithExactly({
+      expect(stubs.bodyParser.urlencoded).toHaveBeenCalledWith({
         extended: true,
       });
-      app.use.should.have.been.calledWithExactly("bodyParser middleware");
+      expect(app.use).toHaveBeenCalledWith("bodyParser middleware");
     });
 
     it("should setup nunjucks", () => {
       middleware.setup({ views: "a/dir", nunjucks: { additional: "options" } });
-      stubs.nunjucks.setup.should.have.been.calledWithExactly(app, {
+      expect(stubs.nunjucks.setup).toHaveBeenCalledWith(app, {
         views: "a/dir",
         hmpoComponentsDir,
         additional: "options",
@@ -321,7 +319,7 @@ describe("middleware functions", () => {
         locales: "a/dir",
         translation: { additional: "options" },
       });
-      stubs.translation.setup.should.have.been.calledWithExactly(app, {
+      expect(stubs.translation.setup).toHaveBeenCalledWith(app, {
         locales: "a/dir",
         hmpoComponentsDir,
         additional: "options",
@@ -330,7 +328,7 @@ describe("middleware functions", () => {
 
     it("should not setup translation when no locales or translation options are provided", () => {
       middleware.setup({});
-      stubs.translation.setup.should.not.have.been.called;
+      expect(stubs.translation.setup).not.toHaveBeenCalled();
     });
 
     it("should setup headers", () => {
@@ -341,7 +339,7 @@ describe("middleware functions", () => {
         helmet: { referrerPolicy: { policy: "no-referrer" } },
       });
 
-      stubs.headers.setup.should.have.been.calledWithExactly(app, {
+      expect(stubs.headers.setup).toHaveBeenCalledWith(app, {
         disableCompression: true,
         trustProxy: ["localhost"],
         publicPath: "/static",
@@ -351,17 +349,14 @@ describe("middleware functions", () => {
 
     it("should setup hmpoComponents", () => {
       middleware.setup();
-      stubs.hmpoComponents.setup.should.have.been.calledWithExactly(
-        app,
-        nunjucksEnv,
-      );
+      expect(stubs.hmpoComponents.setup).toHaveBeenCalledWith(app, nunjucksEnv);
     });
 
     it("should set the globals", () => {
       middleware.setup({
         urls: { foo: "bar" },
       });
-      app.locals.should.deep.equal({
+      expect(app.locals).toEqual({
         existing: "local",
         baseUrl: "/",
         assetPath: "/public",
@@ -377,9 +372,9 @@ describe("middleware functions", () => {
     it("should set res.locals.baseUrl to req.baseUrl during middleware setup", () => {
       const req = { baseUrl: "/test-url" };
       const res = { locals: {} };
-      const next = sinon.stub();
+      const next = vi.fn();
 
-      app.use.callsFake((middlewareFunction) => {
+      app.use.mockImplementation((middlewareFunction) => {
         if (middlewareFunction.length === 3) {
           middlewareFunction(req, res, next);
         }
@@ -387,8 +382,8 @@ describe("middleware functions", () => {
 
       middleware.setup();
 
-      expect(res.locals.baseUrl).to.equal("/test-url");
-      expect(next.calledOnce).to.be.true;
+      expect(res.locals.baseUrl).toEqual("/test-url");
+      expect(next).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -398,13 +393,13 @@ describe("middleware functions", () => {
     beforeEach(() => {
       stubs = {
         session: {
-          middleware: sinon.stub().returns("session middleware"),
+          middleware: vi.fn().mockReturnValue("session middleware"),
         },
         featureFlag: {
-          middleware: sinon.stub().returns("featureFlag middleware"),
+          middleware: vi.fn().mockReturnValue("featureFlag middleware"),
         },
         linkedFiles: {
-          middleware: sinon.stub().returns("linkedFiles middleware"),
+          middleware: vi.fn().mockReturnValue("linkedFiles middleware"),
         },
       };
 
@@ -417,24 +412,24 @@ describe("middleware functions", () => {
 
     it("should use session middleware", () => {
       middleware.session(app, { secret: "qwerty" });
-      stubs.session.middleware.should.have.been.calledWithExactly({
+      expect(stubs.session.middleware).toHaveBeenCalledWith({
         secret: "qwerty",
       });
-      app.use.should.have.been.calledWithExactly("session middleware");
+      expect(app.use).toHaveBeenCalledWith("session middleware");
     });
 
     it("should use the feature flag setup middleware", () => {
       middleware.session(app);
-      stubs.featureFlag.middleware.should.have.been.calledWithExactly();
-      app.use.should.have.been.calledWithExactly("featureFlag middleware");
+      expect(stubs.featureFlag.middleware).toHaveBeenCalledWith();
+      expect(app.use).toHaveBeenCalledWith("featureFlag middleware");
     });
 
     it("should use the linked files middleware", () => {
       middleware.session(app, { ttl: 10 });
-      stubs.linkedFiles.middleware.should.have.been.calledWithExactly({
+      expect(stubs.linkedFiles.middleware).toHaveBeenCalledWith({
         ttl: 10,
       });
-      app.use.should.have.been.calledWithExactly("linkedFiles middleware");
+      expect(app.use).toHaveBeenCalledWith("linkedFiles middleware");
     });
   });
 
@@ -444,10 +439,10 @@ describe("middleware functions", () => {
     beforeEach(() => {
       stubs = {
         pageNotFound: {
-          middleware: sinon.stub().returns("pageNotFound middleware"),
+          middleware: vi.fn().mockReturnValue("pageNotFound middleware"),
         },
         errorHandler: {
-          middleware: sinon.stub().returns("errorHandler middleware"),
+          middleware: vi.fn().mockReturnValue("errorHandler middleware"),
         },
       };
 
@@ -459,18 +454,18 @@ describe("middleware functions", () => {
 
     it("should use the pageNotFound middleware", () => {
       middleware.errorHandler(app, { foo: "bar" });
-      stubs.pageNotFound.middleware.should.have.been.calledWithExactly({
+      expect(stubs.pageNotFound.middleware).toHaveBeenCalledWith({
         foo: "bar",
       });
-      app.use.should.have.been.calledWithExactly("pageNotFound middleware");
+      expect(app.use).toHaveBeenCalledWith("pageNotFound middleware");
     });
 
     it("should use the errorHandler middleware", () => {
       middleware.errorHandler(app, { foo: "bar" });
-      stubs.errorHandler.middleware.should.have.been.calledWithExactly({
+      expect(stubs.errorHandler.middleware).toHaveBeenCalledWith({
         foo: "bar",
       });
-      app.use.should.have.been.calledWithExactly("errorHandler middleware");
+      expect(app.use).toHaveBeenCalledWith("errorHandler middleware");
     });
   });
 
@@ -481,12 +476,20 @@ describe("middleware functions", () => {
 
     it("should listen on the default host and port", () => {
       middleware.listen(app);
-      app.listen.should.have.been.calledWith(3000, "0.0.0.0");
+      expect(app.listen).toHaveBeenCalledWith(
+        3000,
+        "0.0.0.0",
+        expect.any(Function),
+      );
     });
 
     it("should listen on the specified host and port", () => {
       middleware.listen(app, { host: "hostname", port: 8888 });
-      app.listen.should.have.been.calledWith(8888, "hostname");
+      expect(app.listen).toHaveBeenCalledWith(
+        8888,
+        "hostname",
+        expect.any(Function),
+      );
     });
   });
 });

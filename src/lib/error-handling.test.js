@@ -1,3 +1,6 @@
+import { describe, vi, expect, beforeEach, it } from "vitest";
+import { createDefaultReqResNext } from "../../test/utils/helpers";
+
 const proxyquire = require("proxyquire");
 const { CustomFetchHttpError } = require("./custom-fetch");
 
@@ -25,7 +28,7 @@ describe("error-handling", () => {
   let err;
 
   beforeEach(() => {
-    const setup = setupDefaultMocks();
+    const setup = createDefaultReqResNext();
     req = setup.req;
     res = setup.res;
     next = setup.next;
@@ -34,11 +37,11 @@ describe("error-handling", () => {
       authParams: { redirect_uri: "http://example.org" },
     };
 
-    oAuthStub.buildRedirectUrl = sinon.stub();
+    oAuthStub.buildRedirectUrl = vi.fn();
   });
 
   describe("redirectAsErrorToCallbackWithoutOauthPrefix", () => {
-    context("with HTTP errors", () => {
+    describe("with HTTP errors", () => {
       beforeEach(() => {
         err = buildErrorWithBody({
           redirect_uri: "http://error.example.org",
@@ -50,8 +53,8 @@ describe("error-handling", () => {
       it("should override error values if provided in response body without Oauth Prefix", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
             authParams: {
               redirect_uri: "http://error.example.org",
               error: {
@@ -72,13 +75,13 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
-              error: {
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
+            authParams: expect.objectContaining({
+              error: expect.objectContaining({
                 code: "server_error",
-              },
-            },
+              }),
+            }),
           }),
         );
       });
@@ -91,13 +94,13 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
-              error: {
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
+            authParams: expect.objectContaining({
+              error: expect.objectContaining({
                 description: "general error",
-              },
-            },
+              }),
+            }),
           }),
         );
       });
@@ -110,17 +113,17 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
+            authParams: expect.objectContaining({
               redirect_uri: "http://example.org",
-            },
+            }),
           }),
         );
       });
     });
 
-    context("with default Error object", () => {
+    describe("with default Error object", () => {
       beforeEach(async () => {
         err = new Error("error message");
 
@@ -128,7 +131,7 @@ describe("error-handling", () => {
       });
 
       it("should build redirect with default error code and description", () => {
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith({
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith({
           authParams: {
             error: { code: "server_error", description: "general error" },
             redirect_uri: "http://example.org",
@@ -137,33 +140,33 @@ describe("error-handling", () => {
       });
     });
 
-    context("with valid redirect url", () => {
+    describe("with valid redirect url", () => {
       beforeEach(async () => {
         err = new Error("error message");
-        oAuthStub.buildRedirectUrl.returns("http://example.org");
+        oAuthStub.buildRedirectUrl.mockReturnValue("http://example.org");
         await redirectAsErrorToCallback(err, req, res, next);
       });
 
       it("should call res.redirect with redirect_uri", () => {
-        expect(res.redirect).to.have.been.calledWith("http://example.org");
+        expect(res.redirect).toHaveBeenCalledWith("http://example.org");
       });
 
       it("should not call next", () => {
-        expect(next).not.to.have.been.called;
+        expect(next).not.toHaveBeenCalled();
       });
     });
 
-    context("with invalid redirect url", () => {
+    describe("with invalid redirect url", () => {
       beforeEach(async () => {
         err = new Error("error message");
         req.session.authParams.redirect_uri = "not-a-url";
-        oAuthStub.buildRedirectUrl.throws("parse error");
+        oAuthStub.buildRedirectUrl.mockThrow("parse error");
 
         await redirectAsErrorToCallback(err, req, res, next);
       });
 
       it("should not call res.redirect", () => {
-        expect(res.redirect).not.to.have.been.called;
+        expect(res.redirect).not.toHaveBeenCalled();
       });
       it("should call next with err", () => {
         expect(next).to.have.been.calledWith(err);
@@ -172,7 +175,7 @@ describe("error-handling", () => {
   });
 
   describe("redirectAsErrorToCallback", () => {
-    context("with HTTP errors", () => {
+    describe("with HTTP errors", () => {
       beforeEach(() => {
         err = buildErrorWithBody({
           redirect_uri: "http://error.example.org",
@@ -186,8 +189,8 @@ describe("error-handling", () => {
       it("should override error values if provided in response body", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
             authParams: {
               redirect_uri: "http://error.example.org",
               error: {
@@ -210,13 +213,13 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
-              error: {
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
+            authParams: expect.objectContaining({
+              error: expect.objectContaining({
                 code: "server_error",
-              },
-            },
+              }),
+            }),
           }),
         );
       });
@@ -231,13 +234,13 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
-              error: {
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
+            authParams: expect.objectContaining({
+              error: expect.objectContaining({
                 description: "general error",
-              },
-            },
+              }),
+            }),
           }),
         );
       });
@@ -252,17 +255,17 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
+            authParams: expect.objectContaining({
               redirect_uri: "http://example.org",
-            },
+            }),
           }),
         );
       });
     });
 
-    context("with HTTP errors and no Content-Type header", () => {
+    describe("with HTTP errors and no Content-Type header", () => {
       beforeEach(() => {
         err = buildErrorWithBody(
           {
@@ -279,8 +282,8 @@ describe("error-handling", () => {
       it("should still parse the body and override error values", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
             authParams: {
               redirect_uri: "http://error.example.org",
               error: {
@@ -293,7 +296,7 @@ describe("error-handling", () => {
       });
     });
 
-    context("with HTTP errors and a Content-Type charset suffix", () => {
+    describe("with HTTP errors and a Content-Type charset suffix", () => {
       beforeEach(() => {
         err = buildErrorWithBody(
           {
@@ -310,8 +313,8 @@ describe("error-handling", () => {
       it("should still parse the body and override error values", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
             authParams: {
               redirect_uri: "http://error.example.org",
               error: {
@@ -324,12 +327,12 @@ describe("error-handling", () => {
       });
     });
 
-    context("with an HTTP error body that is not valid JSON", () => {
+    describe("with an HTTP error body that is not valid JSON", () => {
       let warn;
 
       beforeEach(async () => {
         warn = require("../bootstrap/lib/logger").get().warn;
-        warn.resetHistory();
+        warn.mockClear();
 
         err = new CustomFetchHttpError(
           {
@@ -345,29 +348,27 @@ describe("error-handling", () => {
       });
 
       it("should log a warning that the body could not be parsed", () => {
-        expect(warn).to.have.been.calledWith(
+        expect(warn).toHaveBeenCalledWith(
           "Unable to parse HTTP response body as JSON",
         );
       });
 
       it("should fall back to the default error code and description", () => {
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
+            authParams: expect.objectContaining({
               error: { code: "server_error", description: "general error" },
-            },
+            }),
           }),
         );
       });
     });
 
-    context("with an HTTP error that has no body", () => {
-      let warn;
+    describe("with an HTTP error that has no body", () => {
+      let loggerStub;
 
       beforeEach(async () => {
-        warn = require("../bootstrap/lib/logger").get().warn;
-        warn.resetHistory();
-
+        loggerStub = LOGGER_RESET();
         err = new CustomFetchHttpError(
           {
             status: 500,
@@ -382,21 +383,21 @@ describe("error-handling", () => {
       });
 
       it("should not attempt to parse the body or log a warning", () => {
-        expect(warn).not.to.have.been.called;
+        expect(loggerStub.warn).not.toHaveBeenCalled();
       });
 
       it("should fall back to the default error code and description", () => {
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith(
-          sinon.match({
-            authParams: {
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+          expect.objectContaining({
+            authParams: expect.objectContaining({
               error: { code: "server_error", description: "general error" },
-            },
+            }),
           }),
         );
       });
     });
 
-    context("with default Error object", () => {
+    describe("with default Error object", () => {
       beforeEach(async () => {
         err = new Error("error message");
 
@@ -404,7 +405,7 @@ describe("error-handling", () => {
       });
 
       it("should build redirect with default error code and description", () => {
-        expect(oAuthStub.buildRedirectUrl).to.have.been.calledWith({
+        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith({
           authParams: {
             error: { code: "server_error", description: "general error" },
             redirect_uri: "http://example.org",
@@ -413,40 +414,42 @@ describe("error-handling", () => {
       });
     });
 
-    context("with valid redirect url", () => {
+    describe("with valid redirect url", () => {
       beforeEach(async () => {
         err = new Error("error message");
-        oAuthStub.buildRedirectUrl.returns("http://example.org");
+        oAuthStub.buildRedirectUrl.mockReturnValue("http://example.org");
         await redirectAsErrorToCallback(err, req, res, next);
       });
 
       it("should call res.redirect with redirect_uri", () => {
-        expect(res.redirect).to.have.been.calledWith("http://example.org");
+        expect(res.redirect).toHaveBeenCalledWith("http://example.org");
       });
 
       it("should not call next", () => {
-        expect(next).not.to.have.been.called;
+        expect(next).not.toHaveBeenCalled();
       });
     });
 
-    context("with invalid redirect url", () => {
+    describe("with invalid redirect url", () => {
       beforeEach(async () => {
         err = new Error("error message");
         req.session.authParams.redirect_uri = "not-a-url";
-        oAuthStub.buildRedirectUrl.throws("parse error");
+        oAuthStub.buildRedirectUrl.mockImplementation(() => {
+          throw new Error("parse error");
+        });
 
         await redirectAsErrorToCallback(err, req, res, next);
       });
 
       it("should not call res.redirect", () => {
-        expect(res.redirect).not.to.have.been.called;
+        expect(res.redirect).not.toHaveBeenCalled();
       });
       it("should call next with err", () => {
-        expect(next).to.have.been.calledWith(err);
+        expect(next).toHaveBeenCalledWith(err);
       });
     });
 
-    context("with a missing redirect_uri", () => {
+    describe("with a missing redirect_uri", () => {
       beforeEach(async () => {
         err = new Error("Missing redirect_uri");
 
@@ -458,19 +461,17 @@ describe("error-handling", () => {
       });
 
       it("should not call res.redirect", () => {
-        expect(res.redirect).not.to.have.been.called;
+        expect(res.redirect).not.toHaveBeenCalled();
       });
 
       it("should call next with err", () => {
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing redirect_uri")),
-        );
+        const err = next.mock.calls[0][0];
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toBe("Missing redirect_uri");
       });
     });
 
-    context("with no redirect_uri but an existing session", () => {
+    describe("with no redirect_uri but an existing session", () => {
       beforeEach(async () => {
         err = new Error("some other error");
 
@@ -483,19 +484,17 @@ describe("error-handling", () => {
       });
 
       it("should not call res.redirect", () => {
-        expect(res.redirect).not.to.have.been.called;
+        expect(res.redirect).not.toHaveBeenCalled();
       });
 
       it("should call next with a 'Missing redirect_uri' error", () => {
-        expect(next).to.have.been.calledWith(
-          sinon.match
-            .instanceOf(Error)
-            .and(sinon.match.has("message", "Missing redirect_uri")),
-        );
+        const err = next.mock.calls[0][0];
+        expect(err).toBeInstanceOf(Error);
+        expect(err.message).toBe("Missing redirect_uri");
       });
     });
 
-    context("with a missing redirect_uri, tokenId, and state", () => {
+    describe("with a missing redirect_uri, tokenId, and state", () => {
       beforeEach(async () => {
         req.session = {
           authParams: {
@@ -509,16 +508,16 @@ describe("error-handling", () => {
       });
 
       it("should not call res.redirect", () => {
-        expect(res.redirect).not.to.have.been.called;
+        expect(res.redirect).not.toHaveBeenCalled();
       });
       it("should call next with err MISSING_AUTHPARAMS code", () => {
-        expect(next).to.have.been.calledWith(
-          sinon.match.has("code", "MISSING_AUTHPARAMS"),
+        expect(next).toHaveBeenCalledWith(
+          expect.objectContaining({ code: "MISSING_AUTHPARAMS" }),
         );
       });
     });
 
-    context("with a static asset request", () => {
+    describe("with a static asset request", () => {
       beforeEach(async () => {
         err = new Error(
           "Cannot read properties of undefined (reading 'language')",
@@ -534,11 +533,11 @@ describe("error-handling", () => {
       });
 
       it("should pass the error through to next", () => {
-        expect(next).to.have.been.calledWith(err);
+        expect(next).toHaveBeenCalledWith(err);
       });
     });
 
-    context("MISSING_SESSION_DATA error", () => {
+    describe("MISSING_SESSION_DATA error", () => {
       beforeEach(() => {
         err = {
           code: "MISSING_SESSION_DATA",
@@ -573,7 +572,7 @@ describe("error-handling", () => {
           code: "MISSING_SESSION_DATA",
           status: 401,
         });
-        expect(res.redirect).not.to.have.been.called;
+        expect(res.redirect).not.toHaveBeenCalled();
       });
     });
   });

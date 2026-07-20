@@ -1,9 +1,4 @@
-const chai = require("chai");
-const sinon = require("sinon");
-const sinonChai = require("sinon-chai");
-const { expect } = require("chai");
-
-chai.use(sinonChai);
+import { describe, expect, beforeEach, afterEach, it, vi } from "vitest";
 
 describe("PageViewTracker", () => {
   let expected;
@@ -20,7 +15,7 @@ describe("PageViewTracker", () => {
         },
       },
     };
-    mockSendData = sinon.stub(global.window.DI.core, "sendData");
+    mockSendData = vi.spyOn(global.window.DI.core, "sendData");
     global.document = {
       html: "<html></html>",
       title: "some-title",
@@ -78,7 +73,7 @@ describe("PageViewTracker", () => {
   it("Returns a standard page view", function () {
     global.window.DI.analyticsGa4.trackers.PageViewTracker.init();
 
-    expect(mockSendData).to.have.been.calledWith(expected);
+    expect(mockSendData).toHaveBeenCalledWith(expected);
   });
 
   it("Sets the language to the value of the lng cookie if set", function () {
@@ -87,7 +82,7 @@ describe("PageViewTracker", () => {
     global.window.DI.analyticsGa4.trackers.PageViewTracker.init();
 
     expected.page_view.language = "cy";
-    expect(mockSendData).to.have.been.calledWith(expected);
+    expect(mockSendData).toHaveBeenCalledWith(expected);
   });
 
   it("Sets the status_code to the value of the http status code if set", function () {
@@ -96,7 +91,7 @@ describe("PageViewTracker", () => {
     global.window.DI.analyticsGa4.trackers.PageViewTracker.init();
 
     expected.page_view.status_code = 401;
-    expect(mockSendData).to.have.been.calledWith(expected);
+    expect(mockSendData).toHaveBeenCalledWith(expected);
   });
 
   it("Sets title, location, referrer and language to lowercase if they contain uppercase characters", function () {
@@ -107,6 +102,6 @@ describe("PageViewTracker", () => {
 
     global.window.DI.analyticsGa4.trackers.PageViewTracker.init();
 
-    expect(mockSendData).to.have.been.calledWith(expected);
+    expect(mockSendData).toHaveBeenCalledWith(expected);
   });
 });

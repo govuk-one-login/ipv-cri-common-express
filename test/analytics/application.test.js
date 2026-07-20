@@ -1,4 +1,4 @@
-const { expect } = require("chai");
+import { expect, describe, beforeEach, afterEach, it } from "vitest";
 
 describe("Init", () => {
   let events;
@@ -44,9 +44,9 @@ describe("Init", () => {
         "ga4ContainerId",
         "gtmJourney",
       );
-      expect(events.length).to.equal(2);
-      expect(events[0]).to.include("init new cookie banner");
-      expect(events[1]).to.include("init new analytics");
+      expect(events).toHaveLength(2);
+      expect(events[0]).toContain("init new cookie banner");
+      expect(events[1]).toContain("init new analytics");
     });
   });
 
@@ -62,9 +62,9 @@ describe("Init", () => {
           "ga4ContainerId",
           "gtmJourney",
         );
-        expect(events.length).to.equal(2);
-        expect(events).to.include("init existing analytics");
-        expect(events).to.include("init existing cookie banner");
+        expect(events).toHaveLength(2);
+        expect(events).toContain("init existing analytics");
+        expect(events).toContain("init existing cookie banner");
       });
     });
 
@@ -84,8 +84,8 @@ describe("Init", () => {
           isGa4Enabled,
           gtmContainerId: "gtmContainerId",
         });
-        expect(events.length).to.equal(1);
-        expect(events).to.include("init existing cookie banner");
+        expect(events).toHaveLength(1);
+        expect(events).toContain("init existing cookie banner");
       });
     });
   });

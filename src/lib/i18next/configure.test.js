@@ -1,44 +1,42 @@
+import { describe, it, expect } from "vitest";
+
 const { configure } = require("./configure");
 const defaultConfig = require("./default-config");
 
 describe("configure", () => {
-  context("with no arguments", () => {
-    it("should return default config", () => {
-      let config = configure();
+  it("should return default config", () => {
+    let config = configure();
 
-      expect(config).to.deep.equal({ debug: false, ...defaultConfig });
+    expect(config).toEqual({ debug: false, ...defaultConfig });
+  });
+
+  it("should return config with overwridden properties", () => {
+    let { detection, debug, ...configWithoutDetection } = configure({
+      secure: true,
+      cookieDomain: "localhost",
+      debug: true,
+    });
+
+    expect(defaultConfig).toMatchObject(configWithoutDetection);
+
+    expect(debug).toBe(true);
+
+    expect(detection).toEqual({
+      ...defaultConfig.detection,
+      cookieSecure: true,
+      cookieDomain: "localhost",
     });
   });
 
-  context("with arguments", () => {
-    it("should return config with overwridden properties", () => {
-      let { detection, debug, ...configWithoutDetection } = configure({
-        secure: true,
-        cookieDomain: "localhost",
-        debug: true,
-      });
+  it("should merge additionalNamespaces into ns", () => {
+    const config = configure({ additionalNamespaces: ["frontend-ui"] });
 
-      expect(defaultConfig).to.deep.include(configWithoutDetection);
+    expect(config.ns).toEqual([...defaultConfig.ns, "frontend-ui"]);
+  });
 
-      expect(debug).to.be.true;
+  it("should not modify ns when additionalNamespaces is empty", () => {
+    const config = configure({ additionalNamespaces: [] });
 
-      expect(detection).to.deep.equal({
-        ...defaultConfig.detection,
-        cookieSecure: true,
-        cookieDomain: "localhost",
-      });
-    });
-
-    it("should merge additionalNamespaces into ns", () => {
-      const config = configure({ additionalNamespaces: ["frontend-ui"] });
-
-      expect(config.ns).to.deep.equal([...defaultConfig.ns, "frontend-ui"]);
-    });
-
-    it("should not modify ns when additionalNamespaces is empty", () => {
-      const config = configure({ additionalNamespaces: [] });
-
-      expect(config.ns).to.deep.equal(defaultConfig.ns);
-    });
+    expect(config.ns).toEqual(defaultConfig.ns);
   });
 });

@@ -1,6 +1,8 @@
+import { describe, it, vi, beforeEach, expect } from "vitest";
+
 const proxyquire = require("proxyquire");
-const handler = sinon.stub().returns("handler function");
-const replaceTranslate = sinon.stub();
+const handler = vi.fn().mockReturnValueOnce("handler function");
+const replaceTranslate = vi.fn();
 
 const { setI18n, i18next } = proxyquire("./", {
   "./handler": {
@@ -16,19 +18,17 @@ describe("i18next", () => {
   let config;
 
   beforeEach(() => {
-    router = { use: sinon.stub() };
+    router = { use: vi.fn() };
     config = { debug: true, secure: false, cookieDomain: "sub.domain.local" };
 
     setI18n({ router, config });
   });
 
   it("should use handler", () => {
-    const handlerCall = router.use.getCall(0);
-
-    expect(handlerCall).to.have.been.calledWithExactly("handler function");
+    expect(router.use).toHaveBeenNthCalledWith(1, "handler function");
   });
   it("should call handler", () => {
-    expect(handler).to.have.been.calledWithExactly({
+    expect(handler).toHaveBeenCalledWith({
       debug: true,
       secure: false,
       cookieDomain: "sub.domain.local",
@@ -37,32 +37,30 @@ describe("i18next", () => {
     });
   });
   it("should use replaceTranslate", () => {
-    const replaceCall = router.use.getCall(1);
-
-    expect(replaceCall).to.have.been.calledWithExactly(replaceTranslate);
+    expect(router.use).toHaveBeenNthCalledWith(2, replaceTranslate);
   });
 
   it("should pass additionalNamespaces through to handler", () => {
-    handler.resetHistory();
+    handler.mockClear();
     setI18n({
       router,
       config: { ...config, additionalNamespaces: ["frontend-ui"] },
     });
 
-    expect(handler).to.have.been.calledWithExactly(
-      sinon.match({ additionalNamespaces: ["frontend-ui"] }),
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ additionalNamespaces: ["frontend-ui"] }),
     );
   });
 
   it("should pass onInit through to handler", () => {
-    handler.resetHistory();
-    const onInit = sinon.stub();
+    handler.mockClear();
+    const onInit = vi.fn();
     setI18n({ router, config, onInit });
 
-    expect(handler).to.have.been.calledWithExactly(sinon.match({ onInit }));
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ onInit }));
   });
 
   it("should export the i18next singleton", () => {
-    expect(i18next).to.equal(require("i18next"));
+    expect(i18next).toEqual(require("i18next"));
   });
 });

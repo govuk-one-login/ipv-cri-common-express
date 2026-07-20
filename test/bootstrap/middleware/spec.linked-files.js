@@ -1,3 +1,5 @@
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+
 const redisClient = require(APP_ROOT + "/src/bootstrap/lib/redis-client");
 const linkedFiles = require(
   APP_ROOT + "/src/bootstrap/middleware/linked-files",
@@ -14,211 +16,217 @@ describe("Linked Files", () => {
   let cb;
 
   beforeEach(() => {
+    vi.resetModules();
     redisStub = {
-      del: sinon.stub().yields(),
-      expire: sinon.stub(),
-      get: sinon.stub().yields(null, "S:data"),
-      setex: sinon.stub().yields(null),
+      del: vi.fn((id, callback) => callback()),
+      expire: vi.fn(),
+      get: vi.fn((id, callback) => callback(null, "S:data")),
+      setex: vi.fn((id, ttl, data, callback) => callback(null)),
     };
-    sinon.stub(redisClient, "getClient").returns(redisStub);
-    sinon.stub(uuid, "v4").returns(testuuid);
+    vi.spyOn(redisClient, "getClient").mockReturnValue(redisStub);
+    vi.spyOn(uuid, "v4").mockReturnValue(testuuid);
     req = { session: {} };
     res = {
       finished: true,
       statusCode: 200,
     };
-    next = sinon.stub();
-    cb = sinon.stub();
+    next = vi.fn();
+    cb = vi.fn();
   });
 
   afterEach(() => {
-    redisClient.getClient.restore();
-    uuid.v4.restore();
+    redisClient.getClient.mockRestore();
+    uuid.v4.mockRestore();
   });
 
   it("exports an object of middleware", () => {
-    linkedFiles.should.be.an("object");
+    expect(typeof linkedFiles).toBe("object");
   });
 
   describe("add", () => {
     it("should call callback with redis error", () => {
       let err = new Error();
-      redisStub.setex.yields(err);
+      redisStub.setex.mockImplementationOnce((id, ttl, data, callback) =>
+        callback(err),
+      );
       linkedFiles.add(req, 1800, "abc", cb);
-      cb.should.have.been.calledWithExactly(err);
+      expect(cb).toHaveBeenCalledWith(err);
     });
 
     it("should add the data file into redis", () => {
       linkedFiles.add(req, 1800, "abc", cb);
-      redisStub.setex.should.have.been.calledWithExactly(
+      expect(redisStub.setex).toHaveBeenCalledWith(
         "file:" + testuuid,
         1800,
         "S:abc",
-        sinon.match.func,
+        expect.any(Function),
       );
     });
 
     it("should add an object as JSON", () => {
       linkedFiles.add(req, 1800, { foo: "bar" }, cb);
-      redisStub.setex.should.have.been.calledWithExactly(
+      expect(redisStub.setex).toHaveBeenCalledWith(
         "file:" + testuuid,
         1800,
         'J:{"foo":"bar"}',
-        sinon.match.func,
+        expect.any(Function),
       );
     });
 
     it("should add a buffer as base64", () => {
       linkedFiles.add(req, 1800, Buffer.from("abcd", "ascii"), cb);
-      redisStub.setex.should.have.been.calledWithExactly(
+      expect(redisStub.setex).toHaveBeenCalledWith(
         "file:" + testuuid,
         1800,
         "B:YWJjZA==",
-        sinon.match.func,
+        expect.any(Function),
       );
     });
 
     it("should add id into the session file list", () => {
       linkedFiles.add(req, 1800, "abc", cb);
-      req.session.linkedFiles.should.contain.key(testuuid);
+      expect(req.session.linkedFiles).toHaveProperty(testuuid);
     });
 
     it("should call the callback with an id", () => {
       linkedFiles.add(req, 1800, "abc", cb);
-      cb.should.have.been.calledWithExactly(null, testuuid);
+      expect(cb).toHaveBeenCalledWith(null, testuuid);
     });
   });
 
   describe("get", () => {
     it("should call callback with error if the id is not found", () => {
       linkedFiles.get(req, testuuid, cb);
-      cb.should.have.been.calledWithExactly(sinon.match.instanceOf(Error));
+      expect(cb).toHaveBeenCalledWith(expect.any(Error));
     });
 
     it("should call callback with redis error", () => {
       req.session.linkedFiles = { [testuuid]: true };
       let err = new Error();
-      redisStub.get.yields(err);
+      redisStub.get.mockImplementationOnce((id, callback) => {
+        callback(err);
+      });
       linkedFiles.get(req, testuuid, cb);
-      cb.should.have.been.calledWithExactly(err);
+      expect(cb).toHaveBeenCalledWith(err);
     });
 
     it("should get a string data file from redis by id", () => {
       req.session.linkedFiles = { [testuuid]: true };
       linkedFiles.get(req, testuuid, cb);
-      redisStub.get.should.have.been.calledWithExactly(
+      expect(redisStub.get).toHaveBeenCalledWith(
         "file:" + testuuid,
-        sinon.match.func,
+        expect.any(Function),
       );
-      cb.should.have.been.calledWithExactly(null, "data");
+      expect(cb).toHaveBeenCalledWith(null, "data");
     });
 
     it("should get a json data file from redis by id", () => {
       req.session.linkedFiles = { [testuuid]: true };
-      redisStub.get.yields(null, 'J:{"foo":"bar"}');
+      redisStub.get.mockImplementationOnce((id, callback) => {
+        callback(null, 'J:{"foo":"bar"}');
+      });
       linkedFiles.get(req, testuuid, cb);
-      redisStub.get.should.have.been.calledWithExactly(
+      expect(redisStub.get).toHaveBeenCalledWith(
         "file:" + testuuid,
-        sinon.match.func,
+        expect.any(Function),
       );
-      cb.should.have.been.calledWithExactly(null, { foo: "bar" });
+      expect(cb).toHaveBeenCalledWith(null, { foo: "bar" });
     });
 
     it("should call callback with an error if the json is invalid", () => {
       req.session.linkedFiles = { [testuuid]: true };
-      redisStub.get.yields(null, 'J:{"foo":aaaaa}');
+      redisStub.get.mockImplementationOnce((id, callback) => {
+        callback(null, 'J:{"foo":aaaaa}');
+      });
       linkedFiles.get(req, testuuid, cb);
-      redisStub.get.should.have.been.calledWithExactly(
+      expect(redisStub.get).toHaveBeenCalledWith(
         "file:" + testuuid,
-        sinon.match.func,
+        expect.any(Function),
       );
-      cb.should.have.been.calledWithExactly(sinon.match.instanceOf(Error));
+      expect(cb).toHaveBeenCalledWith(expect.any(Error));
     });
 
     it("should get a buffer data file from redis by id", () => {
       req.session.linkedFiles = { [testuuid]: true };
-      redisStub.get.yields(null, "B:YWJjZA==");
+      redisStub.get.mockImplementationOnce((id, callback) => {
+        callback(null, "B:YWJjZA==");
+      });
       linkedFiles.get(req, testuuid, cb);
-      redisStub.get.should.have.been.calledWithExactly(
+      expect(redisStub.get).toHaveBeenCalledWith(
         "file:" + testuuid,
-        sinon.match.func,
+        expect.any(Function),
       );
-      cb.should.have.been.calledWithExactly(null, Buffer.from("abcd"));
+      expect(cb).toHaveBeenCalledWith(null, Buffer.from("abcd"));
     });
   });
 
   describe("del", () => {
     it("should call callback with error if the id is not found", () => {
       linkedFiles.del(req, testuuid, cb);
-      cb.should.have.been.calledWithExactly(sinon.match.instanceOf(Error));
+      expect(cb).toHaveBeenCalledWith(expect.any(Error));
     });
 
     it("should get the data file from redis by id", () => {
       req.session.linkedFiles = { [testuuid]: true };
       linkedFiles.del(req, testuuid, cb);
-      redisStub.del.should.have.been.calledWithExactly(
+      expect(redisStub.del).toHaveBeenCalledWith(
         "file:" + testuuid,
-        sinon.match.func,
+        expect.any(Function),
       );
-      cb.should.have.been.calledWithExactly();
+      expect(cb).toHaveBeenCalled();
     });
 
     it("should remove the linked file id from the session", () => {
       req.session.linkedFiles = { foo: true, [testuuid]: true };
       linkedFiles.del(req, testuuid, cb);
-      req.session.linkedFiles = { foo: true };
+      expect(req.session.linkedFiles).toEqual({ foo: true });
     });
   });
 
   describe("middleware", () => {
     it("should be a function", () => {
-      linkedFiles.middleware.should.be.a("function");
+      expect(typeof linkedFiles.middleware).toBe("function");
     });
 
     it("should call next", () => {
       linkedFiles.middleware()(req, res, next);
-      next.should.have.been.calledWithExactly();
+      expect(next).toHaveBeenCalled();
     });
 
     describe("should add curried functions into the req object", () => {
       beforeEach(() => {
-        sinon.stub(linkedFiles, "add");
-        sinon.stub(linkedFiles, "get");
-        sinon.stub(linkedFiles, "del");
+        vi.spyOn(linkedFiles, "add");
+        vi.spyOn(linkedFiles, "get");
+        vi.spyOn(linkedFiles, "del");
         linkedFiles.middleware()(req, res, next);
       });
 
       afterEach(() => {
-        linkedFiles.add.restore();
-        linkedFiles.get.restore();
-        linkedFiles.del.restore();
+        linkedFiles.add.mockRestore();
+        linkedFiles.get.mockRestore();
+        linkedFiles.del.mockRestore();
       });
 
       it("#add", () => {
-        req.linkedFiles.add.should.be.a("function");
+        expect(typeof req.linkedFiles.add).toBe("function");
         req.linkedFiles.add("abcd", cb);
-        linkedFiles.add.should.have.been.calledWithExactly(
-          req,
-          30000,
-          "abcd",
-          cb,
-        );
+        expect(linkedFiles.add).toHaveBeenCalledWith(req, 30000, "abcd", cb);
       });
 
       it("#get", () => {
-        req.linkedFiles.get.should.be.a("function");
+        expect(typeof req.linkedFiles.get).toBe("function");
         req.linkedFiles.get(testuuid, cb);
-        linkedFiles.get.should.have.been.calledWithExactly(req, testuuid, cb);
+        expect(linkedFiles.get).toHaveBeenCalledWith(req, testuuid, cb);
       });
 
       it("#del", () => {
-        req.linkedFiles.del.should.be.a("function");
+        expect(typeof req.linkedFiles.del).toBe("function");
         req.linkedFiles.del(testuuid, cb);
-        linkedFiles.del.should.have.been.calledWithExactly(req, testuuid, cb);
+        expect(linkedFiles.del).toHaveBeenCalledWith(req, testuuid, cb);
       });
     });
 
-    it("should call redis expire for each file in the session", (done) => {
+    it("should call redis expire for each file in the session", async () => {
       req.session.linkedFiles = {
         123: true,
         456: true,
@@ -226,15 +234,14 @@ describe("Linked Files", () => {
 
       linkedFiles.middleware({ ttl: 1800 })(req, res, next);
 
-      setImmediate(() => {
-        redisStub.expire.should.have.been.calledTwice;
-        redisStub.expire.should.have.been.calledWithExactly("file:123", 1800);
-        redisStub.expire.should.have.been.calledWithExactly("file:456", 1800);
-        done();
+      await vi.waitFor(() => {
+        expect(redisStub.expire).toHaveBeenCalledTimes(3);
       });
+      expect(redisStub.expire).toHaveBeenCalledWith("file:123", 1800);
+      expect(redisStub.expire).toHaveBeenCalledWith("file:456", 1800);
     });
 
-    it("should call not call expire if the session has been removed", (done) => {
+    it("should call not call expire if the session has been removed", () => {
       req.session.linkedFiles = {
         123: true,
         456: true,
@@ -245,17 +252,15 @@ describe("Linked Files", () => {
       delete req.session;
 
       setImmediate(() => {
-        redisStub.expire.should.not.have.been.called;
-        done();
+        expect(redisStub.expire).not.toHaveBeenCalled();
       });
     });
 
-    it("should not extend any expiry times if there are no linked files", (done) => {
+    it("should not extend any expiry times if there are no linked files", () => {
       linkedFiles.middleware({ ttl: 1800 })(req, res, next);
 
       setImmediate(() => {
-        redisStub.expire.should.not.have.been.called;
-        done();
+        expect(redisStub.expire).not.toHaveBeenCalled();
       });
     });
   });
@@ -267,16 +272,21 @@ describe("Linked Files", () => {
       BaseClass = class {
         middlewareDecodePayload() {}
       };
-      sinon.stub(BaseClass.prototype, "middlewareDecodePayload").yields();
+      vi.spyOn(
+        BaseClass.prototype,
+        "middlewareDecodePayload",
+      ).mockImplementation((req, res, callback) => {
+        callback();
+      });
     });
 
     it("should be a function", () => {
-      linkedFiles.injection.should.be.a("function");
+      expect(typeof linkedFiles.injection).toBe("function");
     });
 
     it("should throw an error if an invalid argument is passed", () => {
       let EmptyClass = class {};
-      expect(() => linkedFiles.injection(EmptyClass)).to.throw(
+      expect(() => linkedFiles.injection(EmptyClass)).toThrow(
         "SessionInjection base class expected",
       );
     });
@@ -285,8 +295,8 @@ describe("Linked Files", () => {
       let InjectionClass = linkedFiles.injection(BaseClass);
       let instance = new InjectionClass();
 
-      InjectionClass.should.not.equal(BaseClass);
-      instance.should.be.an.instanceOf(BaseClass);
+      expect(InjectionClass).not.toEqual(BaseClass);
+      expect(instance).toBeInstanceOf(BaseClass);
     });
 
     describe("#middlewareDecodePayload", () => {
@@ -295,35 +305,41 @@ describe("Linked Files", () => {
       beforeEach(() => {
         let InjectionClass = linkedFiles.injection(BaseClass);
         instance = new InjectionClass();
-        sinon.stub(linkedFiles, "add").yields(null, "abc123");
+        vi.spyOn(linkedFiles, "add").mockImplementation(
+          (req, res, callback) => {
+            callback(null, "abc123");
+          },
+        );
       });
 
       afterEach(() => {
-        linkedFiles.add.restore();
+        linkedFiles.add.mockRestore();
       });
 
       it("should call parent method", () => {
         instance.middlewareDecodePayload(req, res, next);
 
-        BaseClass.prototype.middlewareDecodePayload.should.have.been.calledWithExactly(
-          req,
-          res,
-          sinon.match.func,
-        );
+        expect(
+          BaseClass.prototype.middlewareDecodePayload,
+        ).toHaveBeenCalledWith(req, res, expect.any(Function));
       });
 
       it("should call next with an error if parent returns an error", () => {
         let err = new Error();
-        BaseClass.prototype.middlewareDecodePayload.yields(err);
+        BaseClass.prototype.middlewareDecodePayload.mockImplementation(
+          (req, res, callback) => {
+            callback(err);
+          },
+        );
         instance.middlewareDecodePayload(req, res, next);
-        next.should.have.been.calledWithExactly(err);
+        expect(next).toHaveBeenCalledWith(err);
       });
 
       it("should call next if no payload files are specified", () => {
         req.payload = {};
         instance.middlewareDecodePayload(req, res, next);
-        next.should.have.been.calledWithExactly();
-        linkedFiles.add.should.not.have.been.called;
+        expect(next).toHaveBeenCalled();
+        expect(linkedFiles.add).not.toHaveBeenCalled();
       });
 
       it("should create payload.journeyKeys if it does not exist", () => {
@@ -331,7 +347,7 @@ describe("Linked Files", () => {
           files: {},
         };
         instance.middlewareDecodePayload(req, res, next);
-        req.payload.journeyKeys.should.eql({});
+        expect(req.payload.journeyKeys).toEqual({});
       });
 
       it("should add each file specified in payload.files", () => {
@@ -342,16 +358,16 @@ describe("Linked Files", () => {
           },
         };
         instance.middlewareDecodePayload(req, res, next);
-        linkedFiles.add.should.have.been.calledTwice;
-        linkedFiles.add.should.have.been.calledWithExactly(
+        expect(linkedFiles.add).toHaveBeenCalledTimes(2);
+        expect(linkedFiles.add).toHaveBeenCalledWith(
           req,
           "testdata",
-          sinon.match.func,
+          expect.any(Function),
         );
-        linkedFiles.add.should.have.been.calledWithExactly(
+        expect(linkedFiles.add).toHaveBeenCalledWith(
           req,
           { json: "data" },
-          sinon.match.func,
+          expect.any(Function),
         );
       });
 
@@ -364,7 +380,7 @@ describe("Linked Files", () => {
           },
         };
         instance.middlewareDecodePayload(req, res, next);
-        req.payload.journeyKeys.should.eql({
+        expect(req.payload.journeyKeys).toEqual({
           foo: "bar",
           first: "abc123",
           second: "abc123",
@@ -373,14 +389,16 @@ describe("Linked Files", () => {
 
       it("should call next with any linkedFiles error", () => {
         let err = new Error();
-        linkedFiles.add.yields(err);
+        linkedFiles.add.mockImplementation((req, res, callback) => {
+          callback(err);
+        });
         req.payload = {
           files: {
             first: "testdata",
           },
         };
         instance.middlewareDecodePayload(req, res, next);
-        next.should.have.been.calledWithExactly(err);
+        expect(next).toHaveBeenCalledWith(err);
       });
     });
   });

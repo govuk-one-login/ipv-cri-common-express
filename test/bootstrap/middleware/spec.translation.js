@@ -1,3 +1,5 @@
+import { describe, vi, it, expect, afterEach, beforeEach } from "vitest";
+
 const translation = require(APP_ROOT + "/src/bootstrap/middleware/translation");
 const i18n = require("hmpo-i18n");
 
@@ -6,20 +8,23 @@ describe("translation middleware", () => {
 
   beforeEach(() => {
     app = {
-      get: sinon.stub(),
+      use: vi.fn(),
+      get: vi.fn(),
     };
-    app.get.withArgs("dev").returns(true);
+    app.get.mockImplementation((arg) => {
+      if (arg === "dev") return true;
+    });
 
-    sinon.stub(i18n, "middleware");
+    vi.spyOn(i18n, "middleware");
   });
 
   afterEach(() => {
-    i18n.middleware.restore();
+    i18n.middleware.mockRestore();
   });
 
   it("should use the i18n middleware specifying the app root as the baseDir", () => {
     translation.setup(app);
-    i18n.middleware.should.have.been.calledWithExactly(app, {
+    expect(i18n.middleware).toHaveBeenCalledWith(app, {
       baseDir: [APP_ROOT + "/test/bootstrap/fixtures"],
       noCache: true,
       watch: true,
@@ -33,7 +38,7 @@ describe("translation middleware", () => {
     translation.setup(app, {
       hmpoComponentsDir: APP_ROOT + "/node_modules/hmpo-components",
     });
-    i18n.middleware.should.have.been.calledWithExactly(app, {
+    expect(i18n.middleware).toHaveBeenCalledWith(app, {
       baseDir: [
         APP_ROOT + "/test/bootstrap/fixtures",
         APP_ROOT + "/node_modules/hmpo-components",
@@ -48,7 +53,7 @@ describe("translation middleware", () => {
 
   it("should use the i18n middleware specifying a custom locales locations", () => {
     translation.setup(app, { locales: [".", "./dir_not_found"] });
-    i18n.middleware.should.have.been.calledWithExactly(app, {
+    expect(i18n.middleware).toHaveBeenCalledWith(app, {
       baseDir: [APP_ROOT + "/test/bootstrap/fixtures"],
       noCache: true,
       watch: true,
@@ -60,9 +65,9 @@ describe("translation middleware", () => {
 
   it("should use the i18n middleware specifying a custom allowed lang list", () => {
     translation.setup(app, { allowedLangs: ["fr"] });
-    i18n.middleware.should.have.been.calledWithExactly(
+    expect(i18n.middleware).toHaveBeenCalledWith(
       app,
-      sinon.match({
+      expect.objectContaining({
         allowedLangs: ["fr"],
       }),
     );
@@ -70,9 +75,9 @@ describe("translation middleware", () => {
 
   it("should use the i18n middleware specifying a custom cookie name", () => {
     translation.setup(app, { cookie: { name: "mycookie" } });
-    i18n.middleware.should.have.been.calledWithExactly(
+    expect(i18n.middleware).toHaveBeenCalledWith(
       app,
-      sinon.match({
+      expect.objectContaining({
         cookie: { name: "mycookie" },
       }),
     );
@@ -80,20 +85,22 @@ describe("translation middleware", () => {
 
   it("should use the i18n middleware specifying a custum query lang", () => {
     translation.setup(app, { query: "test" });
-    i18n.middleware.should.have.been.calledWithExactly(
+    expect(i18n.middleware).toHaveBeenCalledWith(
       app,
-      sinon.match({
+      expect.objectContaining({
         query: "test",
       }),
     );
   });
 
   it("should use the i18n middleware without dev flags in production", () => {
-    app.get.withArgs("dev").returns(false);
+    app.get.mockImplementation((arg) => {
+      if (arg === "dev") return false;
+    });
     translation.setup(app);
-    i18n.middleware.should.have.been.calledWithExactly(
+    expect(i18n.middleware).toHaveBeenCalledWith(
       app,
-      sinon.match({
+      expect.objectContaining({
         noCache: false,
         watch: false,
       }),

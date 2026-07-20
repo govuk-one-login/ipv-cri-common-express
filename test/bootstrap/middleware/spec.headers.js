@@ -1,3 +1,5 @@
+import { describe, vi, it, expect, beforeEach } from "vitest";
+
 const proxyquire = require("proxyquire").noPreserveCache();
 
 describe("headers middleware", () => {
@@ -5,23 +7,23 @@ describe("headers middleware", () => {
 
   beforeEach(() => {
     app = {
-      disable: sinon.stub(),
-      set: sinon.stub(),
-      use: sinon.stub(),
+      disable: vi.fn(),
+      set: vi.fn(),
+      use: vi.fn(),
     };
 
     stubs = {
-      compression: sinon.stub().returns("compression middleware"),
+      compression: vi.fn().mockReturnValue("compression middleware"),
       nocache: {
-        middleware: sinon.stub().returns("nocache middleware"),
+        middleware: vi.fn().mockReturnValue("nocache middleware"),
       },
       compatibility: {
-        middleware: sinon.stub().returns("compatibility middleware"),
+        middleware: vi.fn().mockReturnValue("compatibility middleware"),
       },
-      helmet: sinon.stub(),
+      helmet: vi.fn(),
     };
 
-    stubs.helmet.frameguard = sinon.stub().returns("frameguard middleware");
+    stubs.helmet.frameguard = vi.fn().mockReturnValue("frameguard middleware");
 
     middleware = proxyquire(APP_ROOT + "/src/bootstrap/middleware/headers", {
       compression: stubs.compression,
@@ -31,15 +33,15 @@ describe("headers middleware", () => {
     });
   });
 
-  context("headers", () => {
+  describe("headers", () => {
     it("should enable trust proxy by default", () => {
       middleware.setup(app);
-      app.set.should.have.been.calledWithExactly("trust proxy", true);
+      expect(app.set).toHaveBeenCalledWith("trust proxy", true);
     });
 
     it("should set trust proxy to config setting", () => {
       middleware.setup(app, { trustProxy: ["loopback", "localunique"] });
-      app.set.should.have.been.calledWithExactly("trust proxy", [
+      expect(app.set).toHaveBeenCalledWith("trust proxy", [
         "loopback",
         "localunique",
       ]);
@@ -47,55 +49,53 @@ describe("headers middleware", () => {
 
     it("should use the nocache middleware", () => {
       middleware.setup(app);
-      stubs.nocache.middleware.should.have.been.calledWithExactly({
+      expect(stubs.nocache.middleware).toHaveBeenCalledWith({
         publicPath: "/public",
       });
-      app.use.should.have.been.calledWithExactly("nocache middleware");
+      expect(app.use).toHaveBeenCalledWith("nocache middleware");
     });
 
     it("should use the nocache middleware with options", () => {
       middleware.setup(app, { publicPath: "/static" });
-      stubs.nocache.middleware.should.have.been.calledWithExactly({
+      expect(stubs.nocache.middleware).toHaveBeenCalledWith({
         publicPath: "/static",
       });
-      app.use.should.have.been.calledWithExactly("nocache middleware");
+      expect(app.use).toHaveBeenCalledWith("nocache middleware");
     });
 
     it("should use the returned compression middleware", () => {
       middleware.setup(app);
-      stubs.compression.should.have.been.calledOnce;
-      stubs.compression.should.have.been.calledWithExactly();
-      app.use.should.have.been.calledWithExactly("compression middleware");
+      expect(stubs.compression).toHaveBeenCalledTimes(1);
+      expect(stubs.compression).toHaveBeenCalledWith();
+      expect(app.use).toHaveBeenCalledWith("compression middleware");
     });
 
     it("should not use the returned compression middleware if compression is disabled", () => {
       middleware.setup(app, { disableCompression: true });
-      stubs.compression.should.not.have.been.called;
-      app.use.should.not.have.been.calledWithExactly("compression middleware");
+      expect(stubs.compression).not.toHaveBeenCalled();
+      expect(app.use).not.toHaveBeenCalledWith("compression middleware");
     });
 
     it("should use the compatibility middleware", () => {
       middleware.setup(app);
-      stubs.compatibility.middleware.should.have.been.calledWithExactly();
-      app.use.should.have.been.calledWithExactly("compatibility middleware");
+      expect(stubs.compatibility.middleware).toHaveBeenCalledWith();
+      expect(app.use).toHaveBeenCalledWith("compatibility middleware");
     });
   });
 
-  context("security", () => {
+  describe("security", () => {
     describe("by default without helmet config", () => {
       it("should disable the x-powered-by header", () => {
         middleware.setup(app);
-        app.disable.should.have.been.calledWithExactly("x-powered-by");
+        expect(app.disable).toHaveBeenCalledWith("x-powered-by");
       });
 
       it("should use the returned frameguard middleware", () => {
         middleware.setup(app);
 
-        stubs.helmet.frameguard.should.have.been.calledOnce;
-        stubs.helmet.frameguard.should.have.been.calledWithExactly(
-          "sameorigin",
-        );
-        app.use.should.have.been.calledWithExactly("frameguard middleware");
+        expect(stubs.helmet.frameguard).toHaveBeenCalledTimes(1);
+        expect(stubs.helmet.frameguard).toHaveBeenCalledWith("sameorigin");
+        expect(app.use).toHaveBeenCalledWith("frameguard middleware");
       });
     });
 
@@ -111,20 +111,20 @@ describe("headers middleware", () => {
       it("should call helmet with config", () => {
         middleware.setup(app, { helmet: helmetConfig });
 
-        expect(stubs.helmet).to.have.been.calledWithExactly(helmetConfig);
+        expect(stubs.helmet).toHaveBeenCalledWith(helmetConfig);
       });
 
       it("should not directly disable the x-powered-by header", () => {
         middleware.setup(app, { helmet: helmetConfig });
 
-        app.disable.should.not.have.been.calledWithExactly("x-powered-by");
+        expect(app.disable).not.toHaveBeenCalledWith("x-powered-by");
       });
 
       it("should not directly use the returned frameguard middleware", () => {
         middleware.setup(app, { helmet: helmetConfig });
 
-        stubs.helmet.frameguard.should.not.have.been.called;
-        app.use.should.not.have.been.calledWithExactly("frameguard middleware");
+        expect(stubs.helmet.frameguard).not.toHaveBeenCalled();
+        expect(app.use).not.toHaveBeenCalledWith("frameguard middleware");
       });
     });
   });

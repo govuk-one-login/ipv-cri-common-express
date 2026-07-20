@@ -1,3 +1,6 @@
+import { expect, it, describe, beforeEach } from "vitest";
+import { createDefaultReqResNext } from "../../test/utils/helpers";
+
 const headers = require("./headers");
 
 describe("headers", () => {
@@ -6,7 +9,7 @@ describe("headers", () => {
   let next;
 
   beforeEach(() => {
-    const setup = setupDefaultMocks();
+    const setup = createDefaultReqResNext();
     req = setup.req;
     req["x-forwarded-proto"] = "http";
 
@@ -17,10 +20,10 @@ describe("headers", () => {
   });
 
   it("should set 'x-forwarded-proto' as 'https'", () => {
-    expect(req.headers["x-forwarded-proto"]).to.equal("https");
+    expect(req.headers["x-forwarded-proto"]).toEqual("https");
   });
 
   it("should call next", () => {
-    expect(next).to.have.been.called;
+    expect(next).toHaveBeenCalled();
   });
 });

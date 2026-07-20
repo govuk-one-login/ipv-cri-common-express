@@ -1,3 +1,5 @@
+import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
+
 const healthcheck = require(APP_ROOT + "/src/bootstrap/middleware/healthcheck");
 const os = require("os");
 
@@ -14,19 +16,19 @@ describe("healthcheck", () => {
       },
     };
     res = {
-      setHeader: sinon.stub(),
-      status: sinon.stub(),
-      json: sinon.stub(),
+      setHeader: vi.fn(),
+      status: vi.fn(),
+      json: vi.fn(),
     };
-    res.setHeader.returns(res);
-    res.status.returns(res);
-    res.json.returns(res);
-    sinon.stub(os, "hostname").returns("myhostname");
+    res.setHeader.mockReturnValue(res);
+    res.status.mockReturnValue(res);
+    res.json.mockReturnValue(res);
+    vi.spyOn(os, "hostname").mockReturnValue("myhostname");
     delete process.env.pm_id;
   });
 
   afterEach(() => {
-    os.hostname.restore();
+    os.hostname.mockRestore();
     if (originalPmId) {
       process.env.pm_id = originalPmId;
     } else {
@@ -37,18 +39,18 @@ describe("healthcheck", () => {
   it("should set Connection header to close", () => {
     healthcheck.middleware()(req, res);
 
-    res.setHeader.should.have.been.calledWithExactly("Connection", "close");
+    expect(res.setHeader).toHaveBeenCalledWith("Connection", "close");
   });
 
   it("should return a 200 status", () => {
     healthcheck.middleware()(req, res);
 
-    res.status.should.have.been.calledWithExactly(200);
-    res.json.should.have.been.calledWithExactly(
-      sinon.match({
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
         appName: "test",
         id: "myhostname",
-        uptime: sinon.match.number,
+        uptime: expect.any(Number),
         version: "1.0.1",
         status: "OK",
       }),
@@ -64,12 +66,12 @@ describe("healthcheck", () => {
     };
     healthcheck.middleware({ healthFn })(req, res);
 
-    res.status.should.have.been.calledWithExactly(500);
-    res.json.should.have.been.calledWithExactly(
-      sinon.match({
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
         appName: "test",
         id: "myhostname",
-        uptime: sinon.match.number,
+        uptime: expect.any(Number),
         version: "1.0.1",
         error: {
           code: "ERROR",
@@ -88,12 +90,12 @@ describe("healthcheck", () => {
     };
     healthcheck.middleware({ healthFn })(req, res);
 
-    res.status.should.have.been.calledWithExactly(500);
-    res.json.should.have.been.calledWithExactly(
-      sinon.match({
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
         appName: "test",
         id: "myhostname",
-        uptime: sinon.match.number,
+        uptime: expect.any(Number),
         version: "1.0.1",
         error: {
           message: "An error",
@@ -103,29 +105,29 @@ describe("healthcheck", () => {
     );
   });
 
-  it("should run async healthFn with status information", (done) => {
+  it("should run async healthFn with status information", async () => {
     const healthFn = async () => {
       const error = new Error("An error");
       error.code = "ERROR";
       throw error;
     };
     healthcheck.middleware({ healthFn })(req, res);
-    setTimeout(() => {
-      res.status.should.have.been.calledWithExactly(500);
-      res.json.should.have.been.calledWithExactly(
-        sinon.match({
-          id: "myhostname",
-          uptime: sinon.match.number,
-          version: "1.0.1",
-          error: {
-            code: "ERROR",
-            message: "An error",
-          },
-          status: "ERROR",
-        }),
-      );
-      done();
+
+    await vi.waitFor(() => {
+      expect(res.status).toHaveBeenCalledWith(500);
     });
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "myhostname",
+        uptime: expect.any(Number),
+        version: "1.0.1",
+        error: {
+          code: "ERROR",
+          message: "An error",
+        },
+        status: "ERROR",
+      }),
+    );
   });
 
   it("should append pm id to id if present", () => {
@@ -133,8 +135,8 @@ describe("healthcheck", () => {
 
     healthcheck.middleware()(req, res);
 
-    res.json.should.have.been.calledWithExactly(
-      sinon.match({
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
         id: "myhostname-1",
       }),
     );

@@ -1,3 +1,5 @@
+import { it, expect, beforeEach, vi, describe } from "vitest";
+
 const proxyquire = require("proxyquire").noCallThru();
 
 let handler;
@@ -12,20 +14,20 @@ defaultConfig = {
 };
 
 i18next = {
-  use: sinon.stub().returnsThis(),
-  init: sinon.stub(),
+  use: vi.fn().mockReturnThis(),
+  init: vi.fn(),
 };
 
 i18NextHttpMiddleware = {
   LanguageDetector: "LanguageDetector",
-  handle: sinon.stub().returns("instantiated handler"),
+  handle: vi.fn().mockReturnValue("instantiated handler"),
 };
 
 configure = {
-  configure: sinon.stub().returns(defaultConfig),
+  configure: vi.fn().mockReturnValueOnce(defaultConfig),
 };
 
-i18NextFsBackend = sinon.stub();
+i18NextFsBackend = vi.fn();
 
 handler = proxyquire("./handler", {
   i18next,
@@ -35,26 +37,21 @@ handler = proxyquire("./handler", {
 });
 describe("handler", () => {
   beforeEach(() => {
-    i18next.init.reset();
-    configure.configure.reset();
+    i18next.init.mockReset();
+    configure.configure.mockReset();
 
-    configure.configure.returns(defaultConfig);
+    configure.configure.mockReturnValueOnce(defaultConfig);
   });
 
   it("should call i18next.use with backend", () => {
     handler.handler();
-
-    const firstUse = i18next.use.getCall(0);
-
-    expect(firstUse).to.have.been.calledWith(i18NextFsBackend);
+    expect(i18next.use).toHaveBeenNthCalledWith(1, i18NextFsBackend);
   });
 
   it("should call i18next.use with language detector", () => {
     handler.handler();
-
-    const firstUse = i18next.use.getCall(1);
-
-    expect(firstUse).to.have.been.calledWith(
+    expect(i18next.use).toHaveBeenNthCalledWith(
+      2,
       i18NextHttpMiddleware.LanguageDetector,
     );
   });
@@ -62,7 +59,7 @@ describe("handler", () => {
   it("should call init with config", () => {
     handler.handler();
 
-    expect(i18next.init).to.have.been.calledWithExactly(defaultConfig);
+    expect(i18next.init).toHaveBeenCalledWith(defaultConfig);
   });
 
   it("should call configure with config from params", () => {
@@ -72,7 +69,7 @@ describe("handler", () => {
       cookieDomain: "subdomain.local",
     });
 
-    expect(configure.configure).to.have.been.calledWithExactly({
+    expect(configure.configure).toHaveBeenCalledWith({
       debug: true,
       secure: true,
       cookieDomain: "subdomain.local",
@@ -83,16 +80,16 @@ describe("handler", () => {
   it("should thread additionalNamespaces through to configure", () => {
     handler.handler({ additionalNamespaces: ["frontend-ui"] });
 
-    expect(configure.configure).to.have.been.calledWithExactly(
-      sinon.match({ additionalNamespaces: ["frontend-ui"] }),
+    expect(configure.configure).toHaveBeenCalledWith(
+      expect.objectContaining({ additionalNamespaces: ["frontend-ui"] }),
     );
   });
 
   it("should call onInit with i18next after init", () => {
-    const onInit = sinon.stub();
+    const onInit = vi.fn();
     handler.handler({ onInit });
 
-    expect(onInit).to.have.been.calledWithExactly(i18next);
+    expect(onInit).toHaveBeenCalledWith(i18next);
     expect(onInit).to.have.been.calledAfter(i18next.init);
   });
 
@@ -105,13 +102,13 @@ describe("handler", () => {
       cookieDomain: "subdomain.local",
     });
 
-    expect(i18next.init).to.have.been.calledWithExactly(defaultConfig);
+    expect(i18next.init).toHaveBeenCalledWith(defaultConfig);
   });
 
   it("should call i18nextMiddleware.handle with options", () => {
     handler.handler();
 
-    expect(i18NextHttpMiddleware.handle).to.have.been.calledWith(i18next, {
+    expect(i18NextHttpMiddleware.handle).toHaveBeenCalledWith(i18next, {
       ignoreRoutes: ["/public"],
     });
   });
@@ -119,6 +116,6 @@ describe("handler", () => {
   it("should return i18nextMiddleware handler", () => {
     let instantiatedHandler = handler.handler();
 
-    expect(instantiatedHandler).to.equal("instantiated handler");
+    expect(instantiatedHandler).toEqual("instantiated handler");
   });
 });

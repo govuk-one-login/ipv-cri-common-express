@@ -1,11 +1,15 @@
+import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
+
 const hmpoLogger = require("hmpo-logger");
 const logger = require(APP_ROOT + "/src/bootstrap/lib/logger");
 
 describe("Logger", () => {
   beforeEach(() => {
-    sinon.stub(hmpoLogger, "config");
-    sinon.stub(hmpoLogger, "get").returns("logger instance");
-    if (logger.get.restore) logger.get.restore();
+    vi.spyOn(hmpoLogger, "config");
+    vi.spyOn(hmpoLogger, "get").mockReturnValue("logger instance");
+    if (vi.isMockFunction(logger.get)) {
+      logger.get.mockRestore();
+    }
   });
 
   describe("redactQueryParams", () => {
@@ -42,7 +46,7 @@ describe("Logger", () => {
         const actual = logger.redactQueryParams(input);
 
         // Assert
-        expect(actual).to.equal(output);
+        expect(actual).toEqual(output);
       });
     });
   });
@@ -54,33 +58,33 @@ describe("Logger", () => {
   });
 
   it("exports functions", () => {
-    logger.should.be.a("function");
-    logger.setup.should.be.a("function");
-    logger.get.should.be.a("function");
-    logger.get.should.equal(logger);
+    expect(typeof logger).toBe("function");
+    expect(typeof logger.setup).toBe("function");
+    expect(typeof logger.get).toBe("function");
+    expect(logger.get).toEqual(logger);
   });
 
   describe("setup", () => {
     it("configures logger from options", () => {
       logger.setup({ foo: "bar" });
-      hmpoLogger.config.should.have.been.calledWithExactly({ foo: "bar" });
+      expect(hmpoLogger.config).toHaveBeenCalledWith({ foo: "bar" });
     });
 
     it("configures logger from config", () => {
       logger.setup();
-      hmpoLogger.config.should.have.been.calledWithExactly({ console: true });
+      expect(hmpoLogger.config).toHaveBeenCalledWith({ console: true });
     });
   });
 
   describe("get", () => {
     it("returns a named logger", () => {
       logger.get("name");
-      hmpoLogger.get.should.have.been.calledWithExactly("name", 2);
+      expect(hmpoLogger.get).toHaveBeenCalledWith("name", 2);
     });
 
     it("returns a default logger", () => {
       logger.get();
-      hmpoLogger.get.should.have.been.calledWithExactly(":hmpo-app", 2);
+      expect(hmpoLogger.get).toHaveBeenCalledWith(":hmpo-app", 2);
     });
 
     it("uses hmpo-logger when USE_PINO_LOGGER is not 'true'", () => {
@@ -88,7 +92,7 @@ describe("Logger", () => {
       delete process.env.USE_PINO_LOGGER;
 
       logger.get("fallback-test");
-      hmpoLogger.get.should.have.been.calledWithExactly("fallback-test", 2);
+      expect(hmpoLogger.get).toHaveBeenCalledWith("fallback-test", 2);
 
       if (typeof prev !== "undefined") {
         process.env.USE_PINO_LOGGER = prev;
@@ -131,11 +135,11 @@ describe("Logger", () => {
 
         const serialized = getSerializers().err(err);
 
-        expect(serialized.type).to.equal("Error");
-        expect(serialized.message).to.equal("Something failed");
-        expect(serialized.stack).to.be.a("string");
-        expect(serialized.code).to.equal("FAIL");
-        expect(serialized.status).to.equal(403);
+        expect(serialized.type).toEqual("Error");
+        expect(serialized.message).toEqual("Something failed");
+        expect(typeof serialized.stack).toBe("string");
+        expect(serialized.code).toEqual("FAIL");
+        expect(serialized.status).toEqual(403);
       });
 
       it("serializes the original error when present", () => {
@@ -146,9 +150,9 @@ describe("Logger", () => {
 
         const serialized = getSerializers().err(err);
 
-        expect(serialized.original.message).to.equal("Root cause");
-        expect(serialized.original.code).to.equal("ROOT");
-        expect(serialized.original.stack).to.be.a("string");
+        expect(serialized.original.message).toEqual("Root cause");
+        expect(serialized.original.code).toEqual("ROOT");
+        expect(typeof serialized.original.stack).toBe("string");
       });
 
       it("serializes request meta for hmpo-logger parity", () => {
@@ -163,7 +167,7 @@ describe("Logger", () => {
           headers: { "x-uniq-id": "uniq-123" },
         });
 
-        expect(serialized).to.deep.equal({
+        expect(serialized).toEqual({
           method: "GET",
           url: "/test?code=hidden",
           clientip: "127.0.0.1",
@@ -185,7 +189,7 @@ describe("Logger", () => {
           getHeader: (name) => headers[name],
         });
 
-        expect(serialized).to.deep.equal({
+        expect(serialized).toEqual({
           statusCode: 302,
           sessionId: "session-1",
           location: "/done?code=hidden",
@@ -214,19 +218,19 @@ describe("Logger", () => {
     };
 
     beforeEach(function () {
-      sinon.restore();
+      vi.restoreAllMocks();
 
       process.env.USE_PINO_LOGGER = "true";
 
       mockLogger = {
-        error: sinon.stub(),
-        info: sinon.stub(),
-        warn: sinon.stub(),
+        error: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
       };
     });
 
     afterEach(function () {
-      sinon.restore();
+      vi.restoreAllMocks();
       delete process.env.USE_PINO_LOGGER;
       delete process.env.NODE_ENV;
     });
@@ -234,14 +238,14 @@ describe("Logger", () => {
     it("should log structured error in Pino mode", function () {
       logger.logError(mockReq, mockErr(), { logger: mockLogger });
 
-      expect(mockLogger.error.calledOnce).to.equal(true);
+      expect(mockLogger.error).toHaveBeenCalledTimes(1);
 
-      const arg = mockLogger.error.firstCall.args[0];
+      const arg = mockLogger.error.mock.calls[0][0];
 
-      expect(arg.code).to.equal("FAIL");
-      expect(arg.method).to.equal("GET");
-      expect(arg.request).to.equal("/search?q=test&code=hidden");
-      expect(arg.message.includes("Something failed")).to.equal(true);
+      expect(arg.code).toEqual("FAIL");
+      expect(arg.method).toEqual("GET");
+      expect(arg.request).toEqual("/search?q=test&code=hidden");
+      expect(arg.message.includes("Something failed")).toEqual(true);
     });
 
     it("should include prefix in message", function () {
@@ -250,9 +254,9 @@ describe("Logger", () => {
         messagePrefix: "Added Start",
       });
 
-      const arg = mockLogger.error.firstCall.args[0];
+      const arg = mockLogger.error.mock.calls[0][0];
 
-      expect(arg.message.startsWith("Added Start:")).to.equal(true);
+      expect(arg.message.startsWith("Added Start:")).toEqual(true);
     });
 
     it("should include error properties such as status at top level", function () {
@@ -261,10 +265,10 @@ describe("Logger", () => {
 
       logger.logError(mockReq, err, { logger: mockLogger });
 
-      const arg = mockLogger.error.firstCall.args[0];
+      const arg = mockLogger.error.mock.calls[0][0];
 
-      expect(arg.status).to.equal(403);
-      expect(arg.code).to.equal("FAIL");
+      expect(arg.status).toEqual(403);
+      expect(arg.code).toEqual("FAIL");
     });
 
     it("should include the stack as an array of lines at top level", function () {
@@ -273,9 +277,9 @@ describe("Logger", () => {
 
       logger.logError(mockReq, err, { logger: mockLogger });
 
-      const arg = mockLogger.error.firstCall.args[0];
+      const arg = mockLogger.error.mock.calls[0][0];
 
-      expect(arg.stack).to.deep.equal(["line one", "line two"]);
+      expect(arg.stack).toEqual(["line one", "line two"]);
     });
 
     it("should include the original error at top level", function () {
@@ -284,9 +288,9 @@ describe("Logger", () => {
 
       logger.logError(mockReq, err, { logger: mockLogger });
 
-      const arg = mockLogger.error.firstCall.args[0];
+      const arg = mockLogger.error.mock.calls[0][0];
 
-      expect(arg.original.message).to.equal("Root cause");
+      expect(arg.original.message).toEqual("Root cause");
     });
 
     it("should include clientip and sessionID", function () {
@@ -294,10 +298,10 @@ describe("Logger", () => {
         logger: mockLogger,
       });
 
-      const arg = mockLogger.error.firstCall.args[0];
+      const arg = mockLogger.error.mock.calls[0][0];
 
-      expect(arg.clientip).to.equal("127.0.0.1");
-      expect(arg.sessionID).to.equal("session-1");
+      expect(arg.clientip).toEqual("127.0.0.1");
+      expect(arg.sessionID).toEqual("session-1");
     });
 
     it("should omit code if not present", function () {
@@ -305,17 +309,17 @@ describe("Logger", () => {
 
       logger.logError(mockReq, err, { logger: mockLogger });
 
-      const arg = mockLogger.error.firstCall.args[0];
+      const arg = mockLogger.error.mock.calls[0][0];
 
-      expect(arg.code).to.equal(undefined);
+      expect(arg.code).toBeUndefined();
     });
 
     it("should redact sensitive query params from request", function () {
       logger.logError(mockReq, mockErr(), { logger: mockLogger });
 
-      const arg = mockLogger.error.firstCall.args[0];
+      const arg = mockLogger.error.mock.calls[0][0];
 
-      expect(arg.request).to.equal("/search?q=test&code=hidden");
+      expect(arg.request).toEqual("/search?q=test&code=hidden");
     });
 
     it("should include stack in non-production", function () {
@@ -323,7 +327,7 @@ describe("Logger", () => {
 
       logger.logError(mockReq, mockErr(), { logger: mockLogger });
 
-      const arg = mockLogger.error.firstCall.args[0];
+      const arg = mockLogger.error.mock.calls[0][0];
 
       expect(arg.err.stack).to.exist;
     });
@@ -333,13 +337,13 @@ describe("Logger", () => {
 
       logger.logError(mockReq, mockErr(), { logger: mockLogger });
 
-      expect(mockLogger.error.calledOnce).to.equal(true);
+      expect(mockLogger.error).toHaveBeenCalledTimes(1);
 
-      const args = mockLogger.error.firstCall.args;
+      const args = mockLogger.error.mock.calls[0];
 
-      expect(args[0]).to.equal(":clientip :verb :request :err.message");
-      expect(args[1].req).to.exist;
-      expect(args[1].err).to.exist;
+      expect(args[0]).toEqual(":clientip :verb :request :err.message");
+      expect(args[1].req).toBeDefined();
+      expect(args[1].err).toBeDefined();
     });
   });
 });
