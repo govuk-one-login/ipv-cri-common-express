@@ -37,8 +37,7 @@ const setup = (
     ...otherOptions,
   });
 
-  nunjucksEnv.addGlobal("addLanguageParam", frontendUi.addLanguageParam);
-  nunjucksEnv.addGlobal("contactUsUrl", frontendUi.contactUsUrl);
+  frontendUi.addFrontendUiGlobals(nunjucksEnv);
   nunjucksEnv.addGlobal(
     "MAY_2025_REBRAND_ENABLED",
     process.env.MAY_2025_REBRAND_ENABLED === "true",
