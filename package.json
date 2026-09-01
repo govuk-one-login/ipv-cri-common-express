@@ -73,7 +73,7 @@
     "express": "4.22.2",
     "globals": "^17.8.0",
     "hmpo-components": "8.0.5",
-    "hmpo-form-wizard": "16.0.0",
+    "hmpo-form-wizard": "17.0.1",
     "hmpo-reqres": "2.0.1",
     "lint-staged": "15.5.2",
     "nock": "^14.0.15",
