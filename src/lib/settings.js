@@ -1,3 +1,5 @@
+const { settings } = require("@govuk-one-login/frontend-ui");
+
 module.exports = {
   setGTM: ({
     app,
@@ -14,22 +16,31 @@ module.exports = {
     ga4SelectContentEnabled,
     analyticsDataSensitive,
   }) => {
-    app.set("APP.GTM.GA4_CONTAINER_ID", ga4ContainerId);
-    app.set("APP.GTM.ANALYTICS_COOKIE_DOMAIN", analyticsCookieDomain);
+    settings.setGTM({
+      app,
+      ga4ContainerId,
+      analyticsCookieDomain,
+      ga4Enabled,
+      ga4PageViewEnabled,
+      ga4FormResponseEnabled,
+      ga4FormErrorEnabled,
+      ga4FormChangeEnabled,
+      ga4NavigationEnabled,
+      ga4SelectContentEnabled,
+      analyticsDataSensitive,
+    });
+
+    // Backward-compat: UA settings not supported by frontend-ui but still
+    // consumed by existing templates/middleware in downstream CRIs.
     app.set("APP.GTM.UA_CONTAINER_ID", uaContainerId);
-    app.set("APP.GTM.GA4_ENABLED", ga4Enabled);
     app.set("APP.GTM.UA_ENABLED", uaEnabled);
-    app.set("APP.GTM.GA4_PAGE_VIEW_ENABLED", ga4PageViewEnabled);
-    app.set("APP.GTM.GA4_FORM_RESPONSE_ENABLED", ga4FormResponseEnabled);
-    app.set("APP.GTM.GA4_FORM_ERROR_ENABLED", ga4FormErrorEnabled);
-    app.set("APP.GTM.GA4_FORM_CHANGE_ENABLED", ga4FormChangeEnabled);
-    app.set("APP.GTM.GA4_NAVIGATION_ENABLED", ga4NavigationEnabled);
-    app.set("APP.GTM.GA4_SELECT_CONTENT_ENABLED", ga4SelectContentEnabled);
-    app.set("APP.GTM.ANALYTICS_DATA_SENSITIVE", analyticsDataSensitive ?? true);
   },
 
   setLanguageToggle: ({ app, showLanguageToggle }) => {
-    app.set("APP.LANGUAGE_TOGGLE_ENABLED", showLanguageToggle);
+    // Coerce legacy "1"/"0" string values to boolean before delegating.
+    const enabled = showLanguageToggle === "1" || showLanguageToggle === true;
+
+    settings.setLanguageToggle({ app, showLanguageToggle: enabled });
   },
 
   setDeviceIntelligence: ({
@@ -37,7 +48,15 @@ module.exports = {
     deviceIntelligenceEnabled,
     deviceIntelligenceDomain,
   }) => {
-    app.set("APP.DEVICE_INTELLIGENCE_ENABLED", deviceIntelligenceEnabled);
-    app.set("APP.DEVICE_INTELLIGENCE_DOMAIN", deviceIntelligenceDomain);
+    // Coerce legacy "true"/"false" string values to boolean before delegating.
+    const enabled =
+      deviceIntelligenceEnabled === "true" ||
+      deviceIntelligenceEnabled === true;
+
+    settings.setDeviceIntelligence({
+      app,
+      deviceIntelligenceEnabled: enabled,
+      deviceIntelligenceDomain,
+    });
   },
 };
