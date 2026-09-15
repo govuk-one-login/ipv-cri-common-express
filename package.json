@@ -52,7 +52,7 @@
     "hmpo-config": "4.0.0",
     "hmpo-i18n": "7.0.1",
     "hmpo-logger": "8.0.3",
-    "i18next": "23.8.1",
+    "i18next": "26.3.6",
     "i18next-fs-backend": "2.6.6",
     "i18next-http-middleware": "3.9.7",
     "lodash.differencewith": "4.5.0",
