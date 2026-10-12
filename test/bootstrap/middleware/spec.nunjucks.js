@@ -18,6 +18,7 @@ describe("nunjucks middleware", () => {
     vi.spyOn(nunjucks, "configure");
     nunjucksEnv = {};
     nunjucksEnv.addGlobal = vi.fn();
+    nunjucksEnv.addFilter = vi.fn();
     nunjucks.configure.mockReturnValue(nunjucksEnv);
   });
 
