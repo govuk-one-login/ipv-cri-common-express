@@ -26,14 +26,14 @@ jobs:
       COVERAGE: ${{ matrix.node == 22 || null }}
     steps:
       - name: Run tests
-        uses: govuk-one-login/github-actions/node/run-script@4616241694c035be4ea4a10fc0fe6521c0f079f8
+        uses: govuk-one-login/github-actions/node/run-script@b5f4f92a0692bf297b08c43745e545e45631f0ee
         with:
           node-version: ${{ matrix.node }}.x
           script: npm run test"${COVERAGE:+:coverage}"
 
       - name: Archive coverage results
         if: ${{ inputs.coverage-report && env.COVERAGE }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ inputs.coverage-artifact }}
           retention-days: 3
