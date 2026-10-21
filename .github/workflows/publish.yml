@@ -15,7 +15,7 @@ jobs:
     environment: npm-publish
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get latest release tag
         id: get-latest-tag
@@ -27,7 +27,7 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Publish
-        uses: govuk-one-login/github-actions/node/run-script@4616241694c035be4ea4a10fc0fe6521c0f079f8
+        uses: govuk-one-login/github-actions/node/run-script@b5f4f92a0692bf297b08c43745e545e45631f0ee
         with:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
