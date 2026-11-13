@@ -1,4 +1,4 @@
-const configure = ({
+export const configureOverloadProtection = ({
   production = "production", // if production is false, detailed error messages are exposed to the client
   clientRetrySecs = 1, // Retry-After header, in seconds (0 to disable) [default 1]
   sampleInterval = 5, // sample rate, milliseconds [default 5]
@@ -25,8 +25,4 @@ const configure = ({
     logging,
     logStatsOnReq,
   };
-};
-
-module.exports = {
-  configure,
 };

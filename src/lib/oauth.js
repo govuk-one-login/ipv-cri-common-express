@@ -1,42 +1,41 @@
-module.exports = {
-  addOAuthPropertiesToSession: ({ authParams, data } = {}) => {
-    authParams.redirect_uri = data.redirect_uri;
-    authParams.state = data.state;
+export const addOAuthPropertiesToSession = ({ authParams, data } = {}) => {
+  authParams.redirect_uri = data.redirect_uri;
+  authParams.state = data.state;
 
-    if (data.code) {
-      authParams.authorization_code = data.code?.value || data.code;
-    } else {
-      const error = {
-        code: "server_error",
-        error_description: "Failed to retrieve authorization code",
-      };
+  if (data.code) {
+    authParams.authorization_code = data.code?.value || data.code;
+  } else {
+    const error = {
+      code: "server_error",
+      error_description: "Failed to retrieve authorization code",
+    };
 
-      authParams.error = error;
-    }
-  },
-  buildRedirectUrl: ({ authParams }) => {
-    const authCode = authParams.authorization_code;
-    const url = authParams.redirect_uri;
-    const state = authParams.state;
+    authParams.error = error;
+  }
+};
 
-    let redirectUrl = new URL(url);
+export const buildRedirectUrl = ({ authParams }) => {
+  const authCode = authParams.authorization_code;
+  const url = authParams.redirect_uri;
+  const state = authParams.state;
 
-    if (authCode) {
-      redirectUrl.searchParams.append("client_id", authParams.client_id);
-      redirectUrl.searchParams.append("code", authCode);
-    } else {
-      const error = authParams.error;
-      const errorCode = error?.code;
-      const errorDescription = error?.description ?? error?.message;
+  let redirectUrl = new URL(url);
 
-      redirectUrl.searchParams.append("error", errorCode);
-      redirectUrl.searchParams.append("error_description", errorDescription);
-    }
+  if (authCode) {
+    redirectUrl.searchParams.append("client_id", authParams.client_id);
+    redirectUrl.searchParams.append("code", authCode);
+  } else {
+    const error = authParams.error;
+    const errorCode = error?.code;
+    const errorDescription = error?.description ?? error?.message;
 
-    if (state) {
-      redirectUrl.searchParams.append("state", state);
-    }
+    redirectUrl.searchParams.append("error", errorCode);
+    redirectUrl.searchParams.append("error_description", errorDescription);
+  }
 
-    return redirectUrl;
-  },
+  if (state) {
+    redirectUrl.searchParams.append("state", state);
+  }
+
+  return redirectUrl;
 };

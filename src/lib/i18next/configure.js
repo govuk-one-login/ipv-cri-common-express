@@ -1,21 +1,19 @@
-const defaultConfig = require("./default-config");
+import { defaultI18nextConfig } from "./default-config.js";
 
-const configure = function ({
+export function configureI18next({
   cookieDomain,
   debug = false,
   secure,
   additionalNamespaces = [],
 } = {}) {
   return {
-    ...defaultConfig,
-    ns: [...defaultConfig.ns, ...additionalNamespaces],
+    ...defaultI18nextConfig,
+    ns: [...defaultI18nextConfig.ns, ...additionalNamespaces],
     debug: debug,
     detection: {
-      ...defaultConfig.detection,
-      cookieSecure: secure || defaultConfig?.detection?.cookieSecure,
+      ...defaultI18nextConfig.detection,
+      cookieSecure: secure || defaultI18nextConfig?.detection?.cookieSecure,
       ...(cookieDomain && { cookieDomain: cookieDomain }),
     },
   };
-};
-
-module.exports = { configure };
+}

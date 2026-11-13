@@ -1,12 +1,13 @@
-const debug = require("debug")("hmpo-app:config");
-const HmpoConfig = require("hmpo-config");
+import HmpoConfig from "hmpo-config";
+import debugLib from "debug";
+const debug = debugLib("hmpo-app:config");
 
-const defaultFiles = [
+export const defaultFiles = [
   "config/default.json",
   "config/default.yaml",
   "config/default.yml",
 ];
-const setup = ({
+export const setupConfig = ({
   APP_ROOT,
   seed,
   files = defaultFiles,
@@ -64,7 +65,7 @@ const setup = ({
   globalThis.GLOBAL_CONFIG = configData;
 };
 
-const get = (path, defaultIfUndefined) => {
+export const getConfig = (path, defaultIfUndefined) => {
   if (!globalThis.GLOBAL_CONFIG) throw new Error("Config not loaded");
   if (!path) return globalThis.GLOBAL_CONFIG;
   const value = path
@@ -72,9 +73,3 @@ const get = (path, defaultIfUndefined) => {
     .reduce((obj, part) => obj?.[part], globalThis.GLOBAL_CONFIG);
   return value === undefined ? defaultIfUndefined : value;
 };
-
-module.exports = Object.assign(get, {
-  defaultFiles,
-  setup,
-  get,
-});

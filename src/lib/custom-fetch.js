@@ -1,8 +1,8 @@
-const { PACKAGE_NAME } = require("./constants");
-const logger = require("../bootstrap/lib/logger");
-const extractIpAddress = require("./user-ip-address");
+import { PACKAGE_NAME } from "./constants.js";
+import { getLogger, redactQueryParams } from "../bootstrap/lib/logger.js";
+import { extractIpAddress } from "./user-ip-address.js";
 
-const DNS_ERROR_LOG_MESSAGE = "API request DNS resolution failure";
+export const DNS_ERROR_LOG_MESSAGE = "API request DNS resolution failure";
 const DNS_ERROR_CODES = new Set(["ENOTFOUND", "EAI_AGAIN"]);
 const MAX_ERRORS_INSPECTED = 20;
 
@@ -34,19 +34,19 @@ function logDnsError(dnsError, error, { req, method, url }) {
     syscall: dnsError.syscall,
     hostname: dnsError.hostname,
     method,
-    url: logger.redactQueryParams(url),
+    url: redactQueryParams(url),
   };
 
-  const log = logger.get(PACKAGE_NAME);
+  const logger = getLogger(PACKAGE_NAME);
 
   if (process.env.USE_PINO_LOGGER === "true") {
-    log.error({ ...details, req, err: error }, DNS_ERROR_LOG_MESSAGE);
+    logger.error({ ...details, req, err: error }, DNS_ERROR_LOG_MESSAGE);
   } else {
-    log.error(DNS_ERROR_LOG_MESSAGE, { ...details, req, err: error });
+    logger.error(DNS_ERROR_LOG_MESSAGE, { ...details, req, err: error });
   }
 }
 
-class CustomFetchHttpError extends Error {
+export class CustomFetchHttpError extends Error {
   constructor(response, bodyString) {
     super(`Response not OK: ${response.statusText}`);
     this.code = response.status;
@@ -76,7 +76,7 @@ function buildFetchWithReq(req) {
 
     const method = options?.method ?? "GET";
 
-    logger.get(PACKAGE_NAME).info("API request", {
+    getLogger(PACKAGE_NAME).info("API request", {
       config: {
         baseURL: baseUrl,
         method,
@@ -126,7 +126,7 @@ function buildFetchWithReq(req) {
   };
 }
 
-function customFetchMiddleware(req, res, next) {
+export function customFetchMiddleware(req, res, next) {
   try {
     req.customFetch = buildFetchWithReq(req);
     next();
@@ -134,9 +134,3 @@ function customFetchMiddleware(req, res, next) {
     next(error);
   }
 }
-
-module.exports = {
-  customFetchMiddleware,
-  CustomFetchHttpError,
-  DNS_ERROR_LOG_MESSAGE,
-};

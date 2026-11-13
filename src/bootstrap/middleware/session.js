@@ -1,7 +1,8 @@
-const expressSession = require("express-session");
-const redisClient = require("../lib/redis-client");
+import expressSession from "express-session";
+import { getRedisClient } from "../lib/redis-client.js";
+import connectRedis from "connect-redis";
 
-const middleware = ({
+export const sessionMiddleware = ({
   cookieName = "hmpo.sid",
   secret = "not-secret",
   ttl = 30000,
@@ -9,9 +10,9 @@ const middleware = ({
   cookieOptions = {},
 } = {}) => {
   if (!sessionStore) {
-    const RedisStore = require("connect-redis")(expressSession);
+    const RedisStore = connectRedis(expressSession);
     sessionStore = new RedisStore({
-      client: redisClient.getClient(),
+      client: getRedisClient(),
       ttl,
     });
   }
@@ -39,8 +40,4 @@ const middleware = ({
       next();
     },
   ];
-};
-
-module.exports = {
-  middleware,
 };
