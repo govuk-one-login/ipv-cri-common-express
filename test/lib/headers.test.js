@@ -1,7 +1,7 @@
 import { expect, it, describe, beforeEach } from "vitest";
-import { createDefaultReqResNext } from "../../test/utils/helpers";
+import { createDefaultReqResNext } from "../utils/helpers";
 
-const headers = require("./headers");
+const headers = require("../../src/lib/headers");
 
 describe("headers", () => {
   let req;

@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-const { addOAuthPropertiesToSession, buildRedirectUrl } = require("./oauth");
+const {
+  addOAuthPropertiesToSession,
+  buildRedirectUrl,
+} = require("../../src/lib/oauth");
 
 describe("oauth lib", () => {
   describe("addOAuthPropertiesToSession", () => {

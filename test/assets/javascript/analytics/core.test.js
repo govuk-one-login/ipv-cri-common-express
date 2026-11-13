@@ -34,7 +34,7 @@ describe("Core", () => {
         return object;
       },
     };
-    require("../../src/assets/javascript/analytics/core");
+    require("../../../../src/assets/javascript/analytics/core");
   });
   afterEach(() => {
     delete require.cache[

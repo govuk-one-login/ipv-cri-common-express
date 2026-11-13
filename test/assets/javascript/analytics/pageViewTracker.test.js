@@ -59,7 +59,7 @@ describe("PageViewTracker", () => {
       },
     };
 
-    require("../../src/assets/javascript/analytics/ga4/pageViewTracker");
+    require("../../../../src/assets/javascript/analytics/ga4/pageViewTracker");
   });
 
   afterEach(() => {

@@ -1,7 +1,7 @@
 import { describe, expect, beforeEach, it } from "vitest";
-import { createDefaultReqResNext } from "../../test/utils/helpers";
+import { createDefaultReqResNext } from "../utils/helpers";
 
-const scenarioHeaders = require("./scenario-headers");
+const scenarioHeaders = require("../../src/lib/scenario-headers");
 
 describe("scenario-headers", () => {
   let req;

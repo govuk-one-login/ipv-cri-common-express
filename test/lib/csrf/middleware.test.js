@@ -1,8 +1,8 @@
 import { vi, expect, describe, beforeEach, it } from "vitest";
 
-const { buildCsrfMiddleware } = require("./middleware");
-const CsrfError = require("./error");
-const token = require("./token");
+const { buildCsrfMiddleware } = require("../../../src/lib/csrf/middleware");
+const CsrfError = require("../../../src/lib/csrf/error");
+const token = require("../../../src/lib/csrf/token");
 
 const SECRET = "hunter2"; // pragma: allowlist secret
 const SESSION_CSRF_SECRET = "top-secret"; // pragma: allowlist secret
