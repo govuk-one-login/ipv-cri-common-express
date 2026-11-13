@@ -1,4 +1,4 @@
-const defaultConfig = {
+export const defaultI18nextConfig = {
   // debug: false - set i18next with debug
   initImmediate: false,
   returnObjects: true,
@@ -25,5 +25,3 @@ const defaultConfig = {
     cookieSameSite: "",
   },
 };
-
-module.exports = defaultConfig;

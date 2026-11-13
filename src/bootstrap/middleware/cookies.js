@@ -1,6 +1,6 @@
-const cookieParser = require("cookie-parser");
+import cookieParser from "cookie-parser";
 
-const middleware = ({ secret } = {}) => [
+export const cookieMiddleware = ({ secret } = {}) => [
   cookieParser(secret),
   (req, res, next) => {
     const cookie = res.cookie;
@@ -14,7 +14,3 @@ const middleware = ({ secret } = {}) => [
     next();
   },
 ];
-
-module.exports = {
-  middleware,
-};

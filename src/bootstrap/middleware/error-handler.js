@@ -1,6 +1,6 @@
-const logger = require("../lib/logger");
+import { logError } from "../lib/logger";
 
-const middleware =
+export const errorHandlerMiddleware =
   ({
     startUrl = "/",
     sessionEndedView = "errors/session-ended",
@@ -33,7 +33,7 @@ const middleware =
     }
 
     if (res.finished || res._headerSent) {
-      return logger.logError(req, err, {
+      return logError(req, err, {
         messagePrefix: "Error after response",
       });
     }
@@ -49,7 +49,7 @@ const middleware =
 
     if (!err.template) {
       err.template = defaultErrorView;
-      logger.logError(req, err);
+      logError(req, err);
     }
 
     err.status = err.status || 500;
@@ -63,7 +63,3 @@ const middleware =
       backLink: backLink,
     });
   };
-
-module.exports = {
-  middleware,
-};

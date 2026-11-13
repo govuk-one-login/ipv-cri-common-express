@@ -1,4 +1,4 @@
-const crypto = require("node:crypto");
+import { timingSafeEqual, randomBytes, createHmac } from "node:crypto";
 
 const SALT_BYTES = 16;
 const SESSION_SECRET_BYTES = 32;
@@ -6,16 +6,15 @@ const TOKEN_SEPARATOR = ".";
 
 const toBase64Url = (buffer) => buffer.toString("base64url");
 
-const setSessionSecret = () =>
-  toBase64Url(crypto.randomBytes(SESSION_SECRET_BYTES));
+export const setSessionSecret = () =>
+  toBase64Url(randomBytes(SESSION_SECRET_BYTES));
 
 const hmac = (consumerSecret, currentSessionCsrfSecret, salt) =>
   toBase64Url(
-    crypto
-      .createHmac(
-        "sha256",
-        `${consumerSecret.length}:${consumerSecret}:${currentSessionCsrfSecret}`,
-      )
+    createHmac(
+      "sha256",
+      `${consumerSecret.length}:${consumerSecret}:${currentSessionCsrfSecret}`,
+    )
       .update(salt)
       .digest(),
   );
@@ -24,15 +23,19 @@ const timingSafeEqualString = (a, b) => {
   const bufA = Buffer.from(a);
   const bufB = Buffer.from(b);
   if (bufA.length !== bufB.length) return false;
-  return crypto.timingSafeEqual(bufA, bufB);
+  return timingSafeEqual(bufA, bufB);
 };
 
-const create = (consumerSecrets, currentSessionCsrfSecret) => {
-  const salt = toBase64Url(crypto.randomBytes(SALT_BYTES));
+export const createCsrfToken = (consumerSecrets, currentSessionCsrfSecret) => {
+  const salt = toBase64Url(randomBytes(SALT_BYTES));
   return `${salt}${TOKEN_SEPARATOR}${hmac(consumerSecrets[0], currentSessionCsrfSecret, salt)}`;
 };
 
-const verify = (consumerSecrets, currentSessionCsrfSecret, token) => {
+export const verifyCsrfToken = (
+  consumerSecrets,
+  currentSessionCsrfSecret,
+  token,
+) => {
   if (typeof token !== "string") return false;
 
   const separatorIndex = token.indexOf(TOKEN_SEPARATOR);
@@ -53,10 +56,4 @@ const verify = (consumerSecrets, currentSessionCsrfSecret, token) => {
     }
   }
   return matched;
-};
-
-module.exports = {
-  create,
-  verify,
-  setSessionSecret,
 };

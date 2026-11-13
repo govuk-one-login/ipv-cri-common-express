@@ -1,5 +1,5 @@
-const token = require("./token");
-const CsrfError = require("./error");
+import { setSessionSecret, createCsrfToken, verifyCsrfToken } from "./token";
+import { CsrfError } from "./error";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const TOKEN_FIELD = "_csrf";
@@ -21,7 +21,7 @@ const normaliseSecrets = (secret) => {
   return candidates;
 };
 
-const csrf = ({ secret } = {}) => {
+export const buildCsrfMiddleware = ({ secret } = {}) => {
   const secrets = normaliseSecrets(secret);
 
   return function csrfMiddleware(req, res, next) {
@@ -30,22 +30,20 @@ const csrf = ({ secret } = {}) => {
     }
 
     if (!req.session.csrfSecret) {
-      req.session.csrfSecret = token.setSessionSecret();
+      req.session.csrfSecret = setSessionSecret();
     }
 
-    res.locals.csrfToken = token.create(secrets, req.session.csrfSecret);
+    res.locals.csrfToken = createCsrfToken(secrets, req.session.csrfSecret);
 
     if (SAFE_METHODS.has(req.method)) {
       return next();
     }
 
     const submitted = extractToken(req);
-    if (!token.verify(secrets, req.session.csrfSecret, submitted)) {
+    if (!verifyCsrfToken(secrets, req.session.csrfSecret, submitted)) {
       return next(new CsrfError());
     }
 
     return next();
   };
 };
-
-module.exports = csrf;

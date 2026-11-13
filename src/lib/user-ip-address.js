@@ -1,9 +1,9 @@
-const net = require("node:net");
+import { isIPv4, isIPv6 } from "node:net";
 
-module.exports = function extractIpAddress(forwarded) {
+export function extractIpAddress(forwarded) {
   const forwardedHeaders = Object.fromEntries(
     forwarded?.split(";").map((s) => s.split("=")) ?? [],
   );
   const clientIp = forwardedHeaders?.for?.toString().trim();
-  return net.isIPv4(clientIp) || net.isIPv6(clientIp) ? clientIp : null;
-};
+  return isIPv4(clientIp) || isIPv6(clientIp) ? clientIp : null;
+}

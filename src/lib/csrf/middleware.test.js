@@ -1,6 +1,6 @@
 import { vi, expect, describe, beforeEach, it } from "vitest";
 
-const csrf = require("./middleware");
+const { buildCsrfMiddleware } = require("./middleware");
 const CsrfError = require("./error");
 const token = require("./token");
 
@@ -26,27 +26,33 @@ describe("lib/csrf/middleware", () => {
 
   describe("configuration", () => {
     it("throws when no secret is provided", () => {
-      expect(() => csrf()).toThrow(/secret/);
-      expect(() => csrf({})).toThrow(/secret/);
-      expect(() => csrf({ secret: "" })).toThrow(/secret/);
-      expect(() => csrf({ secret: 123 })).toThrow(/secret/);
+      expect(() => buildCsrfMiddleware()).toThrow(/secret/);
+      expect(() => buildCsrfMiddleware({})).toThrow(/secret/);
+      expect(() => buildCsrfMiddleware({ secret: "" })).toThrow(/secret/);
+      expect(() => buildCsrfMiddleware({ secret: 123 })).toThrow(/secret/);
     });
 
     it("throws when secret is an empty array", () => {
-      expect(() => csrf({ secret: [] })).toThrow(/secret/);
+      expect(() => buildCsrfMiddleware({ secret: [] })).toThrow(/secret/);
     });
 
     it("throws when secret array contains invalid entries", () => {
-      expect(() => csrf({ secret: ["valid", ""] })).toThrow(/secret/);
-      expect(() => csrf({ secret: ["valid", 42] })).toThrow(/secret/);
+      expect(() => buildCsrfMiddleware({ secret: ["valid", ""] })).toThrow(
+        /secret/,
+      );
+      expect(() => buildCsrfMiddleware({ secret: ["valid", 42] })).toThrow(
+        /secret/,
+      );
     });
 
     it("returns middleware when given a secret string", () => {
-      expect(typeof csrf({ secret: SECRET })).toBe("function");
+      expect(typeof buildCsrfMiddleware({ secret: SECRET })).toBe("function");
     });
 
     it("returns middleware when given a secret array", () => {
-      expect(typeof csrf({ secret: [SECRET, "previous"] })).toBe("function");
+      expect(typeof buildCsrfMiddleware({ secret: [SECRET, "previous"] })).toBe(
+        "function",
+      );
     });
   });
 
@@ -55,7 +61,7 @@ describe("lib/csrf/middleware", () => {
       const req = buildReq();
       delete req.session;
 
-      csrf({ secret: SECRET })(req, buildRes(), next);
+      buildCsrfMiddleware({ secret: SECRET })(req, buildRes(), next);
 
       expect(next).toHaveBeenCalledTimes(1);
       const err = next.mock.calls[0][0];
@@ -71,12 +77,16 @@ describe("lib/csrf/middleware", () => {
         const req = buildReq({ method });
         const res = buildRes();
 
-        csrf({ secret: SECRET })(req, res, next);
+        buildCsrfMiddleware({ secret: SECRET })(req, res, next);
 
         expect(next).toHaveBeenCalled();
         expect(typeof res.locals.csrfToken).toBe("string");
         expect(
-          token.verify([SECRET], req.session.csrfSecret, res.locals.csrfToken),
+          token.verifyCsrfToken(
+            [SECRET],
+            req.session.csrfSecret,
+            res.locals.csrfToken,
+          ),
         ).toEqual(true);
       });
     });
@@ -84,7 +94,7 @@ describe("lib/csrf/middleware", () => {
     it("generates and saves a session csrf secret when missing", () => {
       const req = buildReq({ session: {} });
 
-      csrf({ secret: SECRET })(req, buildRes(), next);
+      buildCsrfMiddleware({ secret: SECRET })(req, buildRes(), next);
 
       expect(typeof req.session.csrfSecret).toBe("string");
       expect(req.session.csrfSecret.length).toBeGreaterThan(0);
@@ -92,7 +102,7 @@ describe("lib/csrf/middleware", () => {
 
     it("reuses an existing session csrf secret", () => {
       const session = {};
-      const middleware = csrf({ secret: SECRET });
+      const middleware = buildCsrfMiddleware({ secret: SECRET });
 
       middleware(buildReq({ session }), buildRes(), vi.fn());
       const first = session.csrfSecret;
@@ -102,7 +112,7 @@ describe("lib/csrf/middleware", () => {
     });
 
     it("returns a fresh token on each request within the same session", () => {
-      const middleware = csrf({ secret: SECRET });
+      const middleware = buildCsrfMiddleware({ secret: SECRET });
 
       const res1 = buildRes();
       middleware(buildReq(), res1, vi.fn());
@@ -118,8 +128,8 @@ describe("lib/csrf/middleware", () => {
     let validToken;
 
     beforeEach(() => {
-      middleware = csrf({ secret: SECRET });
-      validToken = token.create([SECRET], SESSION_CSRF_SECRET);
+      middleware = buildCsrfMiddleware({ secret: SECRET });
+      validToken = token.createCsrfToken([SECRET], SESSION_CSRF_SECRET);
     });
 
     ["POST", "PUT", "PATCH", "DELETE"].forEach((method) => {
@@ -170,7 +180,10 @@ describe("lib/csrf/middleware", () => {
     });
 
     it("rejects a token created for a different session", () => {
-      const otherToken = token.create([SECRET], "other-session-secret");
+      const otherToken = token.createCsrfToken(
+        [SECRET],
+        "other-session-secret",
+      );
       const req = buildReq({ method: "POST", body: { _csrf: otherToken } });
       middleware(req, buildRes(), next);
 
@@ -188,8 +201,13 @@ describe("lib/csrf/middleware", () => {
 
   describe("secret rotation", () => {
     it("accepts a POST with a token signed by a previously-accepted secret", () => {
-      const oldToken = token.create(["old-secret"], SESSION_CSRF_SECRET);
-      const middleware = csrf({ secret: ["new-secret", "old-secret"] });
+      const oldToken = token.createCsrfToken(
+        ["old-secret"],
+        SESSION_CSRF_SECRET,
+      );
+      const middleware = buildCsrfMiddleware({
+        secret: ["new-secret", "old-secret"],
+      });
       const req = buildReq({ method: "POST", body: { _csrf: oldToken } });
 
       middleware(req, buildRes(), next);
@@ -198,21 +216,23 @@ describe("lib/csrf/middleware", () => {
     });
 
     it("signs new tokens with the first secret during rotation", () => {
-      const middleware = csrf({ secret: ["new-secret", "old-secret"] });
+      const middleware = buildCsrfMiddleware({
+        secret: ["new-secret", "old-secret"],
+      });
       const req = buildReq({ method: "GET" });
       const res = buildRes();
 
       middleware(req, res, next);
 
       expect(
-        token.verify(
+        token.verifyCsrfToken(
           ["new-secret"],
           req.session.csrfSecret,
           res.locals.csrfToken,
         ),
       ).toEqual(true);
       expect(
-        token.verify(
+        token.verifyCsrfToken(
           ["old-secret"],
           req.session.csrfSecret,
           res.locals.csrfToken,
@@ -221,8 +241,11 @@ describe("lib/csrf/middleware", () => {
     });
 
     it("rejects tokens signed by the old secret once it's removed from the list", () => {
-      const oldToken = token.create(["old-secret"], SESSION_CSRF_SECRET);
-      const middleware = csrf({ secret: "new-secret" });
+      const oldToken = token.createCsrfToken(
+        ["old-secret"],
+        SESSION_CSRF_SECRET,
+      );
+      const middleware = buildCsrfMiddleware({ secret: "new-secret" });
       const req = buildReq({ method: "POST", body: { _csrf: oldToken } });
 
       middleware(req, buildRes(), next);

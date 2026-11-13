@@ -1,25 +1,23 @@
-const debug = require("debug")("hmpo-app:version");
-const config = require("../lib/config");
-const path = require("node:path");
+import debugLib from "debug";
+import { getConfig } from "../lib/config";
+import { resolve } from "node:path";
 
-const middleware = ({ versionFile = "version.json" } = {}) => {
+const debug = debugLib("hmpo-app:version");
+
+export async function versionMiddleware({ versionFile = "version.json" } = {}) {
   let versionJSON = {};
 
   try {
-    const filename = path.resolve(config.get("APP_ROOT"), versionFile);
-    versionJSON = require(filename);
+    const filename = resolve(getConfig("APP_ROOT"), versionFile);
+    versionJSON = (await import(filename)).default;
   } catch (err) {
     debug("Error loading version json file", err.message);
   }
 
-  versionJSON.appName = config.get("APP_NAME");
-  versionJSON.appVersion = config.get("APP_VERSION");
+  versionJSON.appName = getConfig("APP_NAME");
+  versionJSON.appVersion = getConfig("APP_VERSION");
   versionJSON.nodeVersion = process.versions.node;
-  versionJSON.featureFlags = config.get("featureFlags");
+  versionJSON.featureFlags = getConfig("featureFlags");
 
   return (req, res, _next) => res.send(versionJSON);
-};
-
-module.exports = {
-  middleware,
-};
+}

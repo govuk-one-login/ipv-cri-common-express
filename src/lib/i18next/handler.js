@@ -1,10 +1,10 @@
-const i18next = require("i18next");
-const Backend = require("i18next-fs-backend");
-const i18nextMiddleware = require("i18next-http-middleware");
+import i18next from "i18next";
+import fsBackend from "i18next-fs-backend";
+import i18nextMiddleware from "i18next-http-middleware";
 
-const { configure } = require("./configure");
+import { configureI18next } from "./configure";
 
-const handler = ({
+export const i18nextHandler = ({
   cookieDomain,
   debug,
   secure,
@@ -12,17 +12,15 @@ const handler = ({
   onInit,
 } = {}) => {
   i18next
-    .use(Backend)
+    .use(fsBackend)
     .use(i18nextMiddleware.LanguageDetector)
-    .init(configure({ cookieDomain, debug, secure, additionalNamespaces }));
+    .init(
+      configureI18next({ cookieDomain, debug, secure, additionalNamespaces }),
+    );
 
   onInit?.(i18next);
 
   return i18nextMiddleware.handle(i18next, {
     ignoreRoutes: ["/public"], // or function(req, res, options, i18next) { /* return true to ignore */ }
   });
-};
-
-module.exports = {
-  handler,
 };

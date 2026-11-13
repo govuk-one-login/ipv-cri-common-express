@@ -1,25 +1,27 @@
-const debug = require("debug")("hmpo-app:translations");
-const config = require("../lib/config");
-const path = require("node:path");
-const fs = require("node:fs");
+import debugLib from "debug";
+import { getConfig } from "../lib/config";
+import { resolve } from "node:path";
+import { existsSync } from "node:fs";
 
-const loadHmpoI18n = () => {
+const debug = debugLib("hmpo-app:translations");
+
+function loadHmpoI18n() {
   try {
-    require.resolve("hmpo-i18n");
+    return import("hmpo-i18n");
   } catch {
     throw new Error(
       "'hmpo-i18n' is not installed but is required by the \"locales\"/\"translation\" options. Add 'hmpo-i18n' to your dependencies.",
     );
   }
-  return require("hmpo-i18n");
-};
+}
 
-const setup = (
+export async function setupTranslation(
   app,
   { locales = ".", hmpoComponentsDir, ...otherOptions } = {},
-) => {
-  const i18n = loadHmpoI18n();
-  const APP_ROOT = config.get("APP_ROOT");
+) {
+  const hmpoI18n = await loadHmpoI18n();
+
+  const APP_ROOT = getConfig("APP_ROOT");
   const isDevEnv = Boolean(app.get("dev"));
 
   if (!Array.isArray(locales)) locales = [locales];
@@ -27,12 +29,12 @@ const setup = (
   locales = [...locales, ...(hmpoComponentsDir ? [hmpoComponentsDir] : [])];
 
   locales = locales
-    .map((dir) => path.resolve(APP_ROOT, dir))
-    .filter((dir) => dir && fs.existsSync(dir));
+    .map((dir) => resolve(APP_ROOT, dir))
+    .filter((dir) => dir && existsSync(dir));
 
   debug("Locales", APP_ROOT, locales);
 
-  i18n.middleware(app, {
+  hmpoI18n.middleware(app, {
     baseDir: locales,
     noCache: isDevEnv,
     watch: isDevEnv,
@@ -41,8 +43,4 @@ const setup = (
     query: "lang",
     ...otherOptions,
   });
-};
-
-module.exports = {
-  setup,
-};
+}
