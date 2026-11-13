@@ -1,6 +1,6 @@
 import { expect, describe, it } from "vitest";
 describe("redis", () => {
-  const redis = require("./redis");
+  const redis = require("../../src/lib/redis");
 
   it("should return config using environment variables", () => {
     const redisConfig = redis({ SESSION_URL: "example.org", PORT: "4321" });

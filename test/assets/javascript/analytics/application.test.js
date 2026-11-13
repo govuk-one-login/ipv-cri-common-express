@@ -23,7 +23,7 @@ describe("Init", () => {
         loadAnalytics: () => events.push("init new analytics"),
       },
     };
-    require("../../src/assets/javascript/application");
+    require("../../../../src/assets/javascript/application");
   });
 
   afterEach(() => {

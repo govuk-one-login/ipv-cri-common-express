@@ -1,8 +1,8 @@
 import { describe, vi, expect, beforeEach, it } from "vitest";
-import { createDefaultReqResNext } from "../../test/utils/helpers";
+import { createDefaultReqResNext } from "../utils/helpers";
 
 const proxyquire = require("proxyquire");
-const { CustomFetchHttpError } = require("./custom-fetch");
+const { CustomFetchHttpError } = require("../../src/lib/custom-fetch");
 
 const oAuthStub = {};
 const { redirectAsErrorToCallback } = proxyquire("./error-handling", {
@@ -331,7 +331,7 @@ describe("error-handling", () => {
       let warn;
 
       beforeEach(async () => {
-        warn = require("../bootstrap/lib/logger").get().warn;
+        warn = require("../../src/bootstrap/lib/logger").get().warn;
         warn.mockClear();
 
         err = new CustomFetchHttpError(

@@ -5,7 +5,7 @@ const nock = require("nock");
 const {
   CustomFetchHttpError,
   customFetchMiddleware,
-} = require("./custom-fetch");
+} = require("../../src/lib/custom-fetch");
 
 describe("custom-fetch.js with nock stub", () => {
   let dummyReq = {

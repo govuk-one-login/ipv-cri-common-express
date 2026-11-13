@@ -1,6 +1,6 @@
 import { describe, vi, it, expect, beforeEach, afterEach } from "vitest";
 
-const middleware = require("./middleware");
+const middleware = require("../../../src/routes/oauth2/middleware");
 
 const exampleJwt =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
@@ -39,7 +39,7 @@ describe("oauth middleware", () => {
   });
 
   afterEach(() => {
-    require("../../bootstrap/lib/logger").get().error.mockClear();
+    require("../../../src/bootstrap/lib/logger").get().error.mockClear();
   });
 
   describe("addAuthParamsToSession", () => {

@@ -1,6 +1,6 @@
 import { expect, describe, it } from "vitest";
 
-const userIpAddress = require("./user-ip-address");
+const userIpAddress = require("../../src/lib/user-ip-address");
 
 describe("user ip address", () => {
   it("should return null when passing req but with req.headers as null", () => {

@@ -4,7 +4,7 @@ const {
   CustomFetchHttpError,
   customFetchMiddleware,
   DNS_ERROR_LOG_MESSAGE,
-} = require("./custom-fetch");
+} = require("../../src/lib/custom-fetch");
 
 const badResponse = {
   status: 418,
