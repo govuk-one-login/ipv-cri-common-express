@@ -331,6 +331,21 @@ describe("middleware functions", () => {
       expect(stubs.translation.setup).not.toHaveBeenCalled();
     });
 
+    it("should not setup translation when translation is false", () => {
+      middleware.setup({ locales: "a/dir", translation: false });
+      expect(stubs.translation.setup).not.toHaveBeenCalled();
+    });
+
+    it("should not setup translation when locales is false", () => {
+      middleware.setup({ locales: false, translation: { some: "option" } });
+      expect(stubs.translation.setup).not.toHaveBeenCalled();
+    });
+
+    it("should not setup translation when locales and translation are null", () => {
+      middleware.setup({ locales: null, translation: null });
+      expect(stubs.translation.setup).not.toHaveBeenCalled();
+    });
+
     it("should setup headers", () => {
       middleware.setup({
         disableCompression: true,

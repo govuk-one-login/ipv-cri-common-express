@@ -2,6 +2,7 @@ import { describe, vi, it, expect, afterEach, beforeEach } from "vitest";
 
 const translation = require(APP_ROOT + "/src/bootstrap/middleware/translation");
 const i18n = require("hmpo-i18n");
+const Module = require("node:module");
 
 describe("translation middleware", () => {
   let app;
@@ -105,5 +106,33 @@ describe("translation middleware", () => {
         watch: false,
       }),
     );
+  });
+
+  describe("when hmpo-i18n is not installed", () => {
+    beforeEach(() => {
+      const resolveFilename = Module._resolveFilename;
+      vi.spyOn(Module, "_resolveFilename").mockImplementation(function (
+        request,
+        ...args
+      ) {
+        if (request === "hmpo-i18n") {
+          const error = new Error("Cannot find module 'hmpo-i18n'");
+          error.code = "MODULE_NOT_FOUND";
+          throw error;
+        }
+        return resolveFilename.call(this, request, ...args);
+      });
+    });
+
+    afterEach(() => {
+      Module._resolveFilename.mockRestore();
+    });
+
+    it("should throw an error explaining hmpo-i18n is required", () => {
+      expect(() => translation.setup(app)).toThrow(
+        "'hmpo-i18n' is not installed",
+      );
+      expect(i18n.middleware).not.toHaveBeenCalled();
+    });
   });
 });

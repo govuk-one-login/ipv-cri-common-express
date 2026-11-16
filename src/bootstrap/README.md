@@ -96,8 +96,8 @@ Any of these options (except for `config`) can also be specified in a config fil
 >   - **`watch`** = `env==='development'` watch for changes to template files.
 >   - **`...otherOptions`** any other options are passed to _`nunjucks.configure`_
 
-> - **`locales`** = `'.'` array of locales base directories (containing a `'locales'` directory) relative to `APP_ROOT`.
-> - **`translation`** options passed to _`hmpo-i18n`_ translation library, or `false` to disable
+> - **`locales`** = `'.'` array of locales base directories (containing a `'locales'` directory) relative to `APP_ROOT`, or `false` to disable translation
+> - **`translation`** options passed to _`hmpo-i18n`_ translation library, or `false` to disable. `hmpo-i18n` is an optional peer dependency: add it to your dependencies if you set `locales` or `translation`
 >   - **`noCache`** = `env==='development'` don't cache templated localisation strings.
 >   - **`watch`** = `env==='development'` watch for changes to localisation files.
 >   - **`allowedLangs`** = `['en','cy']` array of allowed languages.

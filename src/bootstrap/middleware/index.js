@@ -192,7 +192,12 @@ const middleware = {
       ...nunjucksOptions,
     });
 
-    if (locales !== undefined || translationOptions !== undefined) {
+    const hmpoI18nRequired =
+      translationOptions !== false &&
+      locales !== false &&
+      (locales != null || translationOptions != null);
+
+    if (hmpoI18nRequired) {
       translation.setup(app, {
         locales,
         hmpoComponentsDir,

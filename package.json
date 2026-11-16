@@ -1,6 +1,6 @@
 {
   "name": "@govuk-one-login/di-ipv-cri-common-express",
-  "version": "17.0.1",
+  "version": "18.0.0",
   "description": "Express libraries and utilities for use building GOV.UK One Login Credential Issuers",
   "main": "src/index.js",
   "files": [
@@ -50,7 +50,6 @@
     "frameguard": "4.0.0",
     "helmet": "8.1.0",
     "hmpo-config": "4.0.0",
-    "hmpo-i18n": "8.0.1",
     "hmpo-logger": "9.0.0",
     "i18next": "26.3.4",
     "i18next-fs-backend": "2.6.6",
@@ -73,6 +72,7 @@
     "globals": "^17.8.0",
     "hmpo-components": "8.0.5",
     "hmpo-form-wizard": "16.0.0",
+    "hmpo-i18n": "8.0.1",
     "hmpo-reqres": "3.0.0",
     "lint-staged": "15.5.2",
     "nock": "^14.0.15",
@@ -90,6 +90,7 @@
     "govuk-frontend": "^5.0.0",
     "hmpo-components": "^7.1.0 || ^8.0.5",
     "hmpo-form-wizard": ">=12.0.6",
+    "hmpo-i18n": "^8.0.1",
     "nunjucks": "^3.2.4"
   },
   "peerDependenciesMeta": {
@@ -97,6 +98,9 @@
       "optional": true
     },
     "hmpo-form-wizard": {
+      "optional": true
+    },
+    "hmpo-i18n": {
       "optional": true
     }
   },
