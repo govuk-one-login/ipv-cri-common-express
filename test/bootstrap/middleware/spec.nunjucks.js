@@ -1,9 +1,6 @@
 import { describe, vi, expect, it, beforeEach, afterEach } from "vitest";
-
-const nunjucks = require("nunjucks");
-const { setup: setupNunjucks } = require(
-  APP_ROOT + "/src/bootstrap/middleware/nunjucks",
-);
+import nunjucks from "nunjucks";
+import { setupNunjucks } from "../../../src/bootstrap/middleware/nunjucks.js";
 
 describe("nunjucks middleware", () => {
   let app, nunjucksEnv;

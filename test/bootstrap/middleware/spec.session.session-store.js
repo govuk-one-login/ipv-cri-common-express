@@ -1,29 +1,19 @@
-import { describe, vi, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, vi, it, expect, beforeEach } from "vitest";
+import { sessionMiddleware } from "../../../src/bootstrap/middleware/session.js";
+import * as redisClientModule from "../../../src/bootstrap/lib/redis-client.js";
+vi.mock("express-session", () => ({ default: vi.fn() }));
+import expressSession from "express-session";
 
-const proxyquire = require("proxyquire");
-const expressSession = vi.fn();
-const session = proxyquire(APP_ROOT + "/src/bootstrap/middleware/session", {
-  "express-session": expressSession,
-});
-const redisClient = require(APP_ROOT + "/src/bootstrap/lib/redis-client");
+let redisStub;
+
+vi.spyOn(redisClientModule, "getRedisClient").mockReturnValue(redisStub);
 
 describe("Session", () => {
-  let redisStub;
-
   beforeEach(() => {
     redisStub = {
       on: vi.fn(),
     };
-    vi.spyOn(redisClient, "getClient").mockReturnValue(redisStub);
-    expressSession.mockReset();
-  });
-
-  afterEach(() => {
-    redisClient.getClient.mockRestore();
-  });
-
-  it("exports an object of middleware", () => {
-    expect(typeof session).toBe("object");
+    vi.mocked(expressSession).mockClear();
   });
 
   describe("session middleware", () => {
@@ -36,7 +26,7 @@ describe("Session", () => {
       });
 
       it("should be set with default properties", () => {
-        session.middleware({ sessionStore });
+        sessionMiddleware({ sessionStore });
 
         expect(expressSession).toHaveBeenCalledWith({
           store: sessionStore,
@@ -49,7 +39,7 @@ describe("Session", () => {
       });
 
       it("should allow override of cookie key", () => {
-        session.middleware({ cookieName: "cookie-name", sessionStore });
+        sessionMiddleware({ cookieName: "cookie-name", sessionStore });
 
         expect(expressSession).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -59,7 +49,7 @@ describe("Session", () => {
       });
 
       it("should allow override of secret", () => {
-        session.middleware({ secret: "very-secret", sessionStore });
+        sessionMiddleware({ secret: "very-secret", sessionStore });
 
         expect(expressSession).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -76,7 +66,7 @@ describe("Session", () => {
             domain: ".example.com",
           };
 
-          session.middleware({ cookieOptions, sessionStore });
+          sessionMiddleware({ cookieOptions, sessionStore });
 
           expect(expressSession).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -90,7 +80,7 @@ describe("Session", () => {
             secure: "false",
           };
 
-          session.middleware({ cookieOptions, sessionStore });
+          sessionMiddleware({ cookieOptions, sessionStore });
 
           expect(expressSession).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -104,7 +94,7 @@ describe("Session", () => {
             domain: ".example.com",
           };
 
-          session.middleware({ cookieOptions, sessionStore });
+          sessionMiddleware({ cookieOptions, sessionStore });
 
           expect(expressSession).toHaveBeenCalledWith(
             expect.objectContaining({

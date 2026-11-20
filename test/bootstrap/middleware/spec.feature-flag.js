@@ -1,8 +1,14 @@
 import { describe, it, beforeEach, vi, expect } from "vitest";
-
-const featureFlag = require(
-  APP_ROOT + "/src/bootstrap/middleware/feature-flag",
-);
+import {
+  featureFlagMiddleware,
+  getFlags,
+  isFlagDisabled,
+  isFlagEnabled,
+  redirectIfFlagDisabled,
+  redirectIfFlagEnabled,
+  routeIfFlagEnabled,
+} from "../../../src/bootstrap/middleware/feature-flag.js";
+import hmpoReqRes from "hmpo-reqres";
 
 describe("Feature Flag", () => {
   let options;
@@ -30,11 +36,11 @@ describe("Feature Flag", () => {
       },
     };
 
-    res = require("hmpo-reqres").res();
+    res = hmpoReqRes.res();
     res.redirect = vi.fn();
     next = vi.fn();
 
-    middleware = featureFlag.middleware(options);
+    middleware = featureFlagMiddleware(options);
   });
 
   describe("#middleware", () => {
@@ -50,7 +56,7 @@ describe("Feature Flag", () => {
     });
 
     it("should ignore nonexistant feature flag sources", () => {
-      middleware = featureFlag.middleware();
+      middleware = featureFlagMiddleware();
       delete req.featureFlags;
       delete req.session;
 
@@ -95,7 +101,7 @@ describe("Feature Flag", () => {
 
   describe("#getFlags", () => {
     it("should return the current flags from the req", () => {
-      expect(featureFlag.getFlags(req)).toEqual({
+      expect(getFlags(req)).toEqual({
         enabledFlag: true,
         disabledFlag: false,
       });
@@ -103,93 +109,81 @@ describe("Feature Flag", () => {
 
     it("should return en empty object if there are no flags in the req", () => {
       delete req.featureFlags;
-      expect(featureFlag.getFlags(req)).toEqual({});
+      expect(getFlags(req)).toEqual({});
     });
 
     it("should not cache flag results", () => {
       req.featureFlags.varyingFlag = true;
 
-      let flags = featureFlag.getFlags(req);
+      let flags = getFlags(req);
       expect(flags.varyingFlag).toEqual(true);
 
       req.featureFlags.varyingFlag = false;
 
-      flags = featureFlag.getFlags(req);
+      flags = getFlags(req);
       expect(flags.varyingFlag).toEqual(false);
     });
   });
 
   describe("#isEnabled", () => {
     it("should call getFlags to fetch the current flags from the req", () => {
-      expect(featureFlag.isEnabled("enabledFlag", req)).toBe(true);
+      expect(isFlagEnabled("enabledFlag", req)).toBe(true);
     });
 
     it("should be true with an enabled flag", () => {
-      expect(featureFlag.isEnabled("enabledFlag", req)).toBe(true);
+      expect(isFlagEnabled("enabledFlag", req)).toBe(true);
     });
 
     it("should be false with an disabled flag", () => {
-      expect(featureFlag.isEnabled("disabledFlag", req)).toBe(false);
+      expect(isFlagEnabled("disabledFlag", req)).toBe(false);
     });
 
     it("should be false with a non existing flag", () => {
-      expect(featureFlag.isEnabled("nonExistingFlag", req)).toBe(false);
+      expect(isFlagEnabled("nonExistingFlag", req)).toBe(false);
     });
   });
 
   describe("#isDisabled", () => {
     it("should be false with an enabled flag", () => {
-      expect(featureFlag.isDisabled("enabledFlag", req)).toBe(false);
+      expect(isFlagDisabled("enabledFlag", req)).toBe(false);
     });
 
     it("should be true with an disabled flag", () => {
-      expect(featureFlag.isDisabled("disabledFlag", req)).toBe(true);
+      expect(isFlagDisabled("disabledFlag", req)).toBe(true);
     });
 
     it("should be true with an non existing flag", () => {
-      expect(featureFlag.isDisabled("nonExistingFlag", req)).toBe(true);
+      expect(isFlagDisabled("nonExistingFlag", req)).toBe(true);
     });
   });
 
   describe("#redirectIfEnabled", () => {
     it("should redirect with an enabled flag", () => {
-      middleware = featureFlag.redirectIfEnabled(
-        "enabledFlag",
-        "http://example.org",
-      );
+      middleware = redirectIfFlagEnabled("enabledFlag", "http://example.org");
       middleware(req, res, next);
       expect(res.redirect).toHaveBeenCalledWith("http://example.org");
     });
 
     it("should not call next with an enabled flag", () => {
-      middleware = featureFlag.redirectIfEnabled(
-        "enabledFlag",
-        "http://example.org",
-      );
+      middleware = redirectIfFlagEnabled("enabledFlag", "http://example.org");
       middleware(req, res, next);
       expect(next).not.toHaveBeenCalled();
     });
 
     it("should not redirect with a disabled flag", () => {
-      middleware = featureFlag.redirectIfEnabled(
-        "disabledFlag",
-        "http://example.org",
-      );
+      middleware = redirectIfFlagEnabled("disabledFlag", "http://example.org");
       middleware(req, res, next);
       expect(res.redirect).not.toHaveBeenCalled();
     });
 
     it("should call next with a disabled flag", () => {
-      middleware = featureFlag.redirectIfEnabled(
-        "disabledFlag",
-        "http://example.org",
-      );
+      middleware = redirectIfFlagEnabled("disabledFlag", "http://example.org");
       middleware(req, res, next);
       expect(next).toHaveBeenCalled();
     });
 
     it("should not redirect with a non existing flag", () => {
-      middleware = featureFlag.redirectIfEnabled(
+      middleware = redirectIfFlagEnabled(
         "nonExistingFlag",
         "http://example.org",
       );
@@ -198,7 +192,7 @@ describe("Feature Flag", () => {
     });
 
     it("should call next with a non existing flag", () => {
-      middleware = featureFlag.redirectIfEnabled(
+      middleware = redirectIfFlagEnabled(
         "nonExistingFlag",
         "http://example.org",
       );
@@ -209,43 +203,31 @@ describe("Feature Flag", () => {
 
   describe("#redirectIfDisabled", () => {
     it("should not redirect with an enabled flag", () => {
-      middleware = featureFlag.redirectIfDisabled(
-        "enabledFlag",
-        "http://example.org",
-      );
+      middleware = redirectIfFlagDisabled("enabledFlag", "http://example.org");
       middleware(req, res, next);
       expect(res.redirect).not.toHaveBeenCalled();
     });
 
     it("should call next with an enabled flag", () => {
-      middleware = featureFlag.redirectIfDisabled(
-        "enabledFlag",
-        "http://example.org",
-      );
+      middleware = redirectIfFlagDisabled("enabledFlag", "http://example.org");
       middleware(req, res, next);
       expect(next).toHaveBeenCalled();
     });
 
     it("should redirect with a disabled flag", () => {
-      middleware = featureFlag.redirectIfDisabled(
-        "disabledFlag",
-        "http://example.org",
-      );
+      middleware = redirectIfFlagDisabled("disabledFlag", "http://example.org");
       middleware(req, res, next);
       expect(res.redirect).toHaveBeenCalledWith("http://example.org");
     });
 
     it("should not call next with a disabled flag", () => {
-      middleware = featureFlag.redirectIfDisabled(
-        "disabledFlag",
-        "http://example.org",
-      );
+      middleware = redirectIfFlagDisabled("disabledFlag", "http://example.org");
       middleware(req, res, next);
       expect(next).not.toHaveBeenCalled();
     });
 
     it("should redirect with a non existing flag", () => {
-      middleware = featureFlag.redirectIfDisabled(
+      middleware = redirectIfFlagDisabled(
         "nonExistingFlag",
         "http://example.org",
       );
@@ -254,7 +236,7 @@ describe("Feature Flag", () => {
     });
 
     it("should not call next with a non existing flag", () => {
-      middleware = featureFlag.redirectIfDisabled(
+      middleware = redirectIfFlagDisabled(
         "nonExistingFlag",
         "http://example.org",
       );
@@ -273,7 +255,7 @@ describe("Feature Flag", () => {
     });
 
     it("should route to ifMiddleware with an enabled flag", () => {
-      middleware = featureFlag.routeIf(
+      middleware = routeIfFlagEnabled(
         "enabledFlag",
         ifMiddleware,
         elseMiddleware,
@@ -286,7 +268,7 @@ describe("Feature Flag", () => {
     });
 
     it("should route to elseMiddleware with a disabled flag", () => {
-      middleware = featureFlag.routeIf(
+      middleware = routeIfFlagEnabled(
         "disabledFlag",
         ifMiddleware,
         elseMiddleware,
@@ -299,7 +281,7 @@ describe("Feature Flag", () => {
     });
 
     it("should route to elseMiddleware with a non existing flag", () => {
-      middleware = featureFlag.routeIf(
+      middleware = routeIfFlagEnabled(
         "nonExistingFlag",
         ifMiddleware,
         elseMiddleware,
@@ -312,7 +294,7 @@ describe("Feature Flag", () => {
     });
 
     it("should route to elseMiddleware with a no flag", () => {
-      middleware = featureFlag.routeIf(undefined, ifMiddleware, elseMiddleware);
+      middleware = routeIfFlagEnabled(undefined, ifMiddleware, elseMiddleware);
 
       middleware(req, res, next);
 

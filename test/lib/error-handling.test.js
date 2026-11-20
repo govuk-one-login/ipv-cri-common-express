@@ -1,13 +1,12 @@
 import { describe, vi, expect, beforeEach, it } from "vitest";
-import { createDefaultReqResNext } from "../utils/helpers";
+import { createDefaultReqResNext } from "../utils/helpers.js";
+import { CustomFetchHttpError } from "../../src/lib/custom-fetch.js";
+import { redirectAsErrorToCallback } from "../../src/lib/error-handling.js";
+vi.mock("../../src/lib/oauth.js", () => ({ buildRedirectUrl: vi.fn() }));
+import { buildRedirectUrl } from "../../src/lib/oauth.js";
+import { getLogger } from "../../src/bootstrap/lib/logger.js";
 
-const proxyquire = require("proxyquire");
-const { CustomFetchHttpError } = require("../../src/lib/custom-fetch");
-
-const oAuthStub = {};
-const { redirectAsErrorToCallback } = proxyquire("./error-handling", {
-  "./oauth": oAuthStub,
-});
+const warn = vi.mocked(getLogger().warn);
 
 function buildErrorWithBody(body, contentType = "application/json") {
   return new CustomFetchHttpError(
@@ -37,7 +36,7 @@ describe("error-handling", () => {
       authParams: { redirect_uri: "http://example.org" },
     };
 
-    oAuthStub.buildRedirectUrl = vi.fn();
+    vi.clearAllMocks();
   });
 
   describe("redirectAsErrorToCallbackWithoutOauthPrefix", () => {
@@ -53,7 +52,7 @@ describe("error-handling", () => {
       it("should override error values if provided in response body without Oauth Prefix", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: {
               redirect_uri: "http://error.example.org",
@@ -75,7 +74,7 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: expect.objectContaining({
               error: expect.objectContaining({
@@ -94,7 +93,7 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: expect.objectContaining({
               error: expect.objectContaining({
@@ -113,7 +112,7 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: expect.objectContaining({
               redirect_uri: "http://example.org",
@@ -131,7 +130,7 @@ describe("error-handling", () => {
       });
 
       it("should build redirect with default error code and description", () => {
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith({
+        expect(buildRedirectUrl).toHaveBeenCalledWith({
           authParams: {
             error: { code: "server_error", description: "general error" },
             redirect_uri: "http://example.org",
@@ -143,7 +142,7 @@ describe("error-handling", () => {
     describe("with valid redirect url", () => {
       beforeEach(async () => {
         err = new Error("error message");
-        oAuthStub.buildRedirectUrl.mockReturnValue("http://example.org");
+        buildRedirectUrl.mockReturnValue("http://example.org");
         await redirectAsErrorToCallback(err, req, res, next);
       });
 
@@ -160,7 +159,7 @@ describe("error-handling", () => {
       beforeEach(async () => {
         err = new Error("error message");
         req.session.authParams.redirect_uri = "not-a-url";
-        oAuthStub.buildRedirectUrl.mockThrow("parse error");
+        buildRedirectUrl.mockThrow("parse error");
 
         await redirectAsErrorToCallback(err, req, res, next);
       });
@@ -189,7 +188,7 @@ describe("error-handling", () => {
       it("should override error values if provided in response body", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: {
               redirect_uri: "http://error.example.org",
@@ -213,7 +212,7 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: expect.objectContaining({
               error: expect.objectContaining({
@@ -234,7 +233,7 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: expect.objectContaining({
               error: expect.objectContaining({
@@ -255,7 +254,7 @@ describe("error-handling", () => {
 
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: expect.objectContaining({
               redirect_uri: "http://example.org",
@@ -282,7 +281,7 @@ describe("error-handling", () => {
       it("should still parse the body and override error values", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: {
               redirect_uri: "http://error.example.org",
@@ -313,7 +312,7 @@ describe("error-handling", () => {
       it("should still parse the body and override error values", async () => {
         await redirectAsErrorToCallback(err, req, res, next);
 
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: {
               redirect_uri: "http://error.example.org",
@@ -328,10 +327,7 @@ describe("error-handling", () => {
     });
 
     describe("with an HTTP error body that is not valid JSON", () => {
-      let warn;
-
       beforeEach(async () => {
-        warn = require("../../src/bootstrap/lib/logger").get().warn;
         warn.mockClear();
 
         err = new CustomFetchHttpError(
@@ -354,7 +350,7 @@ describe("error-handling", () => {
       });
 
       it("should fall back to the default error code and description", () => {
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: expect.objectContaining({
               error: { code: "server_error", description: "general error" },
@@ -387,7 +383,7 @@ describe("error-handling", () => {
       });
 
       it("should fall back to the default error code and description", () => {
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith(
+        expect(buildRedirectUrl).toHaveBeenCalledWith(
           expect.objectContaining({
             authParams: expect.objectContaining({
               error: { code: "server_error", description: "general error" },
@@ -405,7 +401,7 @@ describe("error-handling", () => {
       });
 
       it("should build redirect with default error code and description", () => {
-        expect(oAuthStub.buildRedirectUrl).toHaveBeenCalledWith({
+        expect(buildRedirectUrl).toHaveBeenCalledWith({
           authParams: {
             error: { code: "server_error", description: "general error" },
             redirect_uri: "http://example.org",
@@ -417,7 +413,7 @@ describe("error-handling", () => {
     describe("with valid redirect url", () => {
       beforeEach(async () => {
         err = new Error("error message");
-        oAuthStub.buildRedirectUrl.mockReturnValue("http://example.org");
+        buildRedirectUrl.mockReturnValue("http://example.org");
         await redirectAsErrorToCallback(err, req, res, next);
       });
 
@@ -434,7 +430,7 @@ describe("error-handling", () => {
       beforeEach(async () => {
         err = new Error("error message");
         req.session.authParams.redirect_uri = "not-a-url";
-        oAuthStub.buildRedirectUrl.mockImplementation(() => {
+        buildRedirectUrl.mockImplementation(() => {
           throw new Error("parse error");
         });
 
@@ -529,7 +525,7 @@ describe("error-handling", () => {
 
       it("should not redirect the asset request to the callback", () => {
         expect(res.redirect).not.to.have.been.called;
-        expect(oAuthStub.buildRedirectUrl).not.to.have.been.called;
+        expect(buildRedirectUrl).not.to.have.been.called;
       });
 
       it("should pass the error through to next", () => {

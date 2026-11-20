@@ -1,19 +1,16 @@
 import { describe, it, expect, vi } from "vitest";
-
-const compatibility = require(
-  APP_ROOT + "/src/bootstrap/middleware/compatibility",
-);
+import { browserCompatibilityMiddleware } from "../../../src/bootstrap/middleware/compatibility.js";
 
 describe("Compatibility", () => {
   it("exports a middleware function", () => {
-    const fn = compatibility.middleware();
+    const fn = browserCompatibilityMiddleware();
     expect(typeof fn).toBe("function");
     expect(fn).toHaveLength(3);
   });
 
   describe("middleware", () => {
     it("should set compatibility header", () => {
-      const fn = compatibility.middleware();
+      const fn = browserCompatibilityMiddleware();
       const req = {};
       const res = {
         setHeader: vi.fn(),

@@ -1,13 +1,12 @@
 import { vi } from "vitest";
-
-const resolve = require("path").resolve;
+import { setupConfig } from "../../src/bootstrap/lib/config.js";
+import { resolve } from "node:path";
+import * as loggerModule from "../../src/bootstrap/lib/logger.js";
 
 global.APP_ROOT = resolve(__dirname, "..", "..");
 
 global.CONFIG_RESET = () => {
-  delete global.GLOBAL_CONFIG;
-  const config = require(global.APP_ROOT + "/src/bootstrap/lib/config");
-  config.setup({
+  setupConfig({
     APP_ROOT: resolve(__dirname, "fixtures"),
     seed: {
       APP_NAME: "test",
@@ -25,11 +24,10 @@ global.LOGGER_RESET = () => {
     warn: vi.fn(),
   };
 
-  const logger = require(global.APP_ROOT + "/src/bootstrap/lib/logger");
-  if (vi.isMockFunction(logger.get)) {
-    logger.get.mockRestore();
+  if (vi.isMockFunction(loggerModule.getLogger)) {
+    loggerModule.getLogger.mockRestore();
   }
-  vi.spyOn(logger, "get").mockReturnValue(loggerStub);
+  vi.spyOn(loggerModule, "getLogger").mockReturnValue(loggerStub);
 
   return loggerStub;
 };

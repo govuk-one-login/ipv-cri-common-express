@@ -1,11 +1,9 @@
 import { describe, it, expect, afterAll, beforeAll, vi } from "vitest";
-
-const nock = require("nock");
-
-const {
-  CustomFetchHttpError,
+import nock from "nock";
+import {
   customFetchMiddleware,
-} = require("../../src/lib/custom-fetch");
+  CustomFetchHttpError,
+} from "../../src/lib/custom-fetch.js";
 
 describe("custom-fetch.js with nock stub", () => {
   let dummyReq = {

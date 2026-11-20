@@ -1,14 +1,15 @@
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { createDefaultReqResNext } from "../../utils/helpers";
+import { createDefaultReqResNext } from "../../utils/helpers.js";
+import { replaceTranslate } from "../../../src/lib/i18next/replace-translate.js";
+import { getLogger } from "../../../src/bootstrap/lib/logger.js";
 
-const proxyquire = require("proxyquire");
+const logger = getLogger();
+const warn = vi.mocked(logger.warn);
 
 describe("replaceTranslate", () => {
   let req;
   let res;
   let next;
-  let warn;
-  let replaceTranslate;
 
   beforeEach(() => {
     const setup = createDefaultReqResNext();
@@ -22,13 +23,6 @@ describe("replaceTranslate", () => {
       getFixedT: vi.fn(),
       language: "en",
     };
-
-    warn = vi.fn();
-    ({ replaceTranslate } = proxyquire("./replace-translate", {
-      "../../bootstrap/lib/logger": {
-        get: vi.fn().mockReturnValueOnce({ warn }),
-      },
-    }));
   });
 
   it("should call getFixedT with language", () => {
@@ -84,26 +78,11 @@ describe("replaceTranslate", () => {
     res.locals.translate = existing;
 
     replaceTranslate(req, res, next);
+    replaceTranslate(req, res, next);
+    replaceTranslate(req, res, next);
 
+    expect(warn).toHaveBeenCalledTimes(1);
     expect(res.locals.translate).toEqual(existing);
-  });
-
-  it("should warn when res.locals.translate is already set", () => {
-    res.locals.translate = vi.fn();
-
-    replaceTranslate(req, res, next);
-
-    expect(warn).toHaveBeenCalledTimes(1);
-  });
-
-  it("should only warn once across multiple requests", () => {
-    res.locals.translate = vi.fn();
-
-    replaceTranslate(req, res, next);
-    replaceTranslate(req, res, next);
-    replaceTranslate(req, res, next);
-
-    expect(warn).toHaveBeenCalledTimes(1);
   });
 
   it("should not warn when res.locals.translate is unset", () => {

@@ -1,10 +1,10 @@
 import { expect, it, describe, vi, beforeEach } from "vitest";
 
-const {
-  CustomFetchHttpError,
+import {
   customFetchMiddleware,
+  CustomFetchHttpError,
   DNS_ERROR_LOG_MESSAGE,
-} = require("../../src/lib/custom-fetch");
+} from "../../src/lib/custom-fetch.js";
 
 const badResponse = {
   status: 418,
