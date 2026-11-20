@@ -1,14 +1,20 @@
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
-const hmpoLogger = require("hmpo-logger");
-const logger = require(APP_ROOT + "/src/bootstrap/lib/logger");
+import hmpoLogger from "hmpo-logger";
+import {
+  getLogger,
+  logError,
+  redactQueryParams,
+  setupLogger,
+} from "../../../src/bootstrap/lib/logger";
+import pino from "pino";
 
 describe("Logger", () => {
   beforeEach(() => {
     vi.spyOn(hmpoLogger, "config");
     vi.spyOn(hmpoLogger, "get").mockReturnValue("logger instance");
-    if (vi.isMockFunction(logger.get)) {
-      logger.get.mockRestore();
+    if (vi.isMockFunction(getLogger)) {
+      getLogger.mockRestore();
     }
   });
 
@@ -43,7 +49,7 @@ describe("Logger", () => {
     ].forEach(({ input, output }) => {
       it(`should correctly map ${input}`, () => {
         // Act
-        const actual = logger.redactQueryParams(input);
+        const actual = redactQueryParams(input);
 
         // Assert
         expect(actual).toEqual(output);
@@ -58,32 +64,30 @@ describe("Logger", () => {
   });
 
   it("exports functions", () => {
-    expect(typeof logger).toBe("function");
-    expect(typeof logger.setup).toBe("function");
-    expect(typeof logger.get).toBe("function");
-    expect(logger.get).toEqual(logger);
+    expect(typeof setupLogger).toBe("function");
+    expect(typeof getLogger).toBe("function");
   });
 
   describe("setup", () => {
     it("configures logger from options", () => {
-      logger.setup({ foo: "bar" });
+      setupLogger({ foo: "bar" });
       expect(hmpoLogger.config).toHaveBeenCalledWith({ foo: "bar" });
     });
 
     it("configures logger from config", () => {
-      logger.setup();
+      setupLogger();
       expect(hmpoLogger.config).toHaveBeenCalledWith({ console: true });
     });
   });
 
   describe("get", () => {
     it("returns a named logger", () => {
-      logger.get("name");
+      getLogger("name");
       expect(hmpoLogger.get).toHaveBeenCalledWith("name", 2);
     });
 
     it("returns a default logger", () => {
-      logger.get();
+      getLogger();
       expect(hmpoLogger.get).toHaveBeenCalledWith(":hmpo-app", 2);
     });
 
@@ -91,7 +95,7 @@ describe("Logger", () => {
       const prev = process.env.USE_PINO_LOGGER;
       delete process.env.USE_PINO_LOGGER;
 
-      logger.get("fallback-test");
+      getLogger("fallback-test");
       expect(hmpoLogger.get).toHaveBeenCalledWith("fallback-test", 2);
 
       if (typeof prev !== "undefined") {
@@ -112,21 +116,19 @@ describe("Logger", () => {
     });
 
     it("creates and returns a pino logger", () => {
-      const pinoLogger = logger.get("pino-test");
+      const pinoLogger = getLogger("pino-test");
       expect(pinoLogger).to.have.property("info").that.is.a("function");
     });
 
     it("caches pino loggers by name", () => {
-      const logger1 = logger.get("cached-logger");
-      const logger2 = logger.get("cached-logger");
+      const logger1 = getLogger("cached-logger");
+      const logger2 = getLogger("cached-logger");
       expect(logger1).to.equal(logger2);
     });
 
     describe("serializers", () => {
-      const pino = require("pino");
-
       const getSerializers = () =>
-        logger.get("serializer-test")[pino.symbols.serializersSym];
+        getLogger("serializer-test")[pino.symbols.serializersSym];
 
       it("serializes error properties for hmpo-logger parity", () => {
         const err = new Error("Something failed");
@@ -236,7 +238,7 @@ describe("Logger", () => {
     });
 
     it("should log structured error in Pino mode", function () {
-      logger.logError(mockReq, mockErr(), { logger: mockLogger });
+      logError(mockReq, mockErr(), { logger: mockLogger });
 
       expect(mockLogger.error).toHaveBeenCalledTimes(1);
 
@@ -249,7 +251,7 @@ describe("Logger", () => {
     });
 
     it("should include prefix in message", function () {
-      logger.logError(mockReq, mockErr(), {
+      logError(mockReq, mockErr(), {
         logger: mockLogger,
         messagePrefix: "Added Start",
       });
@@ -263,7 +265,7 @@ describe("Logger", () => {
       const err = mockErr();
       err.status = 403;
 
-      logger.logError(mockReq, err, { logger: mockLogger });
+      logError(mockReq, err, { logger: mockLogger });
 
       const arg = mockLogger.error.mock.calls[0][0];
 
@@ -275,7 +277,7 @@ describe("Logger", () => {
       const err = mockErr();
       err.stack = "line one\nline two";
 
-      logger.logError(mockReq, err, { logger: mockLogger });
+      logError(mockReq, err, { logger: mockLogger });
 
       const arg = mockLogger.error.mock.calls[0][0];
 
@@ -286,7 +288,7 @@ describe("Logger", () => {
       const err = mockErr();
       err.original = new Error("Root cause");
 
-      logger.logError(mockReq, err, { logger: mockLogger });
+      logError(mockReq, err, { logger: mockLogger });
 
       const arg = mockLogger.error.mock.calls[0][0];
 
@@ -294,7 +296,7 @@ describe("Logger", () => {
     });
 
     it("should include clientip and sessionID", function () {
-      logger.logError({ ...mockReq, sessionID: "session-1" }, mockErr(), {
+      logError({ ...mockReq, sessionID: "session-1" }, mockErr(), {
         logger: mockLogger,
       });
 
@@ -307,7 +309,7 @@ describe("Logger", () => {
     it("should omit code if not present", function () {
       const err = new Error("No code error");
 
-      logger.logError(mockReq, err, { logger: mockLogger });
+      logError(mockReq, err, { logger: mockLogger });
 
       const arg = mockLogger.error.mock.calls[0][0];
 
@@ -315,7 +317,7 @@ describe("Logger", () => {
     });
 
     it("should redact sensitive query params from request", function () {
-      logger.logError(mockReq, mockErr(), { logger: mockLogger });
+      logError(mockReq, mockErr(), { logger: mockLogger });
 
       const arg = mockLogger.error.mock.calls[0][0];
 
@@ -325,7 +327,7 @@ describe("Logger", () => {
     it("should include stack in non-production", function () {
       process.env.NODE_ENV = "development";
 
-      logger.logError(mockReq, mockErr(), { logger: mockLogger });
+      logError(mockReq, mockErr(), { logger: mockLogger });
 
       const arg = mockLogger.error.mock.calls[0][0];
 
@@ -335,7 +337,7 @@ describe("Logger", () => {
     it("should call HMPO logger in legacy mode", function () {
       process.env.USE_PINO_LOGGER = "false";
 
-      logger.logError(mockReq, mockErr(), { logger: mockLogger });
+      logError(mockReq, mockErr(), { logger: mockLogger });
 
       expect(mockLogger.error).toHaveBeenCalledTimes(1);
 

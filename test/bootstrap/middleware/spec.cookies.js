@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-
-const cookies = require(APP_ROOT + "/src/bootstrap/middleware/cookies");
+import { cookieMiddleware } from "../../../src/bootstrap/middleware/cookies.js";
 
 describe("Cookies", () => {
   describe("middleware", () => {
     let parser, fn, req, res, next, cookieStub;
 
     beforeEach(() => {
-      [parser, fn] = cookies.middleware({ secret: "abc123" });
+      [parser, fn] = cookieMiddleware({ secret: "abc123" });
       cookieStub = vi.fn();
       req = {
         protocol: "http",
@@ -26,7 +25,7 @@ describe("Cookies", () => {
     });
 
     it("should default options to an empty object", () => {
-      [parser, fn] = cookies.middleware();
+      [parser, fn] = cookieMiddleware();
       expect(typeof parser).toBe("function");
       expect(parser).toHaveLength(3);
       expect(typeof fn).toBe("function");

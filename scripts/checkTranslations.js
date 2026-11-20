@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { lstatSync, readdirSync } from "node:fs";
 import path, { join, parse } from "node:path";
 import { fileURLToPath } from "node:url";

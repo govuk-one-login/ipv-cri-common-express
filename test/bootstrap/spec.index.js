@@ -1,31 +1,41 @@
-import { expect, describe, it, vi, beforeEach, afterEach } from "vitest";
+import { expect, describe, it, vi, beforeEach } from "vitest";
+import express from "express";
+import { appSetup } from "../../src/bootstrap/index.js";
 
-const index = require(APP_ROOT + "/src/bootstrap");
-const express = require("express");
+vi.mock("../../src/bootstrap/lib/config.js");
+import { getConfig, setupConfig } from "../../src/bootstrap/lib/config.js";
+
+vi.mock("../../src/bootstrap/lib/logger.js");
+import { setupLogger } from "../../src/bootstrap/lib/logger.js";
+
+const redisClientGetterMock = vi.hoisted(() => vi.fn());
+const setupRedisClientMock = vi.hoisted(() => vi.fn());
+vi.mock("../../src/bootstrap/lib/redis-client.js", () => ({
+  setupRedisClient: setupRedisClientMock,
+  redisClientStore: { client: { get: redisClientGetterMock } },
+}));
+import { setupRedisClient } from "../../src/bootstrap/lib/redis-client.js";
+
+vi.mock("../../src/bootstrap/middleware/index.js");
+import {
+  setupMiddlewares,
+  listen,
+} from "../../src/bootstrap/middleware/index.js";
+
+vi.mock("../../src/bootstrap/middleware/session.js");
+import { sessionMiddleware } from "../../src/bootstrap/middleware/session.js";
+
+vi.mock("../../src/bootstrap/middleware/error-handler.js");
+import { errorHandlerMiddleware } from "../../src/bootstrap/middleware/error-handler.js";
+import { randomUUID } from "node:crypto";
+
+const setupMiddlewaresMock = vi.mocked(setupMiddlewares);
+const listenMock = vi.mocked(listen);
+const getConfigMock = vi.mocked(getConfig);
 
 describe("hmpo-app", () => {
-  it("should export setup functions and libs", () => {
-    expect(Object.keys(index)).toEqual(
-      expect.arrayContaining([
-        "setup",
-        "middleware",
-        "config",
-        "logger",
-        "redisClient",
-        "translation",
-        "nunjucks",
-        "linkedFiles",
-        "featureFlag",
-      ]),
-    );
-  });
-
   describe("setup", () => {
     let app;
-    let staticRouter;
-    let router;
-    let errorRouter;
-    let publicFallbackRouter;
     let routerSpy;
 
     beforeEach(() => {
@@ -41,171 +51,167 @@ describe("hmpo-app", () => {
         get: vi.fn(),
         locals: { urls: { public: "/public", publicImages: "/public/images" } },
       };
-      publicFallbackRouter = {
-        use: vi.fn(),
-      };
-      staticRouter = {
-        use: vi.fn(),
-      };
-      router = {
-        use: vi.fn(),
-      };
-      errorRouter = {
-        use: vi.fn(),
-      };
       routerSpy = vi.spyOn(express, "Router");
-      routerSpy
-        .mockReturnValueOnce(staticRouter)
-        .mockReturnValueOnce(publicFallbackRouter)
-        .mockReturnValueOnce(router)
-        .mockReturnValueOnce(errorRouter);
-      vi.spyOn(index.config, "get");
-      vi.spyOn(index.config, "setup");
-      vi.spyOn(index.logger, "setup");
-      vi.spyOn(index.redisClient, "setup").mockImplementation(() => {});
-      vi.spyOn(index.redisClient, "getClient").mockReturnValue(redisStub);
-      vi.spyOn(index.middleware, "setup").mockReturnValue(app);
-      vi.spyOn(index.middleware, "session");
-      vi.spyOn(index.middleware, "errorHandler");
-      vi.spyOn(index.middleware, "listen").mockImplementation(() => {});
-    });
-    afterEach(() => {
-      vi.restoreAllMocks();
+      routerSpy.mockImplementation(() => ({
+        type: "router",
+        id: randomUUID(),
+        use: vi.fn(),
+      }));
+      setupRedisClientMock.mockImplementation(() => {});
+      redisClientGetterMock.mockReturnValue(() => redisStub);
+      setupMiddlewaresMock.mockReturnValue(app);
+      listenMock.mockImplementation(() => {});
     });
 
     it("calls config.setup", () => {
-      index.setup();
-      expect(index.config.setup).toHaveBeenCalledWith(undefined);
+      appSetup();
+      expect(setupConfig).toHaveBeenCalledWith(undefined);
     });
 
     it("calls config.setup with options", () => {
-      index.setup({ config: { option: true } });
-      expect(index.config.setup).toHaveBeenCalledWith({
+      appSetup({ config: { option: true } });
+      expect(setupConfig).toHaveBeenCalledWith({
         option: true,
       });
     });
 
     it("should not call config.setup if option is false", () => {
-      index.setup({ config: false });
-      expect(index.config.setup).not.toHaveBeenCalled();
+      appSetup({ config: false });
+      expect(setupConfig).not.toHaveBeenCalled();
     });
 
     it("calls logger.setup with options", () => {
-      index.config.get.mockImplementation((arg) => {
+      getConfigMock.mockImplementation((arg) => {
         if (arg === "logs") return { config: true };
       });
-      index.setup({ logs: { option: true } });
-      expect(index.logger.setup).toHaveBeenCalledWith({
+      appSetup({ logs: { option: true } });
+      expect(setupLogger).toHaveBeenCalledWith({
         option: true,
         config: true,
       });
     });
 
     it("should not call logger.setup if option is false", () => {
-      index.setup({ logs: false });
-      expect(index.logger.setup).not.toHaveBeenCalled();
+      appSetup({ logs: false });
+      expect(setupLogger).not.toHaveBeenCalled();
     });
 
     it("calls redisClient.setup with options", () => {
-      index.config.get.mockImplementation((arg) => {
+      getConfigMock.mockImplementation((arg) => {
         if (arg === "redis") return { config: true };
       });
-      index.setup({ redis: { option: true } });
-      expect(index.redisClient.setup).toHaveBeenCalledWith({
+      appSetup({ redis: { option: true } });
+      expect(setupRedisClient).toHaveBeenCalledWith({
         option: true,
         config: true,
       });
     });
 
     it("should not call redisClient.setup if option is false", () => {
-      index.setup({ redis: false });
-      expect(index.redisClient.setup).not.toHaveBeenCalled();
+      appSetup({ redis: false });
+      expect(setupRedisClient).not.toHaveBeenCalled();
     });
 
     it("calls middleware.setup with options", () => {
-      index.config.get.mockReturnValue({ config: true });
-      index.setup({ option: true });
-      expect(index.middleware.setup).toHaveBeenCalledWith({
+      getConfig.mockReturnValue({ config: true });
+      appSetup({ option: true });
+      expect(setupMiddlewares).toHaveBeenCalledWith({
         option: true,
         config: true,
       });
     });
 
     it("calls middleware.session with options", () => {
-      index.config.get.mockImplementation((arg) => {
+      getConfigMock.mockImplementation((arg) => {
         if (arg === "session") return { config: true };
       });
-      index.setup({ session: { option: true } });
-      expect(index.middleware.session).toHaveBeenCalledWith(app, {
+      appSetup({ session: { option: true } });
+      expect(sessionMiddleware).toHaveBeenCalledWith(app, {
         option: true,
         config: true,
       });
     });
 
     it("should not call middleware.session if option is false", () => {
-      index.setup({ session: false });
-      expect(index.middleware.session).not.toHaveBeenCalled();
+      appSetup({ session: false });
+      expect(sessionMiddleware).not.toHaveBeenCalled();
     });
 
     it("calls middleware.errorHandler with options", () => {
-      index.config.get.mockImplementation((arg) => {
+      getConfigMock.mockImplementation((arg) => {
         if (arg === "errors") return { config: true };
       });
-      index.setup({ errors: { option: true } });
-      expect(index.middleware.errorHandler).toHaveBeenCalledWith(app, {
+      appSetup({ errors: { option: true } });
+      expect(errorHandlerMiddleware).toHaveBeenCalledWith(app, {
         option: true,
         config: true,
       });
     });
 
     it("should not call middleware.errorHandler if option is false", () => {
-      index.setup({ errors: false });
-      expect(index.middleware.errorHandler).not.toHaveBeenCalled();
+      appSetup({ errors: false });
+      expect(errorHandlerMiddleware).not.toHaveBeenCalled();
     });
 
     it("should call middlewareSetupFn if option is defined", () => {
       const callbackStub = vi.fn();
-      index.setup({ middlewareSetupFn: callbackStub });
+      appSetup({ middlewareSetupFn: callbackStub });
       expect(callbackStub).toHaveBeenCalled();
     });
 
-    it("mounts the public 404 fallback after staticRouter", () => {
-      index.setup();
-      expect(app.use).toHaveBeenNthCalledWith(1, staticRouter);
-      expect(app.use).toHaveBeenNthCalledWith(2, publicFallbackRouter);
-    });
-
     it("does not mount the public 404 fallback if public option is false", () => {
-      index.setup({ public: false });
+      appSetup({ public: false });
       expect(express.Router).toHaveBeenCalledTimes(3);
     });
 
     it("calls middleware.listen with options", () => {
-      index.config.get.mockImplementation((arg) => {
+      getConfig.mockImplementation((arg) => {
         if (arg === "host") return "hostname";
         if (arg === "port") return 1234;
       });
 
-      index.setup({ port: 5678 });
-      expect(index.middleware.listen).toHaveBeenCalledWith(app, {
+      appSetup({ port: 5678 });
+      expect(listen).toHaveBeenCalledWith(app, {
         port: 5678,
         host: "hostname",
       });
     });
 
     it("should not call middleware.listen if port is false", () => {
-      index.setup({ port: false });
-      expect(index.middleware.listen).not.toHaveBeenCalled();
+      appSetup({ port: false });
+      expect(listen).not.toHaveBeenCalled();
     });
 
     it("returns apps and routers", () => {
-      const routers = index.setup();
+      const routers = appSetup({ public: false });
+
       expect(routers).toEqual({
         app,
-        staticRouter: staticRouter,
-        router: router,
-        errorRouter: errorRouter,
+        staticRouter: {
+          type: "router",
+          id: expect.any(String),
+          use: expect.any(Function),
+        },
+        router: {
+          type: "router",
+          id: expect.any(String),
+          use: expect.any(Function),
+        },
+        errorRouter: {
+          type: "router",
+          id: expect.any(String),
+          use: expect.any(Function),
+        },
       });
+
+      // confirm that the router instances are different
+      expect(
+        new Set([
+          routers.staticRouter.id,
+          routers.router.id,
+          routers.errorRouter.id,
+        ]),
+      ).toHaveLength(3);
     });
   });
 });

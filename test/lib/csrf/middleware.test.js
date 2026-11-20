@@ -1,8 +1,10 @@
 import { vi, expect, describe, beforeEach, it } from "vitest";
-
-const { buildCsrfMiddleware } = require("../../../src/lib/csrf/middleware");
-const CsrfError = require("../../../src/lib/csrf/error");
-const token = require("../../../src/lib/csrf/token");
+import {
+  buildCsrfMiddleware,
+  CsrfError,
+  verifyCsrfToken,
+  createCsrfToken,
+} from "../../../src/lib/csrf/index.js";
 
 const SECRET = "hunter2"; // pragma: allowlist secret
 const SESSION_CSRF_SECRET = "top-secret"; // pragma: allowlist secret
@@ -82,7 +84,7 @@ describe("lib/csrf/middleware", () => {
         expect(next).toHaveBeenCalled();
         expect(typeof res.locals.csrfToken).toBe("string");
         expect(
-          token.verifyCsrfToken(
+          verifyCsrfToken(
             [SECRET],
             req.session.csrfSecret,
             res.locals.csrfToken,
@@ -129,7 +131,7 @@ describe("lib/csrf/middleware", () => {
 
     beforeEach(() => {
       middleware = buildCsrfMiddleware({ secret: SECRET });
-      validToken = token.createCsrfToken([SECRET], SESSION_CSRF_SECRET);
+      validToken = createCsrfToken([SECRET], SESSION_CSRF_SECRET);
     });
 
     ["POST", "PUT", "PATCH", "DELETE"].forEach((method) => {
@@ -180,10 +182,7 @@ describe("lib/csrf/middleware", () => {
     });
 
     it("rejects a token created for a different session", () => {
-      const otherToken = token.createCsrfToken(
-        [SECRET],
-        "other-session-secret",
-      );
+      const otherToken = createCsrfToken([SECRET], "other-session-secret");
       const req = buildReq({ method: "POST", body: { _csrf: otherToken } });
       middleware(req, buildRes(), next);
 
@@ -201,10 +200,7 @@ describe("lib/csrf/middleware", () => {
 
   describe("secret rotation", () => {
     it("accepts a POST with a token signed by a previously-accepted secret", () => {
-      const oldToken = token.createCsrfToken(
-        ["old-secret"],
-        SESSION_CSRF_SECRET,
-      );
+      const oldToken = createCsrfToken(["old-secret"], SESSION_CSRF_SECRET);
       const middleware = buildCsrfMiddleware({
         secret: ["new-secret", "old-secret"],
       });
@@ -225,14 +221,14 @@ describe("lib/csrf/middleware", () => {
       middleware(req, res, next);
 
       expect(
-        token.verifyCsrfToken(
+        verifyCsrfToken(
           ["new-secret"],
           req.session.csrfSecret,
           res.locals.csrfToken,
         ),
       ).toEqual(true);
       expect(
-        token.verifyCsrfToken(
+        verifyCsrfToken(
           ["old-secret"],
           req.session.csrfSecret,
           res.locals.csrfToken,
@@ -241,10 +237,7 @@ describe("lib/csrf/middleware", () => {
     });
 
     it("rejects tokens signed by the old secret once it's removed from the list", () => {
-      const oldToken = token.createCsrfToken(
-        ["old-secret"],
-        SESSION_CSRF_SECRET,
-      );
+      const oldToken = createCsrfToken(["old-secret"], SESSION_CSRF_SECRET);
       const middleware = buildCsrfMiddleware({ secret: "new-secret" });
       const req = buildReq({ method: "POST", body: { _csrf: oldToken } });
 

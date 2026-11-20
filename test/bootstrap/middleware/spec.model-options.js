@@ -1,8 +1,5 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
-
-const modelOptions = require(
-  APP_ROOT + "/src/bootstrap/middleware/model-options",
-);
+import { modelOptionsMiddleware } from "../../../src/bootstrap/middleware/model-options.js";
 
 describe("Model options helper", () => {
   let req, res, next;
@@ -20,24 +17,24 @@ describe("Model options helper", () => {
 
   describe("middleware", () => {
     it("exports a function with length 3", () => {
-      expect(typeof modelOptions.middleware()).toBe("function");
-      expect(modelOptions.middleware()).toHaveLength(3);
+      expect(typeof modelOptionsMiddleware()).toBe("function");
+      expect(modelOptionsMiddleware()).toHaveLength(3);
     });
 
     it("creates a modelOptions method in req", () => {
-      modelOptions.middleware()(req, res, next);
+      modelOptionsMiddleware()(req, res, next);
       expect(typeof req.modelOptions).toBe("function");
     });
 
     it("calls next", () => {
-      modelOptions.middleware()(req, res, next);
+      modelOptionsMiddleware()(req, res, next);
       expect(next).toHaveBeenCalled();
     });
   });
 
   describe("req.modelOptions", () => {
     it("returns model options", () => {
-      modelOptions.middleware()(req, res, next);
+      modelOptionsMiddleware()(req, res, next);
       let options = req.modelOptions();
       expect(options).toEqual({
         headers: {
@@ -51,7 +48,7 @@ describe("Model options helper", () => {
     });
 
     it("merges passed options with generated options", () => {
-      modelOptions.middleware({
+      modelOptionsMiddleware({
         sessionIDHeader: "HEADER1",
         scenarioIDHeader: "HEADER2",
         foo: "bar",

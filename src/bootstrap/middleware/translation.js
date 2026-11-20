@@ -5,21 +5,23 @@ import { existsSync } from "node:fs";
 
 const debug = debugLib("hmpo-app:translations");
 
-function loadHmpoI18n() {
-  try {
-    return import("hmpo-i18n");
-  } catch {
-    throw new Error(
-      "'hmpo-i18n' is not installed but is required by the \"locales\"/\"translation\" options. Add 'hmpo-i18n' to your dependencies.",
-    );
-  }
+export async function loadI18n() {
+  return (await import("hmpo-i18n")).default;
 }
 
 export async function setupTranslation(
   app,
   { locales = ".", hmpoComponentsDir, ...otherOptions } = {},
+  loadHmpoI18n = loadI18n,
 ) {
-  const hmpoI18n = await loadHmpoI18n();
+  let hmpoI18n;
+  try {
+    hmpoI18n = await loadHmpoI18n();
+  } catch {
+    throw new Error(
+      "'hmpo-i18n' is not installed but is required by the \"locales\"/\"translation\" options. Add 'hmpo-i18n' to your dependencies.",
+    );
+  }
 
   const APP_ROOT = getConfig("APP_ROOT");
   const isDevEnv = Boolean(app.get("dev"));

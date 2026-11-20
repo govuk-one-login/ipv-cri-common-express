@@ -1,19 +1,21 @@
 import { expect, beforeEach, afterEach, describe, it, vi } from "vitest";
+import express from "express";
+import reqres from "hmpo-reqres";
 
-const express = require("express");
-const reqres = require("reqres");
-const {
+import {
   setGTM,
   setDeviceIntelligence,
   setLanguageToggle,
-} = require("../../src/lib/settings");
-const {
+} from "../../src/lib/settings";
+import {
   getGTM,
   getDeviceIntelligence,
   getLanguageToggle,
-} = require("../../src/lib/locals");
-const { PACKAGE_NAME } = require("../../src/lib/constants");
-const logger = require("../../src/bootstrap/lib/logger").get(PACKAGE_NAME);
+} from "../../src/lib/locals";
+import { PACKAGE_NAME } from "../../src/lib/constants.js";
+import { getLogger } from "../../src/bootstrap/lib/logger.js";
+
+const logger = getLogger(PACKAGE_NAME);
 
 describe("setGTM / getGTM", () => {
   it("Sets express config and retrieves it", () => {
@@ -27,10 +29,8 @@ describe("setGTM / getGTM", () => {
     setGTM({
       app,
       ga4ContainerId: "ga4ContainerIdTest",
-      uaContainerId: "uaContainerIdTest",
       analyticsCookieDomain: "analyticsCookieDomainTest",
       ga4Enabled: "ga4EnabledTest",
-      uaEnabled: "uaEnabledTest",
       ga4PageViewEnabled: "ga4PageViewEnabledTest",
       ga4FormResponseEnabled: "ga4FormResponseEnabledTest",
       ga4FormErrorEnabled: "ga4FormErrorEnabledTest",
@@ -45,10 +45,10 @@ describe("setGTM / getGTM", () => {
     router(req, res, () => {
       expect(res.locals).toEqual({
         ga4ContainerId: "ga4ContainerIdTest",
-        uaContainerId: "uaContainerIdTest",
         analyticsCookieDomain: "analyticsCookieDomainTest",
         ga4Enabled: "ga4EnabledTest",
-        uaEnabled: "uaEnabledTest",
+        uaContainerId: undefined,
+        uaEnabled: false,
         ga4PageViewEnabled: "ga4PageViewEnabledTest",
         ga4FormResponseEnabled: "ga4FormResponseEnabledTest",
         ga4FormErrorEnabled: "ga4FormErrorEnabledTest",

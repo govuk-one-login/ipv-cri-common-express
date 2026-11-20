@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-const { configure } = require("../../../src/bootstrap/lib/overload-protection");
+import { configureOverloadProtection } from "../../../src/bootstrap/lib/overload-protection.js";
 
 describe("overload-protection (configure)", () => {
   describe("without environment variables", () => {
     it("should have default values", () => {
-      const values = configure();
+      const values = configureOverloadProtection();
 
       expect(values).toEqual({
         production: "production",
@@ -32,7 +32,7 @@ describe("overload-protection (configure)", () => {
         logStatsOnReq: true,
       };
 
-      const values = configure(parameters);
+      const values = configureOverloadProtection(parameters);
 
       expect(values).toEqual(parameters);
     });
@@ -43,7 +43,7 @@ describe("overload-protection (configure)", () => {
         logging: true,
       };
 
-      const values = configure(parameters);
+      const values = configureOverloadProtection(parameters);
 
       expect(values).toEqual({
         clientRetrySecs: 1,
@@ -69,7 +69,7 @@ describe("overload-protection (configure)", () => {
     });
 
     it("should have use overrides for maxEventLoopDelay from environment", () => {
-      const values = configure();
+      const values = configureOverloadProtection();
 
       expect(values).toEqual({
         production: "production",
@@ -85,7 +85,7 @@ describe("overload-protection (configure)", () => {
     });
 
     it("should have use overrides maxEventLoopDelay from parameters before environment", () => {
-      const values = configure({ maxEventLoopDelay: 1200 });
+      const values = configureOverloadProtection({ maxEventLoopDelay: 1200 });
 
       expect(values).toEqual({
         production: "production",

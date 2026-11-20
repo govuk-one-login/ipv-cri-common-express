@@ -2,6 +2,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
+    isolate: false,
     clearMocks: true,
     include: ["test/**/*.test.js", "**/*.test.js", "**/spec*.js"],
     setupFiles: ["./test/utils/helpers.js", "./test/bootstrap/helper.js"],

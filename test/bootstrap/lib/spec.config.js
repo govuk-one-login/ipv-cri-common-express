@@ -1,7 +1,7 @@
 import { describe, beforeEach, afterEach, it, vi, expect } from "vitest";
 
-const hmpoConfig = require("hmpo-config");
-const config = require(APP_ROOT + "/src/bootstrap/lib/config");
+import hmpoConfig from "hmpo-config";
+import { getConfig, setupConfig } from "../../../src/bootstrap/lib/config";
 
 describe("Config", () => {
   beforeEach(() => {
@@ -23,15 +23,13 @@ describe("Config", () => {
   });
 
   it("exports functions", () => {
-    expect(typeof config).toBe("function");
-    expect(typeof config.setup).toBe("function");
-    expect(typeof config.get).toBe("function");
-    expect(config.get).toEqual(config);
+    expect(typeof setupConfig).toBe("function");
+    expect(typeof getConfig).toBe("function");
   });
 
   describe("setup", () => {
     it("loads config using defaults", () => {
-      config.setup();
+      setupConfig();
 
       expect(hmpoConfig.prototype.addFile).toHaveBeenCalledTimes(3);
 
@@ -52,7 +50,7 @@ describe("Config", () => {
     });
 
     it("loads config using specified files", () => {
-      config.setup({ files: ["a.json", "b.json"] });
+      setupConfig({ files: ["a.json", "b.json"] });
 
       expect(hmpoConfig.prototype.addFile).toHaveBeenCalledTimes(2);
 
@@ -66,8 +64,8 @@ describe("Config", () => {
     });
 
     it("merges config config using defaults", () => {
-      config.setup();
-      config.setup();
+      setupConfig();
+      setupConfig();
 
       expect(hmpoConfig.prototype.addConfig).toHaveBeenCalledWith({
         returned: "config",
@@ -78,7 +76,7 @@ describe("Config", () => {
       const env = {
         HMPO_CONFIG: '{ config: "string" }',
       };
-      config.setup({ _environmentVariables: env });
+      setupConfig({ _environmentVariables: env });
 
       expect(hmpoConfig.prototype.addString).toHaveBeenCalledWith(
         '{ config: "string" }',
@@ -96,7 +94,7 @@ describe("Config", () => {
         "-c",
         "configfile.yaml",
       ];
-      config.setup({ _commandLineArgs: args });
+      setupConfig({ _commandLineArgs: args });
 
       expect(hmpoConfig.prototype.addFile).toHaveBeenCalledWith(
         "configfile.json",
@@ -109,7 +107,7 @@ describe("Config", () => {
     it("sets the timezone if specified in config", () => {
       const env = {};
       hmpoConfig.prototype.toJSON.mockReturnValue({ timezone: "BST" });
-      config.setup({ _environmentVariables: env });
+      setupConfig({ _environmentVariables: env });
 
       expect(env.TZ).toEqual("BST");
     });
@@ -117,36 +115,36 @@ describe("Config", () => {
 
   describe("get", () => {
     it("throws an error if no config is loaded", () => {
-      expect(() => config.get("key")).toThrow("Config not loaded");
+      expect(() => getConfig("key")).toThrow("Config not loaded");
     });
 
     it("returns a value from config", () => {
       global.GLOBAL_CONFIG = { key: "value" };
-      const result = config.get("key");
+      const result = getConfig("key");
       expect(result).toEqual("value");
     });
 
     it("returns a deep value from config", () => {
       global.GLOBAL_CONFIG = { obj: { obj2: { key: "value" } } };
-      const result = config.get("obj.obj2.key");
+      const result = getConfig("obj.obj2.key");
       expect(result).toEqual("value");
     });
 
     it("returns undefined if any part of the path is not found", () => {
       global.GLOBAL_CONFIG = { obj: { obj2: { key: "value" } } };
-      const result = config.get("obj.obj3.key");
+      const result = getConfig("obj.obj3.key");
       expect(result).toBeUndefined();
     });
 
     it("returns default value if any part of the path is not found", () => {
       global.GLOBAL_CONFIG = { obj: { obj2: { key: "value" } } };
-      const result = config.get("obj.obj3.key", "default");
+      const result = getConfig("obj.obj3.key", "default");
       expect(result).toEqual("default");
     });
 
     it("returns config root with no path specified", () => {
       global.GLOBAL_CONFIG = { obj: { obj2: { key: "value" } } };
-      const result = config.get();
+      const result = getConfig();
       expect(result).toEqual(global.GLOBAL_CONFIG);
     });
   });
