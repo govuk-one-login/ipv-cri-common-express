@@ -1,11 +1,87 @@
 import { describe, it, vi, beforeEach, expect } from "vitest";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const path = require("path");
-const proxyquire = require("proxyquire").noPreserveCache();
-const hmpoComponentsDir = path.dirname(require.resolve("hmpo-components"));
+vi.mock("express", () => ({
+  default: vi.fn(),
+}));
+import express from "express";
+vi.mock("hmpo-components", () => ({ default: { setup: vi.fn() } }));
+import hmpoComponents from "hmpo-components";
+vi.mock("hmpo-logger", () => ({
+  default: { middleware: vi.fn().mockReturnValue("hmpoLogger middleware") },
+}));
+import hmpoLogger from "hmpo-logger";
+vi.mock("body-parser", () => ({
+  urlencoded: vi.fn().mockReturnValue("bodyParser middleware"),
+}));
+import { urlencoded } from "body-parser";
+vi.mock("../../../src/bootstrap/middleware/cookies.js", () => ({
+  cookieMiddleware: vi.fn().mockReturnValue("cookies middleware"),
+}));
+import { cookieMiddleware } from "../../../src/bootstrap/middleware/cookies.js";
+vi.mock("../../../src/bootstrap/middleware/headers.js", () => ({
+  setupHeaders: vi.fn(),
+}));
+import { setupHeaders } from "../../../src/bootstrap/middleware/headers.js";
+vi.mock("../../../src/bootstrap/middleware/healthcheck.js", () => ({
+  healthcheckMiddleware: vi.fn().mockReturnValue("healthcheck middleware"),
+}));
+import { healthcheckMiddleware } from "../../../src/bootstrap/middleware/healthcheck.js";
+vi.mock("../../../src/bootstrap/middleware/version.js", () => ({
+  versionMiddleware: vi.fn().mockReturnValue("version middleware"),
+}));
+import { versionMiddleware } from "../../../src/bootstrap/middleware/version.js";
+vi.mock("../../../src/bootstrap/middleware/feature-flag.js", () => ({
+  featureFlagMiddleware: vi.fn().mockReturnValue("featureFlag middleware"),
+}));
+import { featureFlagMiddleware } from "../../../src/bootstrap/middleware/feature-flag.js";
+vi.mock("../../../src/bootstrap/middleware/model-options.js", () => ({
+  modelOptionsMiddleware: vi.fn().mockReturnValue("modelOptions middleware"),
+}));
+import { modelOptionsMiddleware } from "../../../src/bootstrap/middleware/model-options.js";
+vi.mock("../../../src/bootstrap/middleware/public.js", () => ({
+  publicAssetsMiddleware: vi.fn().mockReturnValue("public middleware"),
+}));
+import { publicAssetsMiddleware } from "../../../src/bootstrap/middleware/public.js";
+vi.mock("../../../src/bootstrap/middleware/nunjucks.js", () => ({
+  setupNunjucks: vi.fn().mockReturnValue({ nunjucksEnv: "yes" }),
+}));
+import { setupNunjucks } from "../../../src/bootstrap/middleware/nunjucks.js";
+vi.mock("../../../src/bootstrap/middleware/translation.js", () => ({
+  setupTranslation: vi.fn(),
+}));
+import { setupTranslation } from "../../../src/bootstrap/middleware/translation.js";
+vi.mock("../../../src/bootstrap/middleware/session.js", () => ({
+  sessionMiddleware: vi.fn().mockReturnValue("session middleware"),
+}));
+import { sessionMiddleware } from "../../../src/bootstrap/middleware/session.js";
+vi.mock("../../../src/bootstrap/middleware/linked-files.js", () => ({
+  linkedFilesMiddleware: vi.fn().mockReturnValue("linkedFiles middleware"),
+}));
+import { linkedFilesMiddleware } from "../../../src/bootstrap/middleware/linked-files.js";
+vi.mock("../../../src/bootstrap/middleware/page-not-found.js", () => ({
+  pageNotFoundMiddleware: vi.fn().mockReturnValue("pageNotFound middleware"),
+}));
+import { pageNotFoundMiddleware } from "../../../src/bootstrap/middleware/page-not-found.js";
+vi.mock("../../../src/bootstrap/middleware/error-handler.js", () => ({
+  errorHandlerMiddleware: vi.fn().mockReturnValue("errorHandler middleware"),
+}));
+import { errorHandlerMiddleware } from "../../../src/bootstrap/middleware/error-handler.js";
+
+import {
+  listen,
+  setupErrorHandlerMiddlewares,
+  setupMiddlewares,
+  setupSessionMiddlewares,
+} from "../../../src/bootstrap/middleware/index.js";
+
+const hmpoComponentsDir = dirname(
+  fileURLToPath(import.meta.resolve("hmpo-components")),
+);
 
 describe("middleware functions", () => {
-  let middleware, app;
+  let app;
 
   beforeEach(() => {
     app = {
@@ -18,104 +94,45 @@ describe("middleware functions", () => {
       get: vi.fn(),
       listen: vi.fn(),
     };
+    vi.clearAllMocks();
+    vi.mocked(express).mockReturnValue(app);
   });
 
   it("exports middleware functions", () => {
-    middleware = require(APP_ROOT + "/src/bootstrap/middleware");
-    expect(typeof middleware.setup).toBe("function");
-    expect(typeof middleware.session).toBe("function");
-    expect(typeof middleware.errorHandler).toBe("function");
-    expect(typeof middleware.listen).toBe("function");
+    expect(typeof setupMiddlewares).toBe("function");
+    expect(typeof setupSessionMiddlewares).toBe("function");
+    expect(typeof setupErrorHandlerMiddlewares).toBe("function");
+    expect(typeof listen).toBe("function");
   });
 
   describe("requiredArgument", () => {
     it("should throw an error when the required argument is not provided in session", () => {
-      expect(() => middleware.session()).toThrow(Error);
-      expect(() => middleware.session()).toThrow(
+      expect(() => setupSessionMiddlewares()).toThrow(Error);
+      expect(() => setupSessionMiddlewares()).toThrow(
         "Argument 'app' must be specified",
       );
     });
 
     it("should throw an error when the required argument is not provided in errorHandler", () => {
-      expect(() => middleware.errorHandler()).toThrow(Error);
-      expect(() => middleware.errorHandler()).toThrow(
+      expect(() => setupErrorHandlerMiddlewares()).toThrow(Error);
+      expect(() => setupErrorHandlerMiddlewares()).toThrow(
         "Argument 'app' must be specified",
       );
     });
 
     it("should throw an error when the required argument is not provided in listen", () => {
-      expect(() => middleware.listen()).toThrow(Error);
-      expect(() => middleware.listen()).toThrow(
-        "Argument 'app' must be specified",
-      );
+      expect(() => listen()).toThrow(Error);
+      expect(() => listen()).toThrow("Argument 'app' must be specified");
     });
   });
 
   describe("setup", () => {
-    let stubs, nunjucksEnv;
-
     beforeEach(() => {
-      nunjucksEnv = {};
       vi.stubEnv("NODE_ENV", "development");
-      stubs = {
-        express: vi.fn().mockReturnValue(app),
-        hmpoLogger: {
-          middleware: vi.fn().mockReturnValue("hmpoLogger middleware"),
-        },
-        bodyParser: {
-          urlencoded: vi.fn().mockReturnValue("bodyParser middleware"),
-        },
-        cookies: {
-          middleware: vi.fn().mockReturnValue("cookies middleware"),
-        },
-        headers: {
-          setup: vi.fn().mockReturnValue({}),
-        },
-        healthcheck: {
-          middleware: vi.fn().mockReturnValue("healthcheck middleware"),
-        },
-        version: {
-          middleware: vi.fn().mockReturnValue("version middleware"),
-        },
-        featureFlag: {
-          middleware: vi.fn().mockReturnValue("featureFlag middleware"),
-        },
-        modelOptions: {
-          middleware: vi.fn().mockReturnValue("modelOptions middleware"),
-        },
-        public: {
-          middleware: vi.fn().mockReturnValue("public middleware"),
-        },
-        nunjucks: {
-          setup: vi.fn().mockReturnValue(nunjucksEnv),
-        },
-        translation: {
-          setup: vi.fn(),
-        },
-        hmpoComponents: {
-          setup: vi.fn(),
-        },
-      };
-
-      middleware = proxyquire(APP_ROOT + "/src/bootstrap/middleware", {
-        express: stubs.express,
-        "body-parser": stubs.bodyParser,
-        "hmpo-logger": stubs.hmpoLogger,
-        "hmpo-components": stubs.hmpoComponents,
-        "./nunjucks": stubs.nunjucks,
-        "./public": stubs.public,
-        "./translation": stubs.translation,
-        "./headers": stubs.headers,
-        "./healthcheck": stubs.healthcheck,
-        "./model-options": stubs.modelOptions,
-        "./version": stubs.version,
-        "./cookies": stubs.cookies,
-        "./feature-flag": stubs.featureFlag,
-      });
     });
 
-    it("should not register hmpoLogger middleware if requestLogging is false", () => {
-      middleware.setup({
+    it("should not register hmpoLogger middleware if requestLogging is false", async () => {
+      await setupMiddlewares({
         app,
         urls: {},
         publicOptions: {},
@@ -123,14 +140,13 @@ describe("middleware functions", () => {
         modelOptionsConfig: {},
         featureFlags: {},
         requestLogging: false,
-        stubs,
       });
-      expect(stubs.hmpoLogger.middleware).not.toHaveBeenCalled();
+      expect(hmpoLogger.middleware).not.toHaveBeenCalled();
       expect(app.use).not.toHaveBeenCalledWith("hmpoLogger middleware");
     });
 
-    it("should use the public middleware when publicOptions is true or not set", () => {
-      middleware.setup({
+    it("should use the public middleware when publicOptions is true or not set", async () => {
+      await setupMiddlewares({
         urls: {
           public: "/public-url",
         },
@@ -139,7 +155,7 @@ describe("middleware functions", () => {
         public: { maxAge: 3600 }, // publicOptions is set
       });
 
-      expect(stubs.public.middleware).toHaveBeenCalledWith({
+      expect(publicAssetsMiddleware).toHaveBeenCalledWith({
         urls: {
           public: "/public-url",
           publicImages: "/public-url/images",
@@ -154,95 +170,95 @@ describe("middleware functions", () => {
       expect(app.use).toHaveBeenCalledWith("public middleware");
     });
 
-    it("should not use public middleware when publicOptions is false", () => {
+    it("should not use public middleware when publicOptions is false", async () => {
       const publicOptions = false;
       const urls = {};
       const publicDirs = [];
       const publicImagesDirs = [];
 
-      middleware.setup({
+      await setupMiddlewares({
         urls,
         publicDirs,
         publicImagesDirs,
         public: publicOptions,
       });
 
-      expect(stubs.public.middleware).not.toHaveBeenCalled();
+      expect(publicAssetsMiddleware).not.toHaveBeenCalled();
       expect(app.use).not.toHaveBeenCalledWith("public middleware");
     });
 
-    it("should set default version and healthcheck URLs if not provided", () => {
+    it("should set default version and healthcheck URLs if not provided", async () => {
       const urls = {};
 
-      middleware.setup({ urls });
+      await setupMiddlewares({ urls });
 
-      expect(urls.version).toEqual("/version");
-      expect(urls.healthcheck).toEqual("/healthcheck");
+      expect(app.locals.urls.version).toEqual("/version");
+      expect(app.locals.urls.healthcheck).toEqual("/healthcheck");
     });
 
-    it("should retain provided version and healthcheck URLs", () => {
+    it("should retain provided version and healthcheck URLs", async () => {
       const urls = {
         version: "/custom-version",
         healthcheck: "/custom-healthcheck",
       };
 
-      middleware.setup({ urls });
+      await setupMiddlewares({ urls });
 
       expect(urls.version).toEqual("/custom-version");
       expect(urls.healthcheck).toEqual("/custom-healthcheck");
     });
 
-    it("should create a new express app", () => {
-      const returnedApp = middleware.setup();
-      expect(stubs.express).toHaveBeenCalledWith();
+    it("should create a new express app", async () => {
+      const returnedApp = await setupMiddlewares();
+      expect(express).toHaveBeenCalledWith();
       expect(returnedApp).toEqual(app);
     });
 
-    it("should set the express env value", () => {
-      middleware.setup();
+    it("should set the express env value", async () => {
+      await setupMiddlewares();
       expect(app.set).toHaveBeenCalledWith("env", "development");
     });
 
-    it("should use the env value specified in options", () => {
-      middleware.setup({ env: "production" });
+    it("should use the env value specified in options", async () => {
+      await setupMiddlewares({ env: "production" });
       expect(app.set).toHaveBeenCalledWith("env", "production");
     });
 
-    it("should use the /version middleware", () => {
-      middleware.setup();
-      expect(stubs.version.middleware).toHaveBeenCalledWith();
+    it("should use the /version middleware", async () => {
+      await setupMiddlewares();
+      expect(versionMiddleware).toHaveBeenCalledWith();
       expect(app.get).toHaveBeenCalledWith("/version", "version middleware");
     });
 
-    it("should not use the /version middleware", () => {
-      middleware.setup({ urls: { version: false } });
-      expect(stubs.version.middleware).not.toHaveBeenCalled();
+    it("should not use the /version middleware", async () => {
+      await setupMiddlewares({ urls: { version: false } });
+      expect(versionMiddleware).not.toHaveBeenCalled();
       expect(app.get).not.toHaveBeenCalledWith(
         "/version",
         "version middleware",
       );
     });
 
-    it("should use the /healthcheck middleware", () => {
-      middleware.setup();
-      expect(stubs.healthcheck.middleware).toHaveBeenCalledWith();
+    it("should use the /healthcheck middleware", async () => {
+      await setupMiddlewares();
+      expect(healthcheckMiddleware).toHaveBeenCalledWith();
       expect(app.get).toHaveBeenCalledWith(
         "/healthcheck",
         "healthcheck middleware",
       );
     });
 
-    it("should not use the /healthcheck middleware", () => {
-      middleware.setup({ urls: { healthcheck: false } });
-      expect(stubs.healthcheck.middleware).not.toHaveBeenCalled();
+    it("should not use the /healthcheck middleware", async () => {
+      await setupMiddlewares({ urls: { healthcheck: false } });
+      expect(healthcheckMiddleware).not.toHaveBeenCalled();
       expect(app.get).not.toHaveBeenCalledWith(
         "/healthcheck",
         "healthcheck middleware",
       );
     });
 
-    it("should use the /public middleware", () => {
-      middleware.setup({
+    it("should use the /public middleware", async () => {
+      await setupMiddlewares({
         urls: {
           public: "/public-url",
         },
@@ -250,7 +266,7 @@ describe("middleware functions", () => {
         publicImagesDirs: ["assets/images"],
         public: { maxAge: 3600 },
       });
-      expect(stubs.public.middleware).toHaveBeenCalledWith({
+      expect(publicAssetsMiddleware).toHaveBeenCalledWith({
         urls: {
           public: "/public-url",
           publicImages: "/public-url/images",
@@ -265,110 +281,118 @@ describe("middleware functions", () => {
       expect(app.use).toHaveBeenCalledWith("public middleware");
     });
 
-    it("should use the hmpoLogger middleware", () => {
-      middleware.setup();
-      expect(stubs.hmpoLogger.middleware).toHaveBeenCalledWith(":request");
+    it("should use the hmpoLogger middleware", async () => {
+      await setupMiddlewares();
+      expect(hmpoLogger.middleware).toHaveBeenCalledWith(":request");
       expect(app.use).toHaveBeenCalledWith("hmpoLogger middleware");
     });
 
-    it("should use the modelOptions middleware", () => {
-      middleware.setup({ modelOptions: { sessionIDHeader: "ID" } });
-      expect(stubs.modelOptions.middleware).toHaveBeenCalledWith({
+    it("should use the modelOptions middleware", async () => {
+      await setupMiddlewares({ modelOptions: { sessionIDHeader: "ID" } });
+      expect(modelOptionsMiddleware).toHaveBeenCalledWith({
         sessionIDHeader: "ID",
       });
       expect(app.use).toHaveBeenCalledWith("modelOptions middleware");
     });
 
-    it("should use the feature flag setup middleware", () => {
-      middleware.setup({
+    it("should use the feature flag setup middleware", async () => {
+      await setupMiddlewares({
         featureFlags: { testFeature: true },
       });
-      expect(stubs.featureFlag.middleware).toHaveBeenCalledWith({
+      expect(featureFlagMiddleware).toHaveBeenCalledWith({
         featureFlags: { testFeature: true },
       });
       expect(app.use).toHaveBeenCalledWith("featureFlag middleware");
     });
 
-    it("should use the cookies middleware", () => {
-      middleware.setup({ cookies: { secret: "test" } });
-      expect(stubs.cookies.middleware).toHaveBeenCalledWith({
+    it("should use the cookies middleware", async () => {
+      await setupMiddlewares({ cookies: { secret: "test" } });
+      expect(cookieMiddleware).toHaveBeenCalledWith({
         secret: "test",
       });
       expect(app.use).toHaveBeenCalledWith("cookies middleware");
     });
 
-    it("should use the body parser middleware", () => {
-      middleware.setup();
-      expect(stubs.bodyParser.urlencoded).toHaveBeenCalledWith({
+    it("should use the body parser middleware", async () => {
+      await setupMiddlewares();
+      expect(urlencoded).toHaveBeenCalledWith({
         extended: true,
       });
       expect(app.use).toHaveBeenCalledWith("bodyParser middleware");
     });
 
-    it("should setup nunjucks", () => {
-      middleware.setup({ views: "a/dir", nunjucks: { additional: "options" } });
-      expect(stubs.nunjucks.setup).toHaveBeenCalledWith(app, {
+    it("should setup nunjucks", async () => {
+      await setupMiddlewares({
+        views: "a/dir",
+        nunjucks: { additional: "options" },
+      });
+      expect(setupNunjucks).toHaveBeenCalledWith(app, {
         views: "a/dir",
         hmpoComponentsDir,
         additional: "options",
       });
     });
 
-    it("should setup translation", () => {
-      middleware.setup({
+    it("should setup translation", async () => {
+      await setupMiddlewares({
         locales: "a/dir",
         translation: { additional: "options" },
       });
-      expect(stubs.translation.setup).toHaveBeenCalledWith(app, {
+      expect(setupTranslation).toHaveBeenCalledWith(app, {
         locales: "a/dir",
         hmpoComponentsDir,
         additional: "options",
       });
     });
 
-    it("should not setup translation when no locales or translation options are provided", () => {
-      middleware.setup({});
-      expect(stubs.translation.setup).not.toHaveBeenCalled();
+    it("should not setup translation when no locales or translation options are provided", async () => {
+      await setupMiddlewares({});
+      expect(setupTranslation).not.toHaveBeenCalled();
     });
 
-    it("should not setup translation when translation is false", () => {
-      middleware.setup({ locales: "a/dir", translation: false });
-      expect(stubs.translation.setup).not.toHaveBeenCalled();
+    it("should not setup translation when translation is false", async () => {
+      await setupMiddlewares({ locales: "a/dir", translation: false });
+      expect(setupTranslation).not.toHaveBeenCalled();
     });
 
-    it("should not setup translation when locales is false", () => {
-      middleware.setup({ locales: false, translation: { some: "option" } });
-      expect(stubs.translation.setup).not.toHaveBeenCalled();
+    it("should not setup translation when locales is false", async () => {
+      await setupMiddlewares({
+        locales: false,
+        translation: { some: "option" },
+      });
+      expect(setupTranslation).not.toHaveBeenCalled();
     });
 
-    it("should not setup translation when locales and translation are null", () => {
-      middleware.setup({ locales: null, translation: null });
-      expect(stubs.translation.setup).not.toHaveBeenCalled();
+    it("should not setup translation when locales and translation are null", async () => {
+      await setupMiddlewares({ locales: null, translation: null });
+      expect(setupTranslation).not.toHaveBeenCalled();
     });
 
-    it("should setup headers", () => {
-      middleware.setup({
+    it("should setup headers", async () => {
+      await setupMiddlewares({
         disableCompression: true,
-        trustProxy: ["localhost"],
+        trustProxy: ["loopback"],
         urls: { public: "/static" },
         helmet: { referrerPolicy: { policy: "no-referrer" } },
       });
 
-      expect(stubs.headers.setup).toHaveBeenCalledWith(app, {
+      expect(setupHeaders).toHaveBeenCalledWith(app, {
         disableCompression: true,
-        trustProxy: ["localhost"],
+        trustProxy: ["loopback"],
         publicPath: "/static",
         helmet: { referrerPolicy: { policy: "no-referrer" } },
       });
     });
 
-    it("should setup hmpoComponents", () => {
-      middleware.setup();
-      expect(stubs.hmpoComponents.setup).toHaveBeenCalledWith(app, nunjucksEnv);
+    it("should setup hmpoComponents", async () => {
+      await setupMiddlewares();
+      expect(hmpoComponents.setup).toHaveBeenCalledWith(app, {
+        nunjucksEnv: "yes",
+      });
     });
 
-    it("should set the globals", () => {
-      middleware.setup({
+    it("should set the globals", async () => {
+      await setupMiddlewares({
         urls: { foo: "bar" },
       });
       expect(app.locals).toEqual({
@@ -384,18 +408,18 @@ describe("middleware functions", () => {
         },
       });
     });
-    it("should set res.locals.baseUrl to req.baseUrl during middleware setup", () => {
+    it("should set res.locals.baseUrl to req.baseUrl during middleware setup", async () => {
       const req = { baseUrl: "/test-url" };
       const res = { locals: {} };
       const next = vi.fn();
 
-      app.use.mockImplementation((middlewareFunction) => {
+      vi.mocked(app.use).mockImplementation((middlewareFunction) => {
         if (middlewareFunction.length === 3) {
           middlewareFunction(req, res, next);
         }
       });
 
-      middleware.setup();
+      await setupMiddlewares();
 
       expect(res.locals.baseUrl).toEqual("/test-url");
       expect(next).toHaveBeenCalledTimes(1);
@@ -403,45 +427,23 @@ describe("middleware functions", () => {
   });
 
   describe("session", () => {
-    let stubs;
-
-    beforeEach(() => {
-      stubs = {
-        session: {
-          middleware: vi.fn().mockReturnValue("session middleware"),
-        },
-        featureFlag: {
-          middleware: vi.fn().mockReturnValue("featureFlag middleware"),
-        },
-        linkedFiles: {
-          middleware: vi.fn().mockReturnValue("linkedFiles middleware"),
-        },
-      };
-
-      middleware = proxyquire(APP_ROOT + "/src/bootstrap/middleware", {
-        "./session": stubs.session,
-        "./feature-flag": stubs.featureFlag,
-        "./linked-files": stubs.linkedFiles,
-      });
-    });
-
     it("should use session middleware", () => {
-      middleware.session(app, { secret: "qwerty" });
-      expect(stubs.session.middleware).toHaveBeenCalledWith({
+      setupSessionMiddlewares(app, { secret: "qwerty" });
+      expect(sessionMiddleware).toHaveBeenCalledWith({
         secret: "qwerty",
       });
       expect(app.use).toHaveBeenCalledWith("session middleware");
     });
 
     it("should use the feature flag setup middleware", () => {
-      middleware.session(app);
-      expect(stubs.featureFlag.middleware).toHaveBeenCalledWith();
+      setupSessionMiddlewares(app);
+      expect(featureFlagMiddleware).toHaveBeenCalledWith();
       expect(app.use).toHaveBeenCalledWith("featureFlag middleware");
     });
 
     it("should use the linked files middleware", () => {
-      middleware.session(app, { ttl: 10 });
-      expect(stubs.linkedFiles.middleware).toHaveBeenCalledWith({
+      setupSessionMiddlewares(app, { ttl: 10 });
+      expect(linkedFilesMiddleware).toHaveBeenCalledWith({
         ttl: 10,
       });
       expect(app.use).toHaveBeenCalledWith("linkedFiles middleware");
@@ -449,35 +451,17 @@ describe("middleware functions", () => {
   });
 
   describe("errorHandler", () => {
-    let stubs;
-
-    beforeEach(() => {
-      stubs = {
-        pageNotFound: {
-          middleware: vi.fn().mockReturnValue("pageNotFound middleware"),
-        },
-        errorHandler: {
-          middleware: vi.fn().mockReturnValue("errorHandler middleware"),
-        },
-      };
-
-      middleware = proxyquire(APP_ROOT + "/src/bootstrap/middleware", {
-        "./page-not-found": stubs.pageNotFound,
-        "./error-handler": stubs.errorHandler,
-      });
-    });
-
     it("should use the pageNotFound middleware", () => {
-      middleware.errorHandler(app, { foo: "bar" });
-      expect(stubs.pageNotFound.middleware).toHaveBeenCalledWith({
+      setupErrorHandlerMiddlewares(app, { foo: "bar" });
+      expect(pageNotFoundMiddleware).toHaveBeenCalledWith({
         foo: "bar",
       });
       expect(app.use).toHaveBeenCalledWith("pageNotFound middleware");
     });
 
     it("should use the errorHandler middleware", () => {
-      middleware.errorHandler(app, { foo: "bar" });
-      expect(stubs.errorHandler.middleware).toHaveBeenCalledWith({
+      setupErrorHandlerMiddlewares(app, { foo: "bar" });
+      expect(errorHandlerMiddleware).toHaveBeenCalledWith({
         foo: "bar",
       });
       expect(app.use).toHaveBeenCalledWith("errorHandler middleware");
@@ -485,12 +469,8 @@ describe("middleware functions", () => {
   });
 
   describe("listen", () => {
-    beforeEach(() => {
-      middleware = require(APP_ROOT + "/src/bootstrap/middleware");
-    });
-
     it("should listen on the default host and port", () => {
-      middleware.listen(app);
+      listen(app);
       expect(app.listen).toHaveBeenCalledWith(
         3000,
         "0.0.0.0",
@@ -499,7 +479,7 @@ describe("middleware functions", () => {
     });
 
     it("should listen on the specified host and port", () => {
-      middleware.listen(app, { host: "hostname", port: 8888 });
+      listen(app, { host: "hostname", port: 8888 });
       expect(app.listen).toHaveBeenCalledWith(
         8888,
         "hostname",

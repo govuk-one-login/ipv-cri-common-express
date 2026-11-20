@@ -1,4 +1,4 @@
-class CsrfError extends Error {
+export class CsrfError extends Error {
   constructor(message = "Invalid CSRF token") {
     super(message);
     this.name = "CsrfError";
@@ -6,5 +6,3 @@ class CsrfError extends Error {
     this.status = 403;
   }
 }
-
-module.exports = CsrfError;

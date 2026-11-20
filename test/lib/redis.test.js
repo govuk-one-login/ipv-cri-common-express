@@ -1,9 +1,12 @@
 import { expect, describe, it } from "vitest";
-describe("redis", () => {
-  const redis = require("./redis");
+import { getRedisConfig } from "../../src/lib/redis.js";
 
+describe("redis", () => {
   it("should return config using environment variables", () => {
-    const redisConfig = redis({ SESSION_URL: "example.org", PORT: "4321" });
+    const redisConfig = getRedisConfig({
+      SESSION_URL: "example.org",
+      PORT: "4321",
+    });
 
     expect(redisConfig).toMatchObject({
       connectionString: "redis://example.org:4321",
@@ -11,7 +14,7 @@ describe("redis", () => {
   });
 
   it("should return empty config when no environment variables are given", () => {
-    const redisConfig = redis();
+    const redisConfig = getRedisConfig();
 
     expect(redisConfig).toEqual({});
   });

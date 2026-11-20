@@ -1,7 +1,6 @@
 import { expect, it, describe, beforeEach } from "vitest";
-import { createDefaultReqResNext } from "../../test/utils/helpers";
-
-const headers = require("./headers");
+import { createDefaultReqResNext } from "../utils/helpers";
+import { setProtocolHeader } from "../../src/lib/headers.js";
 
 describe("headers", () => {
   let req;
@@ -16,7 +15,7 @@ describe("headers", () => {
     res = setup.res;
     next = setup.next;
 
-    headers(req, res, next);
+    setProtocolHeader(req, res, next);
   });
 
   it("should set 'x-forwarded-proto' as 'https'", () => {

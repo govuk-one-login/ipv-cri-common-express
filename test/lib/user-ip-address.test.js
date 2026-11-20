@@ -1,11 +1,10 @@
 import { expect, describe, it } from "vitest";
-
-const userIpAddress = require("./user-ip-address");
+import { extractIpAddress } from "../../src/lib/user-ip-address.js";
 
 describe("user ip address", () => {
   it("should return null when passing req but with req.headers as null", () => {
     const forwarded = null;
-    const ipAddress = userIpAddress(forwarded);
+    const ipAddress = extractIpAddress(forwarded);
 
     expect(ipAddress).toBeNull();
   });
@@ -28,7 +27,7 @@ describe("user ip address", () => {
       expected: "2001:db8:3333:4444:5555:6666:7777:8888",
     },
   ])("$description", ({ forwarded, expected }) => {
-    const ipAddress = userIpAddress(forwarded);
+    const ipAddress = extractIpAddress(forwarded);
 
     expect(ipAddress).toEqual(expected);
   });
@@ -36,7 +35,7 @@ describe("user ip address", () => {
   it("should return null address when we have no for iteam", () => {
     const forwarded = "host=subdomain.example.gov.uk;proto=https";
 
-    const ipAddress = userIpAddress(forwarded);
+    const ipAddress = extractIpAddress(forwarded);
 
     expect(ipAddress).toBeNull();
   });
@@ -44,7 +43,7 @@ describe("user ip address", () => {
   it("should return null address when we have empty ip address in for item", () => {
     const forwarded = "host=subdomain.example.gov.uk;for=;proto=https";
 
-    const ipAddress = userIpAddress(forwarded);
+    const ipAddress = extractIpAddress(forwarded);
 
     expect(ipAddress).toBeNull();
   });

@@ -1,9 +1,24 @@
-const path = require("path");
-const express = require("express");
-const logger = require("../lib/logger");
-const hmpoLogger = require("hmpo-logger");
-const pinoHttp = require("pino-http");
-const { PACKAGE_NAME } = require("../../lib/constants");
+import express from "express";
+import hmpoLogger from "hmpo-logger";
+import pinoHttp from "pino-http";
+import { urlencoded } from "body-parser";
+import { getLogger } from "../lib/logger";
+import { PACKAGE_NAME } from "../../lib/constants";
+import { featureFlagMiddleware } from "./feature-flag";
+import { healthcheckMiddleware } from "./healthcheck";
+import { modelOptionsMiddleware } from "./model-options";
+import { cookieMiddleware } from "./cookies";
+import { sessionMiddleware } from "./session";
+import { linkedFilesMiddleware } from "./linked-files";
+import { pageNotFoundMiddleware } from "./page-not-found";
+import { errorHandlerMiddleware } from "./error-handler";
+import { versionMiddleware } from "./version";
+import { setupTranslation } from "./translation";
+import { setupNunjucks } from "./nunjucks";
+import { setupHeaders } from "./headers";
+import { publicAssetsMiddleware } from "./public";
+import { fileURLToPath } from "node:url";
+import { dirname, posix } from "node:path";
 
 const requiredArgument = (argName) => {
   throw new Error(`Argument '${argName}' must be specified`);
@@ -46,7 +61,7 @@ const addRequestContext = (req, res, val) => {
 const loggerMiddleware = (name = PACKAGE_NAME) =>
   pinoHttp({
     // Reuse an existing logger instance
-    logger: logger.get(name),
+    logger: getLogger(name),
     // Define a custom request id function, this will be assigned to req.id
     genReqId: generateRequestId,
     // Set to `false` to prevent standard serializers from being wrapped.
@@ -74,182 +89,167 @@ const loggerMiddleware = (name = PACKAGE_NAME) =>
     customLogLevel: () => "info",
   });
 
-const middleware = {
-  setup({
-    env = process.env.NODE_ENV,
-    urls = {},
-    featureFlags,
-    publicDirs,
-    publicImagesDirs,
-    public: publicOptions,
-    disableCompression = false,
-    trustProxy = true,
-    requestLogging = true,
+export async function setupMiddlewares({
+  env = process.env.NODE_ENV,
+  urls = {},
+  featureFlags,
+  publicDirs,
+  publicImagesDirs,
+  public: publicOptions,
+  disableCompression = false,
+  trustProxy = true,
+  requestLogging = true,
+  helmet,
+  views,
+  locales,
+  nunjucks: nunjucksOptions,
+  translation: translationOptions,
+  modelOptions: modelOptionsConfig,
+  cookies: cookieOptions,
+} = {}) {
+  let hmpoComponents = null;
+  let hmpoComponentsDir = null;
+  const hmpoAffectedOptions = [];
+  try {
+    hmpoComponentsDir = dirname(
+      fileURLToPath(import.meta.resolve("hmpo-components")),
+    );
+    const hmpoComponentsModule = await import("hmpo-components");
+    hmpoComponents = hmpoComponentsModule.default;
+  } catch {
+    if (views !== undefined || nunjucksOptions !== undefined) {
+      hmpoAffectedOptions.push('"views"/"nunjucks"');
+    }
+    if (locales !== undefined || translationOptions !== undefined) {
+      hmpoAffectedOptions.push('"locales"/"translation"');
+    }
+    if (publicOptions !== false) {
+      hmpoAffectedOptions.push('"public"');
+    }
+  }
+
+  urls.public = urls.public || "/public";
+  urls.publicImages = urls.publicImages || posix.join(urls.public, "/images");
+  urls.version = urls.version === undefined ? "/version" : urls.version;
+  urls.healthcheck =
+    urls.healthcheck === undefined ? "/healthcheck" : urls.healthcheck;
+
+  // create new express app
+  const app = express();
+
+  // environment
+  env = (env || "development").toLowerCase();
+  app.set("env", env);
+  app.set("dev", env !== "production");
+
+  // security and headers
+  setupHeaders(app, {
+    disableCompression,
+    trustProxy,
+    publicPath: urls.public,
     helmet,
-    views,
-    locales,
-    nunjucks: nunjucksOptions,
-    translation: translationOptions,
-    modelOptions: modelOptionsConfig,
-    cookies: cookieOptions,
-  } = {}) {
-    const healthcheck = require("./healthcheck");
-    const modelOptions = require("./model-options");
-    const featureFlag = require("./feature-flag");
-    const version = require("./version");
-    const cookies = require("./cookies");
-    const bodyParser = require("body-parser");
-    const translation = require("./translation");
-    const publicMiddleware = require("./public");
-    const nunjucks = require("./nunjucks");
-    const headers = require("./headers");
+  });
 
-    let hmpoComponents = null;
-    let hmpoComponentsDir = null;
-    const hmpoAffectedOptions = [];
-    try {
-      hmpoComponentsDir = path.dirname(require.resolve("hmpo-components"));
-      hmpoComponents = require("hmpo-components");
-    } catch {
-      if (views !== undefined || nunjucksOptions !== undefined) {
-        hmpoAffectedOptions.push('"views"/"nunjucks"');
-      }
-      if (locales !== undefined || translationOptions !== undefined) {
-        hmpoAffectedOptions.push('"locales"/"translation"');
-      }
-      if (publicOptions !== false) {
-        hmpoAffectedOptions.push('"public"');
-      }
-    }
+  // version, healthcheck
+  if (urls.version) app.get(urls.version, await versionMiddleware());
+  if (urls.healthcheck) app.get(urls.healthcheck, healthcheckMiddleware());
 
-    urls.public = urls.public || "/public";
-    urls.publicImages =
-      urls.publicImages || path.posix.join(urls.public, "/images");
-    urls.version = urls.version === undefined ? "/version" : urls.version;
-    urls.healthcheck =
-      urls.healthcheck === undefined ? "/healthcheck" : urls.healthcheck;
-
-    // create new express app
-    const app = express();
-
-    // environment
-    env = (env || "development").toLowerCase();
-    app.set("env", env);
-    app.set("dev", env !== "production");
-
-    // security and headers
-    headers.setup(app, {
-      disableCompression,
-      trustProxy,
-      publicPath: urls.public,
-      helmet,
-    });
-
-    // version, healthcheck
-    if (urls.version) app.get(urls.version, version.middleware());
-    if (urls.healthcheck) app.get(urls.healthcheck, healthcheck.middleware());
-
-    // public static assets
-    if (publicOptions !== false)
-      app.use(
-        publicMiddleware.middleware({
-          urls,
-          publicDirs,
-          publicImagesDirs,
-          public: publicOptions,
-          hmpoComponentsDir,
-        }),
-      );
-
-    app.use(featureFlag.middleware({ featureFlags }));
-    app.use(cookies.middleware(cookieOptions));
-    app.use(modelOptions.middleware(modelOptionsConfig));
-    app.use(bodyParser.urlencoded({ extended: true }));
-
-    // logging
-    if (requestLogging) {
-      if (process.env.USE_PINO_LOGGER !== "true") {
-        app.use(hmpoLogger.middleware(":request"));
-      } else {
-        app.use(loggerMiddleware());
-      }
-    }
-
-    Object.assign(app.locals, {
-      baseUrl: "/",
-      assetPath: urls.public,
-      urls: urls,
-    });
-
-    app.use((req, res, next) => {
-      res.locals.baseUrl = req.baseUrl;
-      next();
-    });
-
-    const nunjucksEnv = nunjucks.setup(app, {
-      views,
-      hmpoComponentsDir,
-      ...nunjucksOptions,
-    });
-
-    const hmpoI18nRequired =
-      translationOptions !== false &&
-      locales !== false &&
-      (locales != null || translationOptions != null);
-
-    if (hmpoI18nRequired) {
-      translation.setup(app, {
-        locales,
+  // public static assets
+  if (publicOptions !== false) {
+    app.use(
+      publicAssetsMiddleware({
+        urls,
+        publicDirs,
+        publicImagesDirs,
+        public: publicOptions,
         hmpoComponentsDir,
-        ...translationOptions,
-      });
+      }),
+    );
+  }
+
+  app.use(featureFlagMiddleware({ featureFlags }));
+  app.use(cookieMiddleware(cookieOptions));
+  app.use(modelOptionsMiddleware(modelOptionsConfig));
+  app.use(urlencoded({ extended: true }));
+
+  // logging
+  if (requestLogging) {
+    if (process.env.USE_PINO_LOGGER !== "true") {
+      app.use(hmpoLogger.middleware(":request"));
+    } else {
+      app.use(loggerMiddleware());
     }
+  }
 
-    if (hmpoComponents) {
-      hmpoComponents.setup(app, nunjucksEnv);
-    }
+  Object.assign(app.locals, {
+    baseUrl: "/",
+    assetPath: urls.public,
+    urls: urls,
+  });
 
-    if (hmpoAffectedOptions.length > 0) {
-      logger
-        .get(PACKAGE_NAME)
-        .info(
-          `'hmpo-components' is not installed so additional setup has not been applied for: ${hmpoAffectedOptions.join(", ")}.`,
-        );
-    }
+  app.use((req, res, next) => {
+    res.locals.baseUrl = req.baseUrl;
+    next();
+  });
 
-    return app;
-  },
+  const nunjucksEnv = setupNunjucks(app, {
+    views,
+    hmpoComponentsDir,
+    ...nunjucksOptions,
+  });
 
-  session(app = requiredArgument("app"), sessionOptions) {
-    const session = require("./session");
-    const featureFlag = require("./feature-flag");
-    const linkedFiles = require("./linked-files");
+  const hmpoI18nRequired =
+    translationOptions !== false &&
+    locales !== false &&
+    (locales != null || translationOptions != null);
 
-    app.use(session.middleware(sessionOptions));
-    app.use(featureFlag.middleware());
-    app.use(linkedFiles.middleware(sessionOptions));
-  },
-
-  errorHandler(app = requiredArgument("app"), errorHandleroptions) {
-    const pageNotFound = require("./page-not-found");
-    const errorHandler = require("./error-handler");
-
-    app.use(pageNotFound.middleware(errorHandleroptions));
-    app.use(errorHandler.middleware(errorHandleroptions));
-  },
-
-  listen(
-    app = requiredArgument("app"),
-    { port = 3000, host = "0.0.0.0" } = {},
-  ) {
-    app.listen(port, host, () => {
-      logger.get(PACKAGE_NAME).info("Listening on http://:listen", {
-        bind: host,
-        port,
-        listen: (host === "0.0.0.0" ? "localhost" : host) + ":" + port,
-      });
+  if (hmpoI18nRequired) {
+    await setupTranslation(app, {
+      locales,
+      hmpoComponentsDir,
+      ...translationOptions,
     });
-  },
-};
+  }
 
-module.exports = middleware;
+  if (hmpoComponents) {
+    hmpoComponents.setup(app, nunjucksEnv);
+  }
+
+  if (hmpoAffectedOptions.length > 0) {
+    getLogger(PACKAGE_NAME).info(
+      `'hmpo-components' is not installed so additional setup has not been applied for: ${hmpoAffectedOptions.join(", ")}.`,
+    );
+  }
+
+  return app;
+}
+
+export function setupSessionMiddlewares(
+  app = requiredArgument("app"),
+  sessionOptions,
+) {
+  app.use(sessionMiddleware(sessionOptions));
+  app.use(featureFlagMiddleware());
+  app.use(linkedFilesMiddleware(sessionOptions));
+}
+
+export function setupErrorHandlerMiddlewares(
+  app = requiredArgument("app"),
+  errorHandleroptions,
+) {
+  app.use(pageNotFoundMiddleware(errorHandleroptions));
+  app.use(errorHandlerMiddleware(errorHandleroptions));
+}
+
+export function listen(
+  app = requiredArgument("app"),
+  { port = 3000, host = "0.0.0.0" } = {},
+) {
+  app.listen(port, host, () => {
+    getLogger(PACKAGE_NAME).info("Listening on http://:listen", {
+      bind: host,
+      port,
+      listen: (host === "0.0.0.0" ? "localhost" : host) + ":" + port,
+    });
+  });
+}

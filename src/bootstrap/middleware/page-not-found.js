@@ -1,4 +1,4 @@
-const middleware =
+export const pageNotFoundMiddleware =
   ({ pageNotFoundView = "errors/page-not-found" } = {}) =>
   (req, res, next) => {
     const err = new Error("Page not found");
@@ -7,7 +7,3 @@ const middleware =
     err.status = 404;
     next(err);
   };
-
-module.exports = {
-  middleware,
-};

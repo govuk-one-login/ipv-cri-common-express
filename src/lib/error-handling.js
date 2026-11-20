@@ -1,7 +1,9 @@
-const oAuth = require("./oauth");
-const { PACKAGE_NAME } = require("./constants");
-const { CustomFetchHttpError } = require("./custom-fetch");
-const logger = require("../bootstrap/lib/logger").get(PACKAGE_NAME);
+import { buildRedirectUrl } from "./oauth";
+import { PACKAGE_NAME } from "./constants";
+import { CustomFetchHttpError } from "./custom-fetch";
+import { getLogger } from "../bootstrap/lib/logger";
+
+const logger = getLogger(PACKAGE_NAME);
 
 const DEFAULT_ERROR_CODE = "server_error";
 const DEFAULT_ERROR_DESCRIPTION = "general error";
@@ -46,64 +48,61 @@ async function resolveErrorOutput(err) {
   return { outputData, redirect_uri };
 }
 
-module.exports = {
-  redirectAsErrorToCallback: async (err, req, res, next) => {
-    if (err.code === "MISSING_SESSION_DATA" && err.status === 401) {
-      return next(err);
-    }
+export const redirectAsErrorToCallback = async (err, req, res, next) => {
+  if (err.code === "MISSING_SESSION_DATA" && err.status === 401) {
+    return next(err);
+  }
 
-    if (process.env.USE_PINO_LOGGER === "true") {
-      logger.error(
-        {
-          errorName: err?.name,
-          errorCode: err?.code,
-          errorStatus: err?.status,
-          path: req.path,
-        },
-        "Handling error in redirectAsErrorToCallback",
-      );
-    } else {
-      logger.error("Handling error in redirectAsErrorToCallback", {
+  if (process.env.USE_PINO_LOGGER === "true") {
+    logger.error(
+      {
         errorName: err?.name,
         errorCode: err?.code,
         errorStatus: err?.status,
         path: req.path,
+      },
+      "Handling error in redirectAsErrorToCallback",
+    );
+  } else {
+    logger.error("Handling error in redirectAsErrorToCallback", {
+      errorName: err?.name,
+      errorCode: err?.code,
+      errorStatus: err?.status,
+      path: req.path,
+    });
+  }
+
+  // Ensure that missing public assets do not redirect to
+  // IPV core error callback silently
+  const assetPath = req.app?.locals?.assetPath || "/public";
+  if (req.path?.startsWith(assetPath)) {
+    return next(err);
+  }
+
+  const { outputData, redirect_uri: httpRedirectUri } =
+    await resolveErrorOutput(err);
+
+  const redirect_uri = httpRedirectUri || req.session?.authParams?.redirect_uri;
+
+  if (redirect_uri) {
+    try {
+      const redirectUrl = buildRedirectUrl({
+        authParams: {
+          error: outputData,
+          redirect_uri,
+        },
       });
-    }
 
-    // Ensure that missing public assets do not redirect to
-    // IPV core error callback silently
-    const assetPath = req.app?.locals?.assetPath || "/public";
-    if (req.path?.startsWith(assetPath)) {
+      logger.info("Redirecting to callback with error", outputData);
+
+      return res.redirect(redirectUrl.toString());
+    } catch {
       return next(err);
     }
-
-    const { outputData, redirect_uri: httpRedirectUri } =
-      await resolveErrorOutput(err);
-
-    const redirect_uri =
-      httpRedirectUri || req.session?.authParams?.redirect_uri;
-
-    if (redirect_uri) {
-      try {
-        const redirectUrl = oAuth.buildRedirectUrl({
-          authParams: {
-            error: outputData,
-            redirect_uri,
-          },
-        });
-
-        logger.info("Redirecting to callback with error", outputData);
-
-        return res.redirect(redirectUrl.toString());
-      } catch {
-        return next(err);
-      }
-    } else if (!req.session?.tokenId && !req.session?.authParams?.state) {
-      err.code = "MISSING_AUTHPARAMS";
-      return next(err);
-    } else {
-      return next(new Error("Missing redirect_uri"));
-    }
-  },
+  } else if (!req.session?.tokenId && !req.session?.authParams?.state) {
+    err.code = "MISSING_AUTHPARAMS";
+    return next(err);
+  } else {
+    return next(new Error("Missing redirect_uri"));
+  }
 };

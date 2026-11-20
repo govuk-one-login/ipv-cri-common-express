@@ -1,6 +1,12 @@
-import { describe, vi, it, expect, beforeEach, afterEach } from "vitest";
-
-const middleware = require("./middleware");
+import { describe, vi, it, expect, beforeEach } from "vitest";
+import {
+  addAuthParamsToSession,
+  addJWTToRequest,
+  initSessionWithJWT,
+  retrieveAuthorizationCode,
+  redirectToCallback,
+  redirectToEntryPoint,
+} from "../../../src/routes/oauth2/middleware.js";
 
 const exampleJwt =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
@@ -38,10 +44,6 @@ describe("oauth middleware", () => {
     next = setup.next;
   });
 
-  afterEach(() => {
-    require("../../bootstrap/lib/logger").get().error.mockClear();
-  });
-
   describe("addAuthParamsToSession", () => {
     beforeEach(() => {
       req = {
@@ -54,7 +56,7 @@ describe("oauth middleware", () => {
     });
 
     it("should save authParams to session", async function () {
-      await middleware.addAuthParamsToSession(req, res, next);
+      await addAuthParamsToSession(req, res, next);
 
       expect(req.session.authParams).toEqual({
         client_id: req.query.client_id,
@@ -62,7 +64,7 @@ describe("oauth middleware", () => {
     });
 
     it("should call next", async function () {
-      await middleware.addAuthParamsToSession(req, res, next);
+      await addAuthParamsToSession(req, res, next);
 
       expect(next).toHaveBeenCalled();
     });
@@ -78,13 +80,13 @@ describe("oauth middleware", () => {
     });
 
     it("should save authParams to session", async function () {
-      middleware.addJWTToRequest(req, res, next);
+      addJWTToRequest(req, res, next);
 
       expect(req.jwt).toEqual(req.query.request);
     });
 
     it("should call next", async function () {
-      middleware.addJWTToRequest(req, res, next);
+      addJWTToRequest(req, res, next);
 
       expect(next).toHaveBeenCalled();
     });
@@ -113,7 +115,7 @@ describe("oauth middleware", () => {
       it("should call next with an error when req.jwt is missing", async () => {
         delete req.jwt;
 
-        await middleware.initSessionWithJWT(req, res, next);
+        await initSessionWithJWT(req, res, next);
 
         expect(next).toHaveBeenCalled();
         const err = next.mock.calls[0][0];
@@ -124,7 +126,7 @@ describe("oauth middleware", () => {
       it("should call next with an error when req.session.authParams is missing", async () => {
         delete req.session.authParams;
 
-        await middleware.initSessionWithJWT(req, res, next);
+        await initSessionWithJWT(req, res, next);
 
         expect(next).toHaveBeenCalled();
         const err = next.mock.calls[0][0];
@@ -133,7 +135,7 @@ describe("oauth middleware", () => {
       });
 
       it("should call next with an error when API.PATHS.SESSION is missing", async () => {
-        await middleware.initSessionWithJWT(req, res, next);
+        await initSessionWithJWT(req, res, next);
 
         expect(next).toHaveBeenCalled();
         const err = next.mock.calls[0][0];
@@ -157,7 +159,7 @@ describe("oauth middleware", () => {
         };
       });
       it("should call the authorize endpoint with the correct parameters", async function () {
-        await middleware.initSessionWithJWT(req, res, next);
+        await initSessionWithJWT(req, res, next);
 
         expect(req.customFetch).toHaveBeenCalledWith("/api/authorize", {
           method: "POST",
@@ -182,7 +184,7 @@ describe("oauth middleware", () => {
           });
           req.customFetch = vi.fn().mockReturnValue(response);
 
-          await middleware.initSessionWithJWT(req, res, next);
+          await initSessionWithJWT(req, res, next);
         });
 
         it("should save 'session_id' into req.session", () => {
@@ -214,7 +216,7 @@ describe("oauth middleware", () => {
             throw new Error("API error");
           });
 
-          await middleware.initSessionWithJWT(req, res, next);
+          await initSessionWithJWT(req, res, next);
         });
 
         it("should call next with error", () => {
@@ -257,7 +259,7 @@ describe("oauth middleware", () => {
       it("should call next with an error when req.session.tokenId is missing", async () => {
         delete req.session.tokenId;
 
-        await middleware.retrieveAuthorizationCode(req, res, next);
+        await retrieveAuthorizationCode(req, res, next);
 
         expect(next).toHaveBeenCalled();
         const err = next.mock.calls[0][0];
@@ -268,7 +270,7 @@ describe("oauth middleware", () => {
       it("should call next with an error when req.session.authParams.client_id is missing", async () => {
         delete req.session.authParams.client_id;
 
-        await middleware.retrieveAuthorizationCode(req, res, next);
+        await retrieveAuthorizationCode(req, res, next);
 
         expect(next).toHaveBeenCalled();
         const err = next.mock.calls[0][0];
@@ -279,7 +281,7 @@ describe("oauth middleware", () => {
       it("should call next with an error when req.session.authParams.redirect_uri is missing", async () => {
         delete req.session.authParams.redirect_uri;
 
-        await middleware.retrieveAuthorizationCode(req, res, next);
+        await retrieveAuthorizationCode(req, res, next);
 
         expect(next).toHaveBeenCalled();
         const err = next.mock.calls[0][0];
@@ -288,7 +290,7 @@ describe("oauth middleware", () => {
       });
 
       it("should call next with an error when API.PATHS.AUTHORIZATION is missing", async () => {
-        await middleware.retrieveAuthorizationCode(req, res, next);
+        await retrieveAuthorizationCode(req, res, next);
 
         expect(next).toHaveBeenCalled();
         const err = next.mock.calls[0][0];
@@ -311,7 +313,7 @@ describe("oauth middleware", () => {
       });
 
       it("should call the auth code endpoint with the correct parameters", async function () {
-        await middleware.retrieveAuthorizationCode(req, res, next);
+        await retrieveAuthorizationCode(req, res, next);
 
         expect(req.customFetch).toHaveBeenCalledWith(
           "/api/authorize?client_id=test_client&state=sT%40t3&redirect_uri=http%3A%2F%2Fexample.net%2F&response_type=code&scope=openid",
@@ -330,7 +332,7 @@ describe("oauth middleware", () => {
         beforeEach(async () => {
           req.customFetch = vi.fn().mockReturnValue(response);
 
-          await middleware.retrieveAuthorizationCode(req, res, next);
+          await retrieveAuthorizationCode(req, res, next);
         });
 
         it("should save 'authorization_code' into req.session.authParams", () => {
@@ -348,7 +350,7 @@ describe("oauth middleware", () => {
             throw new Error("API error");
           });
 
-          await middleware.retrieveAuthorizationCode(req, res, next);
+          await retrieveAuthorizationCode(req, res, next);
         });
 
         it("should call next with error", () => {
@@ -383,7 +385,7 @@ describe("oauth middleware", () => {
     });
 
     it("should successfully redirects when code is valid", async () => {
-      await middleware.redirectToCallback(req, res, next);
+      await redirectToCallback(req, res, next);
 
       expect(res.redirect).toHaveBeenCalledWith(
         `${redirect}?client_id=${clientId}&code=${code}&state=${state}`,
@@ -401,7 +403,7 @@ describe("oauth middleware", () => {
         description: description,
       };
 
-      await middleware.redirectToCallback(req, res, next);
+      await redirectToCallback(req, res, next);
 
       expect(res.redirect).toHaveBeenCalledWith(
         `${redirect}?error=${errorCode}&error_description=${description}&state=${state}`,
@@ -411,7 +413,7 @@ describe("oauth middleware", () => {
     it("should call next with URL error if redirect_uri not present", async () => {
       delete req.session.authParams.redirect_uri;
 
-      await middleware.redirectToCallback(req, res, next);
+      await redirectToCallback(req, res, next);
 
       expect(next).toHaveBeenCalled();
       const err = next.mock.calls[0][0];
@@ -431,7 +433,7 @@ describe("oauth middleware", () => {
       });
 
       it("does not redirect until the session has finished saving", async () => {
-        await middleware.redirectToCallback(req, res, next);
+        await redirectToCallback(req, res, next);
 
         expect(req.session.save).toHaveBeenCalledTimes(1);
         expect(res.redirect).not.toHaveBeenCalled();
@@ -442,7 +444,7 @@ describe("oauth middleware", () => {
       });
 
       it("still redirects if the session save fails", async () => {
-        await middleware.redirectToCallback(req, res, next);
+        await redirectToCallback(req, res, next);
 
         notifySessionSaved(new Error("session save failed"));
 
@@ -464,7 +466,7 @@ describe("oauth middleware", () => {
       req.app.get.mockImplementation((arg) => {
         if (arg === "APP.PATHS.ENTRYPOINT") return "/app/entry";
       });
-      await middleware.redirectToEntryPoint(req, res, next);
+      await redirectToEntryPoint(req, res, next);
 
       expect(res.redirect).toHaveBeenCalledWith("/app/entry");
     });
@@ -483,7 +485,7 @@ describe("oauth middleware", () => {
       });
 
       it("does not redirect until the session has finished saving", async () => {
-        await middleware.redirectToEntryPoint(req, res, next);
+        await redirectToEntryPoint(req, res, next);
 
         expect(req.session.save).toHaveBeenCalledTimes(1);
         expect(res.redirect).not.toHaveBeenCalled();
@@ -494,7 +496,7 @@ describe("oauth middleware", () => {
       });
 
       it("still redirects if the session save fails", async () => {
-        await middleware.redirectToEntryPoint(req, res, next);
+        await redirectToEntryPoint(req, res, next);
 
         notifySessionSaved(new Error("session save failed"));
 
@@ -504,7 +506,7 @@ describe("oauth middleware", () => {
       describe("with missing APP.PATHS.ENTRYPOINT", () => {
         it("should call next with error", async () => {
           req.app.get.mockImplementation(() => {});
-          await middleware.redirectToEntryPoint(req, res, next);
+          await redirectToEntryPoint(req, res, next);
 
           expect(next).toHaveBeenCalled();
           const err = next.mock.calls[0][0];

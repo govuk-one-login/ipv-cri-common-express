@@ -1,11 +1,10 @@
 import { describe, vi, it, expect } from "vitest";
-
-const nocache = require(APP_ROOT + "/src/bootstrap/middleware/nocache");
+import { noCacheMiddleware } from "../../../src/bootstrap/middleware/nocache.js";
 
 describe("No Cache", () => {
   it("exports a middleware function", () => {
-    expect(typeof nocache.middleware()).toBe("function");
-    expect(nocache.middleware()).toHaveLength(3);
+    expect(typeof noCacheMiddleware()).toBe("function");
+    expect(noCacheMiddleware()).toHaveLength(3);
   });
 
   describe("middleware", () => {
@@ -18,7 +17,7 @@ describe("No Cache", () => {
       };
       let next = vi.fn();
 
-      nocache.middleware()(req, res, next);
+      noCacheMiddleware()(req, res, next);
 
       expect(res.setHeader).toHaveBeenCalled();
       expect(res.setHeader).toHaveBeenNthCalledWith(
@@ -48,7 +47,7 @@ describe("No Cache", () => {
       };
       let next = vi.fn();
 
-      nocache.middleware({ publicPath: "/public" })(req, res, next);
+      noCacheMiddleware({ publicPath: "/public" })(req, res, next);
 
       expect(res.setHeader).not.toHaveBeenCalled();
       expect(next).toHaveBeenCalledTimes(1);

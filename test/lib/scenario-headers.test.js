@@ -1,7 +1,6 @@
 import { describe, expect, beforeEach, it } from "vitest";
-import { createDefaultReqResNext } from "../../test/utils/helpers";
-
-const scenarioHeaders = require("./scenario-headers");
+import { createDefaultReqResNext } from "../utils/helpers";
+import { setScenarioHeader } from "../../src/lib/scenario-headers.js";
 
 describe("scenario-headers", () => {
   let req;
@@ -19,7 +18,7 @@ describe("scenario-headers", () => {
     beforeEach(() => {
       process.env.NODE_ENV = "development";
       req.headers["x-scenario-id"] = "scenario-number-1";
-      scenarioHeaders(req, res, next);
+      setScenarioHeader(req, res, next);
     });
 
     it("should set scenarioHeader on req", () => {
@@ -35,7 +34,7 @@ describe("scenario-headers", () => {
     beforeEach(() => {
       process.env.NODE_ENV = "production";
       req.headers["x-scenario-id"] = "scenario-number-1";
-      scenarioHeaders(req, res, next);
+      setScenarioHeader(req, res, next);
     });
 
     it("should not set scenarioHeader on req", () => {
@@ -50,7 +49,7 @@ describe("scenario-headers", () => {
   describe('with missing "x-scenario-id" header', () => {
     beforeEach(() => {
       process.env.NODE_ENV = "development";
-      scenarioHeaders(req, res, next);
+      setScenarioHeader(req, res, next);
     });
 
     it("should not set scenarioHeader on req", () => {

@@ -1,8 +1,9 @@
-const path = require("node:path");
-const express = require("express");
-const config = require("../lib/config");
+import { resolve, dirname } from "node:path";
+import express from "express";
+import { getConfig } from "../lib/config";
+import { fileURLToPath } from "node:url";
 
-const middleware = ({
+export const publicAssetsMiddleware = ({
   urls = { public: "/public", publicImages: "/public/images" },
   publicDirs = ["public"],
   publicImagesDirs = ["assets/images"],
@@ -14,14 +15,14 @@ const middleware = ({
   publicDirs.forEach((dir) =>
     router.use(
       urls.public,
-      express.static(path.resolve(config.get("APP_ROOT"), dir), publicOptions),
+      express.static(resolve(getConfig("APP_ROOT"), dir), publicOptions),
     ),
   );
 
   publicImagesDirs.forEach((dir) =>
     router.use(
       urls.publicImages,
-      express.static(path.resolve(config.get("APP_ROOT"), dir), publicOptions),
+      express.static(resolve(getConfig("APP_ROOT"), dir), publicOptions),
     ),
   );
 
@@ -29,7 +30,7 @@ const middleware = ({
     router.use(
       urls.publicImages,
       express.static(
-        path.resolve(hmpoComponentsDir, "assets", "images"),
+        resolve(hmpoComponentsDir, "assets", "images"),
         publicOptions,
       ),
     );
@@ -38,7 +39,10 @@ const middleware = ({
   router.use(
     urls.public,
     express.static(
-      path.resolve(path.dirname(require.resolve("govuk-frontend")), "assets"),
+      resolve(
+        dirname(fileURLToPath(import.meta.resolve("govuk-frontend"))),
+        "assets",
+      ),
       publicOptions,
     ),
   );
@@ -46,14 +50,9 @@ const middleware = ({
   return router;
 };
 
-const notFoundFallback = ({ urls: { public: pub, publicImages } }) => {
+export const notFoundFallback = ({ urls: { public: pub, publicImages } }) => {
   const router = express.Router();
   router.use(pub, (_req, res) => res.sendStatus(404));
   router.use(publicImages, (_req, res) => res.sendStatus(404));
   return router;
-};
-
-module.exports = {
-  middleware,
-  notFoundFallback,
 };

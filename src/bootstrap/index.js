@@ -1,40 +1,42 @@
-const express = require("express");
-const config = require("./lib/config");
-const logger = require("./lib/logger");
-const middleware = require("./middleware");
-const { notFoundFallback } = require("./middleware/public");
-const redisClient = require("./lib/redis-client");
-const {
-  configure: configureOverloadProtection,
-} = require("./lib/overload-protection");
+import express from "express";
+import overloadProtectionLib from "overload-protection";
+import { getConfig, setupConfig } from "./lib/config";
+import { setupLogger } from "./lib/logger";
+import { setupMiddlewares, listen } from "./middleware";
+import { notFoundFallback } from "./middleware/public";
+import { setupRedisClient } from "./lib/redis-client";
+import { configureOverloadProtection } from "./lib/overload-protection";
+import { sessionMiddleware } from "./middleware/session";
+import { errorHandlerMiddleware } from "./middleware/error-handler";
+import { buildCsrfMiddleware } from "../lib/csrf/index.js";
 
-const setup = (
+export const appSetup = (
   options = {
     middlewareSetupFn: undefined,
     overloadProtection: undefined,
   },
 ) => {
-  const protect = require("overload-protection")(
+  const protect = overloadProtectionLib(
     "express",
     configureOverloadProtection(options.overloadProtection),
   );
 
-  if (options.config !== false) config.setup(options.config);
+  if (options.config !== false) setupConfig(options.config);
 
   if (options.logs !== false)
-    logger.setup({
-      ...config.get("logs"),
+    setupLogger({
+      ...getConfig("logs"),
       ...options.logs,
     });
 
   if (options.redis != null && options.redis !== false)
-    redisClient.setup({
-      ...config.get("redis"),
+    setupRedisClient({
+      ...getConfig("redis"),
       ...options.redis,
     });
 
-  const app = middleware.setup({
-    ...config.get(),
+  const app = setupMiddlewares({
+    ...getConfig(),
     ...options,
   });
 
@@ -54,14 +56,13 @@ const setup = (
   }
 
   if (options.session !== false)
-    middleware.session(app, {
-      ...config.get("session"),
+    sessionMiddleware(app, {
+      ...getConfig("session"),
       ...options.session,
     });
 
   if (options.csrf) {
-    const csrf = require("../lib/csrf");
-    app.use(csrf(options.csrf));
+    app.use(buildCsrfMiddleware(options.csrf));
   }
 
   const router = express.Router();
@@ -73,28 +74,16 @@ const setup = (
   app.use(errorRouter);
 
   if (options.errors !== false)
-    middleware.errorHandler(app, {
-      ...config.get("errors"),
+    errorHandlerMiddleware(app, {
+      ...getConfig("errors"),
       ...options.errors,
     });
 
   if (options.port != null && options.port !== false)
-    middleware.listen(app, {
-      port: options.port || config.get("port"),
-      host: options.host || config.get("host"),
+    listen(app, {
+      port: options.port || getConfig("port"),
+      host: options.host || getConfig("host"),
     });
 
   return { app, staticRouter, router, errorRouter };
-};
-
-module.exports = {
-  setup,
-  middleware,
-  config,
-  logger,
-  redisClient,
-  translation: require("./middleware/translation"),
-  nunjucks: require("./middleware/nunjucks"),
-  linkedFiles: require("./middleware/linked-files"),
-  featureFlag: require("./middleware/feature-flag"),
 };

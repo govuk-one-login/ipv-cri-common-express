@@ -1,8 +1,8 @@
 import { vi } from "vitest";
 
-const reqres = require("reqres");
-const JourneyModel = require("hmpo-form-wizard/lib/journey-model");
-const WizardModel = require("hmpo-form-wizard/lib/wizard-model.js");
+import reqres from "hmpo-reqres";
+import JourneyModel from "hmpo-form-wizard/lib/journey-model";
+import WizardModel from "hmpo-form-wizard/lib/wizard-model.js";
 
 export const createDefaultReqResNext = () => {
   const req = reqres.req({
