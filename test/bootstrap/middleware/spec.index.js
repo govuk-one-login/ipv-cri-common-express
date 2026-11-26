@@ -8,10 +8,10 @@ vi.mock("express", () => ({
 import express from "express";
 vi.mock("hmpo-components", () => ({ default: { setup: vi.fn() } }));
 import hmpoComponents from "hmpo-components";
-vi.mock("hmpo-logger", () => ({
-  default: { middleware: vi.fn().mockReturnValue("hmpoLogger middleware") },
+vi.mock("pino-http", () => ({
+  default: vi.fn().mockReturnValue("pinoHttp middleware"),
 }));
-import hmpoLogger from "hmpo-logger";
+import pinoHttp from "pino-http";
 vi.mock("body-parser", () => ({
   default: {
     urlencoded: vi.fn().mockReturnValue("bodyParser middleware"),
@@ -133,7 +133,7 @@ describe("middleware functions", () => {
       vi.stubEnv("NODE_ENV", "development");
     });
 
-    it("should not register hmpoLogger middleware if requestLogging is false", async () => {
+    it("should not register request logging middleware if requestLogging is false", async () => {
       await setupMiddlewares({
         app,
         urls: {},
@@ -143,8 +143,8 @@ describe("middleware functions", () => {
         featureFlags: {},
         requestLogging: false,
       });
-      expect(hmpoLogger.middleware).not.toHaveBeenCalled();
-      expect(app.use).not.toHaveBeenCalledWith("hmpoLogger middleware");
+      expect(pinoHttp).not.toHaveBeenCalled();
+      expect(app.use).not.toHaveBeenCalledWith("pinoHttp middleware");
     });
 
     it("should use the public middleware when publicOptions is true or not set", async () => {
@@ -283,10 +283,10 @@ describe("middleware functions", () => {
       expect(app.use).toHaveBeenCalledWith("public middleware");
     });
 
-    it("should use the hmpoLogger middleware", async () => {
+    it("should use the pino-http request logging middleware", async () => {
       await setupMiddlewares();
-      expect(hmpoLogger.middleware).toHaveBeenCalledWith(":request");
-      expect(app.use).toHaveBeenCalledWith("hmpoLogger middleware");
+      expect(pinoHttp).toHaveBeenCalledTimes(1);
+      expect(app.use).toHaveBeenCalledWith("pinoHttp middleware");
     });
 
     it("should use the modelOptions middleware", async () => {

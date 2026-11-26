@@ -1,18 +1,15 @@
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
-import hmpoLogger from "hmpo-logger";
 import {
   getLogger,
   logError,
   redactQueryParams,
-  setupLogger,
 } from "../../../src/bootstrap/lib/logger.js";
+import { PACKAGE_NAME } from "../../../src/lib/constants.js";
 import pino from "pino";
 
 describe("Logger", () => {
   beforeEach(() => {
-    vi.spyOn(hmpoLogger, "config");
-    vi.spyOn(hmpoLogger, "get").mockReturnValue("logger instance");
     if (vi.isMockFunction(getLogger)) {
       getLogger.mockRestore();
     }
@@ -58,63 +55,15 @@ describe("Logger", () => {
   });
 
   afterEach(() => {
-    if (hmpoLogger.config.restore) hmpoLogger.config.restore();
-    if (hmpoLogger.get.restore) hmpoLogger.get.restore();
     LOGGER_RESET();
   });
 
   it("exports functions", () => {
-    expect(typeof setupLogger).toBe("function");
     expect(typeof getLogger).toBe("function");
+    expect(typeof logError).toBe("function");
   });
 
-  describe("setup", () => {
-    it("configures logger from options", () => {
-      setupLogger({ foo: "bar" });
-      expect(hmpoLogger.config).toHaveBeenCalledWith({ foo: "bar" });
-    });
-
-    it("configures logger from config", () => {
-      setupLogger();
-      expect(hmpoLogger.config).toHaveBeenCalledWith({ console: true });
-    });
-  });
-
-  describe("get", () => {
-    it("returns a named logger", () => {
-      getLogger("name");
-      expect(hmpoLogger.get).toHaveBeenCalledWith("name", 2);
-    });
-
-    it("returns a default logger", () => {
-      getLogger();
-      expect(hmpoLogger.get).toHaveBeenCalledWith(":hmpo-app", 2);
-    });
-
-    it("uses hmpo-logger when USE_PINO_LOGGER is not 'true'", () => {
-      const prev = process.env.USE_PINO_LOGGER;
-      delete process.env.USE_PINO_LOGGER;
-
-      getLogger("fallback-test");
-      expect(hmpoLogger.get).toHaveBeenCalledWith("fallback-test", 2);
-
-      if (typeof prev !== "undefined") {
-        process.env.USE_PINO_LOGGER = prev;
-      } else {
-        delete process.env.USE_PINO_LOGGER;
-      }
-    });
-  });
-
-  describe("when USE_PINO_LOGGER is 'true'", () => {
-    beforeEach(() => {
-      process.env.USE_PINO_LOGGER = "true";
-    });
-
-    afterEach(() => {
-      delete process.env.USE_PINO_LOGGER;
-    });
-
+  describe("getLogger", () => {
     it("creates and returns a pino logger", () => {
       const pinoLogger = getLogger("pino-test");
       expect(pinoLogger).to.have.property("info").that.is.a("function");
@@ -126,11 +75,15 @@ describe("Logger", () => {
       expect(logger1).to.equal(logger2);
     });
 
+    it("defaults the logger name to the package name", () => {
+      expect(getLogger()).to.equal(getLogger(PACKAGE_NAME));
+    });
+
     describe("serializers", () => {
       const getSerializers = () =>
         getLogger("serializer-test")[pino.symbols.serializersSym];
 
-      it("serializes error properties for hmpo-logger parity", () => {
+      it("serializes error properties", () => {
         const err = new Error("Something failed");
         err.code = "FAIL";
         err.status = 403;
@@ -157,7 +110,7 @@ describe("Logger", () => {
         expect(typeof serialized.original.stack).toBe("string");
       });
 
-      it("serializes request meta for hmpo-logger parity", () => {
+      it("serializes request meta", () => {
         const serialized = getSerializers().req({
           method: "GET",
           url: "/test?code=secret",
@@ -180,7 +133,7 @@ describe("Logger", () => {
         });
       });
 
-      it("serializes response meta for hmpo-logger parity", () => {
+      it("serializes response meta", () => {
         const headers = {
           location: "/done?code=secret",
           "content-length": 1234,
@@ -222,8 +175,6 @@ describe("Logger", () => {
     beforeEach(function () {
       vi.restoreAllMocks();
 
-      process.env.USE_PINO_LOGGER = "true";
-
       mockLogger = {
         error: vi.fn(),
         info: vi.fn(),
@@ -233,11 +184,10 @@ describe("Logger", () => {
 
     afterEach(function () {
       vi.restoreAllMocks();
-      delete process.env.USE_PINO_LOGGER;
       delete process.env.NODE_ENV;
     });
 
-    it("should log structured error in Pino mode", function () {
+    it("should log a structured error", function () {
       logError(mockReq, mockErr(), { logger: mockLogger });
 
       expect(mockLogger.error).toHaveBeenCalledTimes(1);
@@ -332,20 +282,6 @@ describe("Logger", () => {
       const arg = mockLogger.error.mock.calls[0][0];
 
       expect(arg.err.stack).to.exist;
-    });
-
-    it("should call HMPO logger in legacy mode", function () {
-      process.env.USE_PINO_LOGGER = "false";
-
-      logError(mockReq, mockErr(), { logger: mockLogger });
-
-      expect(mockLogger.error).toHaveBeenCalledTimes(1);
-
-      const args = mockLogger.error.mock.calls[0];
-
-      expect(args[0]).toEqual(":clientip :verb :request :err.message");
-      expect(args[1].req).toBeDefined();
-      expect(args[1].err).toBeDefined();
     });
   });
 });

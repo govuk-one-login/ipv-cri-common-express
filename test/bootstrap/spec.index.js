@@ -5,9 +5,6 @@ import { randomUUID } from "node:crypto";
 vi.mock("../../src/bootstrap/lib/config.js");
 import { getConfig, setupConfig } from "../../src/bootstrap/lib/config.js";
 
-vi.mock("../../src/bootstrap/lib/logger.js");
-import { setupLogger } from "../../src/bootstrap/lib/logger.js";
-
 const redisClientGetterMock = vi.hoisted(() => vi.fn());
 const setupRedisClientMock = vi.hoisted(() => vi.fn());
 vi.mock("../../src/bootstrap/lib/redis-client.js", () => ({
@@ -79,22 +76,6 @@ describe("hmpo-app", () => {
     it("should not call config.setup if option is false", async () => {
       await appSetup({ config: false });
       expect(setupConfig).not.toHaveBeenCalled();
-    });
-
-    it("calls logger.setup with options", async () => {
-      getConfigMock.mockImplementation((arg) => {
-        if (arg === "logs") return { config: true };
-      });
-      await appSetup({ logs: { option: true } });
-      expect(setupLogger).toHaveBeenCalledWith({
-        option: true,
-        config: true,
-      });
-    });
-
-    it("should not call logger.setup if option is false", async () => {
-      await appSetup({ logs: false });
-      expect(setupLogger).not.toHaveBeenCalled();
     });
 
     it("calls redisClient.setup with options", async () => {

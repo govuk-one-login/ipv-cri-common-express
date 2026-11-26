@@ -1,5 +1,4 @@
 import express from "express";
-import hmpoLogger from "hmpo-logger";
 import pinoHttp from "pino-http";
 import bodyParser from "body-parser";
 import { getLogger } from "../lib/logger.js";
@@ -174,11 +173,7 @@ export async function setupMiddlewares({
 
   // logging
   if (requestLogging) {
-    if (process.env.USE_PINO_LOGGER !== "true") {
-      app.use(hmpoLogger.middleware(":request"));
-    } else {
-      app.use(loggerMiddleware());
-    }
+    app.use(loggerMiddleware());
   }
 
   Object.assign(app.locals, {

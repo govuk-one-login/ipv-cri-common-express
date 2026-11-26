@@ -127,14 +127,17 @@ describe("custom-fetch.js with global.fetch mock", () => {
         });
 
         const logInfo = loggerStub.info;
-        expect(logInfo).toHaveBeenCalledWith("API request", {
-          config: {
-            baseURL: "https://gov.uk",
-            method: "GET",
-            timeout: 10000,
+        expect(logInfo).toHaveBeenCalledWith(
+          {
+            config: {
+              baseURL: "https://gov.uk",
+              method: "GET",
+              timeout: 10000,
+            },
+            req: dummyReq,
           },
-          req: dummyReq,
-        });
+          "API request",
+        );
       });
 
       it("serialises the provided jsonBody correctly", async () => {
@@ -185,8 +188,8 @@ describe("custom-fetch.js with global.fetch mock", () => {
         const expectDnsErrorLogged = (expectedProperties) => {
           expect(loggerStub.error).toHaveBeenCalledTimes(1);
           expect(loggerStub.error).toHaveBeenCalledWith(
-            DNS_ERROR_LOG_MESSAGE,
             expect.objectContaining(expectedProperties),
+            DNS_ERROR_LOG_MESSAGE,
           );
         };
 

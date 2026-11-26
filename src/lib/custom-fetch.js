@@ -37,13 +37,10 @@ function logDnsError(dnsError, error, { req, method, url }) {
     url: redactQueryParams(url),
   };
 
-  const logger = getLogger(PACKAGE_NAME);
-
-  if (process.env.USE_PINO_LOGGER === "true") {
-    logger.error({ ...details, req, err: error }, DNS_ERROR_LOG_MESSAGE);
-  } else {
-    logger.error(DNS_ERROR_LOG_MESSAGE, { ...details, req, err: error });
-  }
+  getLogger(PACKAGE_NAME).error(
+    { ...details, req, err: error },
+    DNS_ERROR_LOG_MESSAGE,
+  );
 }
 
 export class CustomFetchHttpError extends Error {
@@ -76,14 +73,17 @@ function buildFetchWithReq(req) {
 
     const method = options?.method ?? "GET";
 
-    getLogger(PACKAGE_NAME).info("API request", {
-      config: {
-        baseURL: baseUrl,
-        method,
-        timeout: options?.timeoutMs,
+    getLogger(PACKAGE_NAME).info(
+      {
+        config: {
+          baseURL: baseUrl,
+          method,
+          timeout: options?.timeoutMs,
+        },
+        req,
       },
-      req,
-    });
+      "API request",
+    );
 
     const fetchOptions = {
       ...options,
