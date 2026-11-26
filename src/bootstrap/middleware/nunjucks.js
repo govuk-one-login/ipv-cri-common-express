@@ -1,12 +1,11 @@
-import debugLib from "debug";
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { getConfig } from "../lib/config.js";
 import nunjucks from "nunjucks";
 import { addFrontendUiGlobals } from "@govuk-one-login/frontend-ui";
 import { fileURLToPath } from "node:url";
-
-const debug = debugLib("hmpo-app:nunjucks");
+import { getLogger } from "../lib/logger.js";
+import { PACKAGE_NAME } from "../../lib/constants.js";
 
 export const setupNunjucks = (
   app,
@@ -31,7 +30,10 @@ export const setupNunjucks = (
     .map((dir) => resolve(APP_ROOT, dir))
     .filter((dir) => dir && existsSync(dir));
 
-  debug("Views", APP_ROOT, views);
+  getLogger(PACKAGE_NAME).debug(
+    { views: { appRoot: APP_ROOT, dirs: views } },
+    "Views",
+  );
 
   const nunjucksEnv = nunjucks.configure(views, {
     express: app,

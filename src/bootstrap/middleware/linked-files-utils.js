@@ -1,8 +1,9 @@
-import debugLib from "debug";
 import { getRedisClient } from "../lib/redis-client.js";
 import { randomUUID } from "node:crypto";
+import { getLogger } from "../lib/logger.js";
+import { PACKAGE_NAME } from "../../lib/constants.js";
 
-const debug = debugLib("hmpo:linked-files");
+const logger = getLogger(PACKAGE_NAME);
 
 // redis records are stored as the uuid prefixed with this:
 const PREFIX = "file:";
@@ -33,14 +34,17 @@ export function add(req, ttl, data, cb) {
     if (err) return cb(err);
     req.session.linkedFiles = req.session.linkedFiles || {};
     req.session.linkedFiles[id] = true;
-    debug("Linked file added:", id, data.length);
+    logger.debug(
+      { linkedFile: { id, size: data.length } },
+      "Linked file added",
+    );
     cb(null, id);
   });
 }
 
 // Should function should only be used when there is no access to the session to check owenership of the file
 function getNoCheck(id, cb) {
-  debug("Getting linked file:", id);
+  logger.debug({ linkedFile: { id } }, "Getting linked file");
   getRedisClient().get(PREFIX + id, (err, data) => {
     if (err) return cb(err);
     parse(data, cb);
@@ -58,7 +62,7 @@ export function del(req, id, cb) {
   if (!req.session.linkedFiles?.[id]) {
     return cb(new Error("Linked file id not found " + id));
   }
-  debug("Linked file deleted:", id);
+  logger.debug({ linkedFile: { id } }, "Linked file deleted");
   delete req.session.linkedFiles[id];
   getRedisClient().del(PREFIX + id, cb);
 }

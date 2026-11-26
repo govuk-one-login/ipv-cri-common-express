@@ -1,8 +1,7 @@
-import debugLib from "debug";
 import { getConfig } from "../lib/config.js";
 import { resolve } from "node:path";
-
-const debug = debugLib("hmpo-app:version");
+import { PACKAGE_NAME } from "../../lib/constants.js";
+import { getLogger } from "../lib/logger.js";
 
 export async function versionMiddleware({ versionFile = "version.json" } = {}) {
   let versionJSON = {};
@@ -11,7 +10,10 @@ export async function versionMiddleware({ versionFile = "version.json" } = {}) {
     const filename = resolve(getConfig("APP_ROOT"), versionFile);
     versionJSON = (await import(filename, { with: { type: "json" } })).default;
   } catch (err) {
-    debug("Error loading version json file", err.message);
+    getLogger(PACKAGE_NAME).debug(
+      { errorMessage: err.message },
+      "Error loading version json file",
+    );
   }
 
   versionJSON.appName = getConfig("APP_NAME");

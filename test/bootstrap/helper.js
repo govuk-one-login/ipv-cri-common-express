@@ -18,9 +18,12 @@ global.CONFIG_RESET = () => {
 
 global.LOGGER_RESET = () => {
   const loggerStub = {
+    trace: vi.fn(),
+    debug: vi.fn(),
     info: vi.fn(),
-    error: vi.fn(),
     warn: vi.fn(),
+    error: vi.fn(),
+    fatal: vi.fn(),
   };
 
   if (vi.isMockFunction(loggerModule.getLogger)) {
