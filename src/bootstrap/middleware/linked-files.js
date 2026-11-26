@@ -1,9 +1,8 @@
-import debugLib from "debug";
 import { getRedisClient } from "../lib/redis-client.js";
 import onFinished from "on-finished";
 import { add, del, get } from "./linked-files-utils.js";
-
-const debug = debugLib("hmpo:linked-files");
+import { PACKAGE_NAME } from "../../lib/constants.js";
+import { getLogger } from "../lib/logger.js";
 
 // redis records are stored as the uuid prefixed with this:
 const PREFIX = "file:";
@@ -22,7 +21,10 @@ export const linkedFilesMiddleware =
       let ids = Object.keys(req.session.linkedFiles || {});
       if (ids.length) {
         let client = getRedisClient();
-        debug("Updated expiry date on linked files", ids);
+        getLogger(PACKAGE_NAME).debug(
+          { linkedFileIds: ids },
+          "Updated expiry date on linked files",
+        );
         ids.forEach((id) => client.expire(PREFIX + id, ttl));
       }
     });

@@ -1,9 +1,8 @@
-import debugLib from "debug";
 import { getConfig } from "../lib/config.js";
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
-
-const debug = debugLib("hmpo-app:translations");
+import { PACKAGE_NAME } from "../../lib/constants.js";
+import { getLogger } from "../lib/logger.js";
 
 export async function loadI18n() {
   return (await import("hmpo-i18n")).default;
@@ -34,7 +33,10 @@ export async function setupTranslation(
     .map((dir) => resolve(APP_ROOT, dir))
     .filter((dir) => dir && existsSync(dir));
 
-  debug("Locales", APP_ROOT, locales);
+  getLogger(PACKAGE_NAME).debug(
+    { locales: { appRoot: APP_ROOT, localeDirs: locales } },
+    "Locales",
+  );
 
   hmpoI18n.middleware(app, {
     baseDir: locales,

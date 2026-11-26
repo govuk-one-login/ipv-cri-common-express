@@ -1,6 +1,8 @@
 import HmpoConfig from "hmpo-config";
-import debugLib from "debug";
-const debug = debugLib("hmpo-app:config");
+import { PACKAGE_NAME } from "../../lib/constants.js";
+import { getLogger } from "./logger.js";
+
+const logger = getLogger(PACKAGE_NAME);
 
 export const defaultFiles = [
   "config/default.json",
@@ -20,17 +22,17 @@ export const setupConfig = ({
   const config = new HmpoConfig(APP_ROOT);
 
   if (seed) {
-    debug("Merging with previous config");
+    logger.debug("Merging with previous config");
     config.addConfig(seed);
   }
 
   if (!seed && merge && globalThis.GLOBAL_CONFIG) {
-    debug("Merging with previous config");
+    logger.debug("Merging with previous config");
     config.addConfig(globalThis.GLOBAL_CONFIG);
   }
 
   if (!seed && files) {
-    debug("Adding files", files);
+    logger.debug({ files }, "Adding files");
     files.forEach((file) => config.addFile(file));
   }
 
@@ -38,7 +40,7 @@ export const setupConfig = ({
   if (!seed && envVarName) {
     const envConfigText = _environmentVariables[envVarName];
     if (envConfigText) {
-      debug("Adding env var", envVarName);
+      logger.debug({ envVarName }, "Adding env var");
       config.addString(envConfigText);
     }
   }
@@ -49,7 +51,7 @@ export const setupConfig = ({
       const arg = args.shift();
       if (arg === commandLineSwitch) {
         const filename = args.shift();
-        debug("Adding command line file", filename);
+        logger.debug({ filename }, "Adding command line file");
         config.addFile(filename);
       }
     }
