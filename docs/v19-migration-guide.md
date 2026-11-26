@@ -314,15 +314,23 @@ The `setup` function conditionally imports the `hmpo-i18n` module, which now nee
 
 #### `commonExpress.lib.helmet`
 
+These have been completely removed from Common Express as identical configuration exists in `@govuk-one-login/frontend-ui`.
+
+```js
+import { getHelmetConfig } from "@govuk-one-login/frontend-ui";
+
+const helmetConfig = getHelmetConfig(/* any additions / overrides */);
+```
+
 ##### New path
 
-`@govuk-one-login/di-ipv-cri-common-express/lib/helmet.js`
+`@govuk-one-login/frontend-ui`
 
 ##### Export names
 
-| Before   | After          |
-| -------- | -------------- |
-| `[root]` | `helmetConfig` |
+| Before   | After               |
+| -------- | ------------------- |
+| `[root]` | `getHelmetConfig()` |
 
 #### `commonExpress.lib.i18n`
 
@@ -339,18 +347,26 @@ The `setup` function conditionally imports the `hmpo-i18n` module, which now nee
 
 #### `commonExpress.lib.locals`
 
+These have been completely removed from Common Express as equivalent functions exist in `@govuk-one-login/frontend-ui`. Calls to these functions should be replaced like this:
+
+```js
+import { locals } from "@govuk-one-login/frontend-ui";
+
+locals.getGTM();
+```
+
 ##### New path
 
-`@govuk-one-login/di-ipv-cri-common-express/lib/locals.js`
+`@govuk-one-login/frontend-ui`
 
 ##### Export names
 
-| Before                  | After                   |
-| ----------------------- | ----------------------- |
-| `getGTM`                | `getGTM`                |
-| `getAssetPath`          | `getAssetPath`          |
-| `getLanguageToggle`     | `getLanguageToggle`     |
-| `getDeviceIntelligence` | `getDeviceIntelligence` |
+| Before                  | After                          |
+| ----------------------- | ------------------------------ |
+| `getGTM`                | `locals.getGTM`                |
+| `getAssetPath`          | `locals.getAssetPath`          |
+| `getLanguageToggle`     | `locals.getLanguageToggle`     |
+| `getDeviceIntelligence` | `locals.getDeviceIntelligence` |
 
 #### `commonExpress.lib.oauth`
 
@@ -391,17 +407,27 @@ The `setup` function conditionally imports the `hmpo-i18n` module, which now nee
 
 #### `commonExpress.lib.settings`
 
+These have been completely removed from Common Express as equivalent functions exist in `@govuk-one-login/frontend-ui`. Calls to these functions should be replaced like this:
+
+```js
+import { settings } from "@govuk-one-login/frontend-ui";
+
+settings.setGTM();
+```
+
+Please also note that the versions of `setLanguageToggle()` and `setDeviceIntelligence()` exported from `@govuk-one-login/frontend-ui` must be passed `true`/`false` and will no longer accept `"1"`/`"0"` for the `showLanguageToggle` and `deviceIntelligenceEnabled` values.
+
 ##### New path
 
-`@govuk-one-login/di-ipv-cri-common-express/lib/settings.js`
+`@govuk-one-login/frontend-ui`
 
 ##### Export names
 
-| Before                  | After                   |
-| ----------------------- | ----------------------- |
-| `setGTM`                | `setGTM`                |
-| `setLanguageToggle`     | `setLanguageToggle`     |
-| `setDeviceIntelligence` | `setDeviceIntelligence` |
+| Before                  | After                            |
+| ----------------------- | -------------------------------- |
+| `setGTM`                | `settings.setGTM`                |
+| `setLanguageToggle`     | `settings.setLanguageToggle`     |
+| `setDeviceIntelligence` | `settings.setDeviceIntelligence` |
 
 #### `commonExpress.routes.oauth2`
 
