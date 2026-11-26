@@ -24,9 +24,9 @@ An example PR with changes to update Check HMRC can be found at https://github.c
 The changes that need making are:
 
 - Remove any reference to deprecated Common Express client scripts, such as `@govuk-one-login/di-ipv-cri-common-express/src/assets/javascript/analytics/ua/init.js`, from build scripts
+- [Update any direct use of the logger](#logging)
 - [Update Nunjucks template path](#nunjucks-templates)
 - [Update imported JS functions/utilities using the guide below](#moved-js-functions)
-- [Update any direct use of the logger](#logging)
 - Optional: remove deprecated configuration
   - `uaEnabled`, `uaContainerId` (parameters for `setGTM()`)
   - `MAY_2025_REBRAND_ENABLED` (environment variable)
@@ -182,6 +182,9 @@ This utility was split across two files for ease of understanding and testing.
 | `del`        | `del`                   |
 
 #### `commonExpress.bootstrap.logger`
+
+The `setup` function has been removed. It was previously used to configure `hmpo-logger`, which has been replaced with
+`pino`.
 
 ##### New path
 
