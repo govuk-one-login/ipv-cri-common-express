@@ -53,24 +53,15 @@ export const redirectAsErrorToCallback = async (err, req, res, next) => {
     return next(err);
   }
 
-  if (process.env.USE_PINO_LOGGER === "true") {
-    logger.error(
-      {
-        errorName: err?.name,
-        errorCode: err?.code,
-        errorStatus: err?.status,
-        path: req.path,
-      },
-      "Handling error in redirectAsErrorToCallback",
-    );
-  } else {
-    logger.error("Handling error in redirectAsErrorToCallback", {
+  logger.error(
+    {
       errorName: err?.name,
       errorCode: err?.code,
       errorStatus: err?.status,
       path: req.path,
-    });
-  }
+    },
+    "Handling error in redirectAsErrorToCallback",
+  );
 
   // Ensure that missing public assets do not redirect to
   // IPV core error callback silently

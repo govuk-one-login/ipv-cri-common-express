@@ -1,7 +1,6 @@
 import express from "express";
 import overloadProtectionLib from "overload-protection";
 import { getConfig, setupConfig } from "./lib/config.js";
-import { setupLogger } from "./lib/logger.js";
 import {
   setupMiddlewares,
   listen,
@@ -25,12 +24,6 @@ export const appSetup = async (
   );
 
   if (options.config !== false) setupConfig(options.config);
-
-  if (options.logs !== false)
-    setupLogger({
-      ...getConfig("logs"),
-      ...options.logs,
-    });
 
   if (options.redis != null && options.redis !== false)
     setupRedisClient({

@@ -1,5 +1,3 @@
-import hmpoLogger from "hmpo-logger";
-import { getConfig } from "./config.js";
 import pino from "pino";
 import { PACKAGE_NAME } from "../../lib/constants.js";
 
@@ -64,13 +62,7 @@ const serializeError = (err) => {
   return serialized;
 };
 
-export const setupLogger = (options = getConfig("logs", {})) =>
-  hmpoLogger.config(options);
-
-export const getLogger = (name = ":hmpo-app", level = 1) => {
-  if (process.env.USE_PINO_LOGGER !== "true") {
-    return hmpoLogger.get(name, level + 1);
-  }
+export const getLogger = (name = PACKAGE_NAME) => {
   if (pinoLoggers.has(name)) {
     return pinoLoggers.get(name);
   }
@@ -116,32 +108,24 @@ export const getLogger = (name = ":hmpo-app", level = 1) => {
 export function logError(req, err, options = {}) {
   const { messagePrefix, logger = getLogger(PACKAGE_NAME) } = options;
 
-  if (process.env.USE_PINO_LOGGER === "true") {
-    const message = messagePrefix
-      ? `${messagePrefix}: ${err.message}`
-      : err.message;
+  const message = messagePrefix
+    ? `${messagePrefix}: ${err.message}`
+    : err.message;
 
-    logger.error({
-      ...getErrorProperties(err),
-      stack: splitStack(err.stack),
-      ...(err.original && {
-        original:
-          err.original instanceof Error
-            ? serializeError(err.original)
-            : err.original,
-      }),
-      clientip: req.ip ?? req.connection?.remoteAddress,
-      sessionID: req.sessionID,
-      method: req.method,
-      request: redactQueryParams(req.originalUrl || req.url),
-      message,
-      err,
-    });
-  } else {
-    const baseMessage = ":clientip :verb :request :err.message";
-    const message = messagePrefix
-      ? `${messagePrefix}: ${baseMessage}`
-      : baseMessage;
-    logger.error(message, { req, err });
-  }
+  logger.error({
+    ...getErrorProperties(err),
+    stack: splitStack(err.stack),
+    ...(err.original && {
+      original:
+        err.original instanceof Error
+          ? serializeError(err.original)
+          : err.original,
+    }),
+    clientip: req.ip ?? req.connection?.remoteAddress,
+    sessionID: req.sessionID,
+    method: req.method,
+    request: redactQueryParams(req.originalUrl || req.url),
+    message,
+    err,
+  });
 }

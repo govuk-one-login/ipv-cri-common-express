@@ -185,8 +185,8 @@ describe("custom-fetch.js with global.fetch mock", () => {
         const expectDnsErrorLogged = (expectedProperties) => {
           expect(loggerStub.error).toHaveBeenCalledTimes(1);
           expect(loggerStub.error).toHaveBeenCalledWith(
-            DNS_ERROR_LOG_MESSAGE,
             expect.objectContaining(expectedProperties),
+            DNS_ERROR_LOG_MESSAGE,
           );
         };
 

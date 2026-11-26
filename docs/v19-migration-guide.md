@@ -15,6 +15,7 @@ Version 19 of Common Express makes a number of changes:
   - Updated `scripts/checkTranslations.js` with an [implementation](https://github.com/govuk-one-login/govuk-one-login-frontend/blob/main/packages/frontend-ui/scripts/checkTranslations.ts) from `@govuk-one-login/frontend-ui`
     - That script is not currently included with `frontend-ui` and adding it to the bundle would be non-trivial so this was the preferred approach for now
 - Removal of unused dependencies
+- Removal of `hmpo-logger`. [Pino](https://getpino.io) is now the only logger
 
 ## Breaking changes
 
@@ -25,9 +26,34 @@ The changes that need making are:
 - Remove any reference to deprecated Common Express client scripts, such as `@govuk-one-login/di-ipv-cri-common-express/src/assets/javascript/analytics/ua/init.js`, from build scripts
 - [Update Nunjucks template path](#nunjucks-templates)
 - [Update imported JS functions/utilities using the guide below](#moved-js-functions)
+- [Update any direct use of the logger](#logging)
 - Optional: remove deprecated configuration
   - `uaEnabled`, `uaContainerId` (parameters for `setGTM()`)
   - `MAY_2025_REBRAND_ENABLED` (environment variable)
+  - `USE_PINO_LOGGER` (environment variable)
+  - `logs` (option for `appSetup()` and config key)
+
+### Logging
+
+`hmpo-logger` has been removed.
+
+The `USE_PINO_LOGGER` environment variable no longer has any effect.
+
+`setupLogger()` and the `logs` option for `appSetup()` have been removed as they only configured `hmpo-logger`.
+
+Front log levels are controlled by the `LOG_LEVEL` environment variable (default `info`).
+
+Loggers returned by `getLogger()` are always Pino loggers, which take structured metadata as the **first** argument and the message second. Old `hmpo-logger`-style calls will drop metadata and must be updated:
+
+```js
+// Before (hmpo-logger)
+logger.info("API request", { path });
+
+// After (Pino)
+logger.info({ path }, "API request");
+```
+
+`getLogger()` no longer accepts a second `level` argument, and its default name is now the package name rather than `:hmpo-app`.
 
 ### Nunjucks templates
 
@@ -166,7 +192,7 @@ This utility was split across two files for ease of understanding and testing.
 | Before              | After               |
 | ------------------- | ------------------- |
 | `[root]`            | `getLogger`         |
-| `setup`             | `setupLogger`       |
+| `setup`             | N/A (removed)       |
 | `get`               | `getLogger`         |
 | `redactQueryParams` | `redactQueryParams` |
 | `logError`          | `logError`          |
