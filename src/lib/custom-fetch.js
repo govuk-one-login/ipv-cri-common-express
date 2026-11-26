@@ -73,14 +73,17 @@ function buildFetchWithReq(req) {
 
     const method = options?.method ?? "GET";
 
-    getLogger(PACKAGE_NAME).info("API request", {
-      config: {
-        baseURL: baseUrl,
-        method,
-        timeout: options?.timeoutMs,
+    getLogger(PACKAGE_NAME).info(
+      {
+        config: {
+          baseURL: baseUrl,
+          method,
+          timeout: options?.timeoutMs,
+        },
+        req,
       },
-      req,
-    });
+      "API request",
+    );
 
     const fetchOptions = {
       ...options,
