@@ -1,8 +1,11 @@
 import { describe, vi, it, expect, afterEach, beforeEach } from "vitest";
-
-const translation = require(APP_ROOT + "/src/bootstrap/middleware/translation");
-const i18n = require("hmpo-i18n");
-const Module = require("node:module");
+vi.mock("hmpo-i18n", () => ({
+  default: {
+    middleware: vi.fn(),
+  },
+}));
+import i18n from "hmpo-i18n";
+import { setupTranslation } from "../../../src/bootstrap/middleware/translation.js";
 
 describe("translation middleware", () => {
   let app;
@@ -15,16 +18,14 @@ describe("translation middleware", () => {
     app.get.mockImplementation((arg) => {
       if (arg === "dev") return true;
     });
-
-    vi.spyOn(i18n, "middleware");
   });
 
   afterEach(() => {
     i18n.middleware.mockRestore();
   });
 
-  it("should use the i18n middleware specifying the app root as the baseDir", () => {
-    translation.setup(app);
+  it("should use the i18n middleware specifying the app root as the baseDir", async () => {
+    await setupTranslation(app);
     expect(i18n.middleware).toHaveBeenCalledWith(app, {
       baseDir: [APP_ROOT + "/test/bootstrap/fixtures"],
       noCache: true,
@@ -35,8 +36,8 @@ describe("translation middleware", () => {
     });
   });
 
-  it("should include hmpo-components locales when hmpoComponentsDir is provided", () => {
-    translation.setup(app, {
+  it("should include hmpo-components locales when hmpoComponentsDir is provided", async () => {
+    await setupTranslation(app, {
       hmpoComponentsDir: APP_ROOT + "/node_modules/hmpo-components",
     });
     expect(i18n.middleware).toHaveBeenCalledWith(app, {
@@ -52,8 +53,8 @@ describe("translation middleware", () => {
     });
   });
 
-  it("should use the i18n middleware specifying a custom locales locations", () => {
-    translation.setup(app, { locales: [".", "./dir_not_found"] });
+  it("should use the i18n middleware specifying a custom locales locations", async () => {
+    await setupTranslation(app, { locales: [".", "./dir_not_found"] });
     expect(i18n.middleware).toHaveBeenCalledWith(app, {
       baseDir: [APP_ROOT + "/test/bootstrap/fixtures"],
       noCache: true,
@@ -64,8 +65,8 @@ describe("translation middleware", () => {
     });
   });
 
-  it("should use the i18n middleware specifying a custom allowed lang list", () => {
-    translation.setup(app, { allowedLangs: ["fr"] });
+  it("should use the i18n middleware specifying a custom allowed lang list", async () => {
+    await setupTranslation(app, { allowedLangs: ["fr"] });
     expect(i18n.middleware).toHaveBeenCalledWith(
       app,
       expect.objectContaining({
@@ -74,8 +75,8 @@ describe("translation middleware", () => {
     );
   });
 
-  it("should use the i18n middleware specifying a custom cookie name", () => {
-    translation.setup(app, { cookie: { name: "mycookie" } });
+  it("should use the i18n middleware specifying a custom cookie name", async () => {
+    await setupTranslation(app, { cookie: { name: "mycookie" } });
     expect(i18n.middleware).toHaveBeenCalledWith(
       app,
       expect.objectContaining({
@@ -84,8 +85,8 @@ describe("translation middleware", () => {
     );
   });
 
-  it("should use the i18n middleware specifying a custum query lang", () => {
-    translation.setup(app, { query: "test" });
+  it("should use the i18n middleware specifying a custum query lang", async () => {
+    await setupTranslation(app, { query: "test" });
     expect(i18n.middleware).toHaveBeenCalledWith(
       app,
       expect.objectContaining({
@@ -94,11 +95,11 @@ describe("translation middleware", () => {
     );
   });
 
-  it("should use the i18n middleware without dev flags in production", () => {
+  it("should use the i18n middleware without dev flags in production", async () => {
     app.get.mockImplementation((arg) => {
       if (arg === "dev") return false;
     });
-    translation.setup(app);
+    await setupTranslation(app);
     expect(i18n.middleware).toHaveBeenCalledWith(
       app,
       expect.objectContaining({
@@ -109,29 +110,20 @@ describe("translation middleware", () => {
   });
 
   describe("when hmpo-i18n is not installed", () => {
-    beforeEach(() => {
-      const resolveFilename = Module._resolveFilename;
-      vi.spyOn(Module, "_resolveFilename").mockImplementation(function (
-        request,
-        ...args
-      ) {
-        if (request === "hmpo-i18n") {
-          const error = new Error("Cannot find module 'hmpo-i18n'");
-          error.code = "MODULE_NOT_FOUND";
-          throw error;
-        }
-        return resolveFilename.call(this, request, ...args);
-      });
-    });
+    it("should throw an error explaining hmpo-i18n is required", async () => {
+      await expect(() =>
+        setupTranslation(
+          app,
+          undefined,
+          // simulate importHmpoI18n() failing
+          () => {
+            const error = new Error("Cannot find module 'hmpo-i18n'");
+            error.code = "MODULE_NOT_FOUND";
+            throw error;
+          },
+        ),
+      ).rejects.toThrow("'hmpo-i18n' is not installed");
 
-    afterEach(() => {
-      Module._resolveFilename.mockRestore();
-    });
-
-    it("should throw an error explaining hmpo-i18n is required", () => {
-      expect(() => translation.setup(app)).toThrow(
-        "'hmpo-i18n' is not installed",
-      );
       expect(i18n.middleware).not.toHaveBeenCalled();
     });
   });

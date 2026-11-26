@@ -1,14 +1,14 @@
-const hmpoLogger = require("hmpo-logger");
-const config = require("./config");
-const pino = require("pino");
-const { PACKAGE_NAME } = require("../../lib/constants");
+import hmpoLogger from "hmpo-logger";
+import { getConfig } from "./config.js";
+import pino from "pino";
+import { PACKAGE_NAME } from "../../lib/constants.js";
 
 const pinoLoggers = new Map();
 
 const SENSITIVE_PARAMS = ["request", "code"];
 const BASE_PLACEHOLDER = "https://placeholder-for-redaction";
 
-const redactQueryParams = (url) => {
+export const redactQueryParams = (url) => {
   if (url?.includes("?")) {
     try {
       const parsedUrl = new URL(url, BASE_PLACEHOLDER);
@@ -64,9 +64,10 @@ const serializeError = (err) => {
   return serialized;
 };
 
-const setup = (options = config.get("logs", {})) => hmpoLogger.config(options);
+export const setupLogger = (options = getConfig("logs", {})) =>
+  hmpoLogger.config(options);
 
-const get = (name = ":hmpo-app", level = 1) => {
+export const getLogger = (name = ":hmpo-app", level = 1) => {
   if (process.env.USE_PINO_LOGGER !== "true") {
     return hmpoLogger.get(name, level + 1);
   }
@@ -112,8 +113,8 @@ const get = (name = ":hmpo-app", level = 1) => {
   return newPinoLogger;
 };
 
-function logError(req, err, options = {}) {
-  const { messagePrefix, logger = get(PACKAGE_NAME) } = options;
+export function logError(req, err, options = {}) {
+  const { messagePrefix, logger = getLogger(PACKAGE_NAME) } = options;
 
   if (process.env.USE_PINO_LOGGER === "true") {
     const message = messagePrefix
@@ -144,10 +145,3 @@ function logError(req, err, options = {}) {
     logger.error(message, { req, err });
   }
 }
-
-module.exports = Object.assign(get, {
-  setup,
-  get,
-  redactQueryParams,
-  logError,
-});

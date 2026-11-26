@@ -1,23 +1,20 @@
-const express = require("express");
-
-const router = express.Router();
-
-const {
+import express from "express";
+import {
   addAuthParamsToSession,
-  redirectToCallback,
-  initSessionWithJWT,
-  redirectToEntryPoint,
   addJWTToRequest,
+  initSessionWithJWT,
+  redirectToCallback,
+  redirectToEntryPoint,
   retrieveAuthorizationCode,
-} = require("./middleware");
+} from "./middleware.js";
 
-router.get(
+export const oauth2Router = express.Router();
+
+oauth2Router.get(
   "/authorize",
   addAuthParamsToSession,
   addJWTToRequest,
   initSessionWithJWT,
   redirectToEntryPoint,
 );
-router.get("/callback", retrieveAuthorizationCode, redirectToCallback);
-
-module.exports = router;
+oauth2Router.get("/callback", retrieveAuthorizationCode, redirectToCallback);

@@ -1,0 +1,29 @@
+{
+  "extends": "@tsconfig/node22/tsconfig.json",
+  "include": ["src"],
+  "compilerOptions": {
+    "allowJs": true, // necessary until we move this repo to TypeScript
+    "ignoreDeprecations": "6.0", // silence deprecation message triggered by building to CJS syntax
+
+    "rootDir": "src",
+    "outDir": "dist",
+    "incremental": true,
+
+    "sourceMap": false,
+    "declaration": false,
+    "declarationMap": false,
+
+    // checking
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "exactOptionalPropertyTypes": true, // differentiates between { blah?: string } (key either exists with string value or is not present at all) and { blah: string | undefined } (key always exists but value could be undefined)
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noErrorTruncation": true,
+    "skipLibCheck": true,
+
+    "forceConsistentCasingInFileNames": true
+  }
+}

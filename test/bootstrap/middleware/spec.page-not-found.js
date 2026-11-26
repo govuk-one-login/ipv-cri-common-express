@@ -1,8 +1,5 @@
 import { describe, it, vi, expect, beforeEach } from "vitest";
-
-const pageNotFound = require(
-  APP_ROOT + "/src/bootstrap/middleware/page-not-found",
-).middleware;
+import { pageNotFoundMiddleware } from "../../../src/bootstrap/middleware/page-not-found.js";
 
 describe("Page Not Found", () => {
   let req, res, cb;
@@ -15,12 +12,12 @@ describe("Page Not Found", () => {
 
   describe("middleware", () => {
     it("exports a function with length 3", () => {
-      expect(typeof pageNotFound()).toBe("function");
-      expect(pageNotFound()).toHaveLength(3);
+      expect(typeof pageNotFoundMiddleware()).toBe("function");
+      expect(pageNotFoundMiddleware()).toHaveLength(3);
     });
 
     it("called callback with an error", () => {
-      pageNotFound()(req, res, cb);
+      pageNotFoundMiddleware()(req, res, cb);
       expect(cb).toHaveBeenCalledTimes(1);
       const err = cb.mock.calls[0][0];
       expect(err).toBeInstanceOf(Error);
@@ -31,7 +28,7 @@ describe("Page Not Found", () => {
     });
 
     it("use custom error template view", () => {
-      pageNotFound({ pageNotFoundView: "test" })(req, res, cb);
+      pageNotFoundMiddleware({ pageNotFoundView: "test" })(req, res, cb);
       const err = cb.mock.calls[0][0];
       expect(err.template).toEqual("test");
     });

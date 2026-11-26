@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import reqRes from "hmpo-reqres";
+import * as loggerModule from "../../../src/bootstrap/lib/logger.js";
 
-const loggerModule = require("../../../src/bootstrap/lib/logger");
-const request = require("hmpo-reqres").req;
+import { errorHandlerMiddleware } from "../../../src/bootstrap/middleware/error-handler.js";
+
+const request = reqRes.req;
 
 describe("Error Handler", () => {
-  let req, res, next, errorhandler, middleware;
+  let req, res, next, errorhandler;
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -25,11 +28,7 @@ describe("Error Handler", () => {
 
     vi.spyOn(loggerModule, "logError");
 
-    middleware = require(
-      APP_ROOT + "/src/bootstrap/middleware/error-handler",
-    ).middleware;
-
-    errorhandler = middleware({
+    errorhandler = errorHandlerMiddleware({
       startUrl: "/start",
     });
   });
@@ -151,7 +150,7 @@ describe("Error Handler", () => {
       it("redirects to a start page specified by a startUrl function", () => {
         req.isNewBrowser = true;
         res.locals = { htmlLang: "cy" };
-        errorhandler = middleware({
+        errorhandler = errorHandlerMiddleware({
           startUrl: (err, req, res) =>
             res.locals.htmlLang === "cy" ? "/welsh" : "/english",
         });
@@ -163,7 +162,7 @@ describe("Error Handler", () => {
 
       it("redirects to / if no startUrl is specified", () => {
         req.isNewBrowser = true;
-        errorhandler = middleware();
+        errorhandler = errorHandlerMiddleware();
         errorhandler(err, req, res, next);
         expect(res.redirect).toHaveBeenCalledWith("/");
       });

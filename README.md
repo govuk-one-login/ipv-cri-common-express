@@ -11,8 +11,8 @@ It was originally created in order to share code between Credential Issuers in a
 
 This package contains:
 
-- [assets](./src/assets)
-  - JavaScript used for progressive enhancement
+- [bootstrap](./src/bootstrap)
+  - Express app bootstrap, originally copied from [hmpo-app](https://github.com/HMPO/hmpo-app)
 - [components](./src/components)
   - Common [Nunjucks](https://mozilla.github.io/nunjucks/) templates
 - [lib](./src/lib)
@@ -22,36 +22,7 @@ This package contains:
 - [scripts](./scripts)
   - checkTranslations script used to ensure localisation files are kept synchronised
 
-The combination of components, middleware, routing and utility scripts into a single package has resulted in a slightly muddled approach to how this package is used and maintained. Work towards splitting this up into individual specific packages has already started, beginning with replacing the JavaScript inside the `assets` folder with [@govuk-one-login/frontend-analytics](https://www.npmjs.com/package/@govuk-one-login/frontend-analytics)
-
-# GA4 and the Crown Logo
-
-The implementation of GA4 and the Crown Logo update are contained across multiple versions of common-express in various stages. See below for details:
-
-## 5.1.0
-
-- Contains the flag to activate the new crown logo set to true ready for go-live of that feature
-
-## Environment Variables
-
-Several environment variables are declared within the CRIs and then used within the shared code of this repository:
-
-| Variable                      | Description                                                                                                                                                                                                    | Required            | Default Value |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------- |
-| `GA4_ENABLED`                 | Feature flag to enable GA4                                                                                                                                                                                     | No                  | `false`       |
-| `UA_ENABLED`                  | Feature flag to enable UA                                                                                                                                                                                      | No                  | `false`       |
-| `UA_CONTAINER_ID`             | Container ID for Universal Analytics, required for UA to work correctly                                                                                                                                        | Yes (if UA enabled) | `GTM-TK92W68` |
-| `GA4_CONTAINER_ID`            | Container ID for GA4, required for analytics to work correctly                                                                                                                                                 | Yes                 | `GTM-KD86CMZ` |
-| `ANALYTICS_COOKIE_DOMAIN`     | Cookie domain to persist values throughout the different sections of the OneLogin journey. Used to set `cookieDomain` flag for `@govuk-one-login/frontend-analytics` package                                   | No                  | `localhost`   |
-| `ANALYTICS_DATA_SENSITIVE`    | Redacts all form response data. Only set to `false` if a journey section contains no PII in non-text based form controls. Used to set `isDataSensitive` flag for `@govuk-one-login/frontend-analytics` package | No                  | `true`        |
-| `GA4_PAGE_VIEW_ENABLED`       | Feature flag to enable GA4 page view tracking                                                                                                                                                                  | Yes                 | —             |
-| `GA4_FORM_RESPONSE_ENABLED`   | Feature flag to enable GA4 form response tracking                                                                                                                                                              | Yes                 | —             |
-| `GA4_FORM_ERROR_ENABLED`      | Feature flag to enable GA4 form error tracking                                                                                                                                                                 | Yes                 | —             |
-| `GA4_FORM_CHANGE_ENABLED`     | Feature flag to enable GA4 form change tracking                                                                                                                                                                | Yes                 | —             |
-| `GA4_NAVIGATION_ENABLED`      | Feature flag to enable GA4 navigation tracking                                                                                                                                                                 | Yes                 | —             |
-| `GA4_SELECT_CONTENT_ENABLED`  | Feature flag to enable GA4 select content tracking                                                                                                                                                             | Yes                 | —             |
-| `DEVICE_INTELLIGENCE_ENABLED` | Feature flag to enable device intelligence fingerprint component                                                                                                                                               | No                  | `false`       |
-| `DEVICE_INTELLIGENCE_DOMAIN`  | Cookie domain for device intelligence fingerprint component                                                                                                                                                    | Yes                 | —             |
+The combination of components, middleware, routing and utility scripts into a single package has resulted in a slightly muddled approach to how this package is used and maintained. Some logic is being extracted into `@govuk-one-login/frontend-*` packages in the [govuk-one-login-frontend monorepo](https://github.com/govuk-one-login/govuk-one-login-frontend/), and work is planned in the CRI teams to simplify frontends and centralise as much logic as possible.
 
 # Installation
 
@@ -100,19 +71,13 @@ pre-commit run --all-files
 
 Releases are automatically published to [npm](https://npmjs.com) at [@govuk-one-login/di-ipv-cri-common-express](https://www.npmjs.com/package/@govuk-one-login/di-ipv-cri-common-express) using a [GitHub action](./github/workflows/publish.yml) upon creation of an appropriate Git tag.
 
-> The previous usage of `"govuk-one-login/ipv-cri-common-express.git#v4.0.0"` should not be used as this has no support for package building, which will be a requirement with future improemetns
-
 In order to prepare a new release
 
-1. `git checkout` a fresh copy of the `main` branch
-2. create a separate branch for the version to be updated to (e.g. `chore/release/v1.2.3`
-3. Run `npm version VERSION --no-git-tag-version`, changing `VERSION` to be `major`, `minor` or `patch` as required
-   - Once this has been run, the `package.json` and `package-lock.json` files will be updated with the new version.
-4. Create a PR for this change, and get this approved and merged
-5. Once this has been done, a release can be created using GitHub by accessing the [releases](https://github.com/govuk-one-login/ipv-cri-common-express/releases) section.
-6. Choose a new tag matching your version number, prefixed with `v` to avoid Git reference collisions, e.g. `v1.2.3`
-7. Click on the "Generate release notes" button to automatically pull in commit messages for the release notes.
-8. Ensure that you select the 'Latest' tickbox under 'Release label' if you are releasing the new highest-numbered version (usually this is the case, but not true if patching a previous major version)
+1. Update `package.json` with your new version, run `npm install` to ensure that `package-lock.json` is updated, and get your change merged to main
+2. Once this has been done, a release can be created using GitHub by accessing the [releases](https://github.com/govuk-one-login/ipv-cri-common-express/releases) section.
+3. Choose a new tag matching your version number, prefixed with `v` to avoid Git reference collisions, e.g. `v1.2.3`
+4. Click on the "Generate release notes" button to automatically pull in commit messages for the release notes.
+5. Ensure that you select the 'Latest' tickbox under 'Release label' if you are releasing the new highest-numbered version (usually this is the case, but not true if patching a previous major version)
 
 ## `npm` tagging
 
@@ -136,10 +101,6 @@ This should be done by using the following process, using version 15 as an examp
 - Commit your changes on a feature branch `myfeature-v15`, starting at the same commit
 - Raise a pull request from `myfeature-v15` to `v15` and get the necessary approvals
 - Once merged, create a release following the process above and be sure to leave 'Release label' unset (ie, not 'Latest').
-
-# Code Owners
-
-This repo has a `CODEOWNERS` file in the root and is configured to require PRs to reviewed by Code Owners.
 
 # Peer Dependencies
 

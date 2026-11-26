@@ -1,6 +1,8 @@
-const nocache = require("nocache")();
+import nocacheLib from "nocache";
 
-const middleware =
+const nocache = nocacheLib();
+
+export const noCacheMiddleware =
   ({ publicPath } = {}) =>
   (req, res, next) => {
     if (req.path.includes(publicPath)) {
@@ -9,7 +11,3 @@ const middleware =
 
     return nocache(req, res, next);
   };
-
-module.exports = {
-  middleware,
-};

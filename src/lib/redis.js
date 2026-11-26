@@ -1,4 +1,4 @@
-module.exports = function getRedisConfig({ SESSION_URL, PORT } = {}) {
+export function getRedisConfig({ SESSION_URL, PORT } = {}) {
   if (!SESSION_URL) {
     return {};
   }
@@ -20,4 +20,4 @@ module.exports = function getRedisConfig({ SESSION_URL, PORT } = {}) {
       return Math.min(options.attempt * 100, 3000);
     },
   };
-};
+}

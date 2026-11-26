@@ -1,6 +1,6 @@
-const deepCloneMerge = require("deep-clone-merge");
+import deepCloneMerge from "deep-clone-merge";
 
-const middleware =
+export const modelOptionsMiddleware =
   ({
     sessionIDHeader = "X-SESSION-ID",
     scenarioIDHeader = "X-SCENARIO-ID",
@@ -24,7 +24,3 @@ const middleware =
 
     next();
   };
-
-module.exports = {
-  middleware,
-};
