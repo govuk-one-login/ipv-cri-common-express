@@ -1,7 +1,7 @@
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { createDefaultReqResNext } from "../../utils/helpers.js";
 import { replaceTranslate } from "../../../src/lib/i18next/replace-translate.js";
-import { getLogger } from "../../../src/bootstrap/lib/logger.js";
+import { getLogger } from "../../../src/lib/logger.js";
 
 const logger = getLogger();
 const warn = vi.mocked(logger.warn);

@@ -1,4 +1,4 @@
-import { logError } from "../lib/logger.js";
+import { logError } from "../../lib/logger.js";
 
 export const errorHandlerMiddleware =
   ({
@@ -33,9 +33,7 @@ export const errorHandlerMiddleware =
     }
 
     if (res.finished || res._headerSent) {
-      return logError(req, err, {
-        messagePrefix: "Error after response",
-      });
+      return logError(req, err, { message: "Error after response" });
     }
 
     if (err.redirect) {
@@ -55,7 +53,6 @@ export const errorHandlerMiddleware =
     err.status = err.status || 500;
 
     res.statusCode = err.status;
-    res.err = err;
 
     res.render(err.template, {
       error: err,

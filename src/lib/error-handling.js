@@ -1,7 +1,7 @@
 import { buildRedirectUrl } from "./oauth.js";
 import { PACKAGE_NAME } from "./constants.js";
 import { CustomFetchHttpError } from "./custom-fetch.js";
-import { getLogger } from "../bootstrap/lib/logger.js";
+import { getLogger, logError } from "./logger.js";
 
 const logger = getLogger(PACKAGE_NAME);
 
@@ -53,16 +53,6 @@ export const redirectAsErrorToCallback = async (err, req, res, next) => {
     return next(err);
   }
 
-  logger.error(
-    {
-      errorName: err?.name,
-      errorCode: err?.code,
-      errorStatus: err?.status,
-      path: req.path,
-    },
-    "Handling error in redirectAsErrorToCallback",
-  );
-
   // Ensure that missing public assets do not redirect to
   // IPV core error callback silently
   const assetPath = req.app?.locals?.assetPath || "/public";
@@ -84,7 +74,10 @@ export const redirectAsErrorToCallback = async (err, req, res, next) => {
         },
       });
 
-      logger.info("Redirecting to callback with error", outputData);
+      logError(req, err, {
+        message: "Redirecting to callback with error",
+        fields: { oauthError: outputData },
+      });
 
       return res.redirect(redirectUrl.toString());
     } catch {

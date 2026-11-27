@@ -1,5 +1,5 @@
 import redis from "redis";
-import { getLogger } from "./logger.js";
+import { getLogger } from "../../lib/logger.js";
 import { getConfig } from "./config.js";
 import fakeRedis from "fakeredis";
 import { hostname as getHostname } from "node:os";
@@ -47,7 +47,7 @@ export const setupRedisClient = (
       log.info("Reconnecting to redis");
     });
     redisClientStore.client.on("error", (e) => {
-      log.error("Redis error", e);
+      log.error({ error: e }, "Redis error");
     });
 
     redisClientStore.client.connect();
@@ -58,7 +58,7 @@ export const setupRedisClient = (
     redisClientStore.client = fakeRedis.createClient();
 
     redisClientStore.client.on("error", (e) => {
-      log.error("Redis error", e);
+      log.error({ error: e }, "Redis error");
     });
   }
 

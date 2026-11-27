@@ -8,10 +8,6 @@ vi.mock("express", () => ({
 import express from "express";
 vi.mock("hmpo-components", () => ({ default: { setup: vi.fn() } }));
 import hmpoComponents from "hmpo-components";
-vi.mock("pino-http", () => ({
-  default: vi.fn().mockReturnValue("pinoHttp middleware"),
-}));
-import pinoHttp from "pino-http";
 vi.mock("body-parser", () => ({
   default: {
     urlencoded: vi.fn().mockReturnValue("bodyParser middleware"),
@@ -66,6 +62,10 @@ vi.mock("../../../src/bootstrap/middleware/page-not-found.js", () => ({
   pageNotFoundMiddleware: vi.fn().mockReturnValue("pageNotFound middleware"),
 }));
 import { pageNotFoundMiddleware } from "../../../src/bootstrap/middleware/page-not-found.js";
+vi.mock("../../../src/bootstrap/middleware/request-logging.js", () => ({
+  requestContextMiddleware: "requestContext middleware",
+  requestLoggingMiddleware: "requestLogging middleware",
+}));
 vi.mock("../../../src/bootstrap/middleware/error-handler.js", () => ({
   errorHandlerMiddleware: vi.fn().mockReturnValue("errorHandler middleware"),
 }));
@@ -143,8 +143,8 @@ describe("middleware functions", () => {
         featureFlags: {},
         requestLogging: false,
       });
-      expect(pinoHttp).not.toHaveBeenCalled();
-      expect(app.use).not.toHaveBeenCalledWith("pinoHttp middleware");
+      expect(app.use).toHaveBeenCalledWith("requestContext middleware");
+      expect(app.use).not.toHaveBeenCalledWith("requestLogging middleware");
     });
 
     it("should use the public middleware when publicOptions is true or not set", async () => {
@@ -283,10 +283,10 @@ describe("middleware functions", () => {
       expect(app.use).toHaveBeenCalledWith("public middleware");
     });
 
-    it("should use the pino-http request logging middleware", async () => {
+    it("should use the request context and logging middlewares", async () => {
       await setupMiddlewares();
-      expect(pinoHttp).toHaveBeenCalledTimes(1);
-      expect(app.use).toHaveBeenCalledWith("pinoHttp middleware");
+      expect(app.use).toHaveBeenCalledWith("requestContext middleware");
+      expect(app.use).toHaveBeenCalledWith("requestLogging middleware");
     });
 
     it("should use the modelOptions middleware", async () => {

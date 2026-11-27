@@ -55,6 +55,57 @@ logger.info({ path }, "API request");
 
 `getLogger()` no longer accepts a second `level` argument, and its default name is now the package name rather than `:hmpo-app`.
 
+#### Log format
+
+> [!WARNING]
+> The log format has been significantly altered. Any log queries, metric filters or alarms built on v18 log fields need updating.
+
+Logs are now more useful and consistent in the information that they provide:
+
+- Field names are now camelCase and each event is logged once with a fixed message.
+- Every line logged while handling a request (including lines from loggers your front creates with `getLogger()`), are automatically assigned the following fields:
+  - `requestId`
+  - `sessionId`
+  - `govukSigninJourneyId`
+  - `ipvSessionId` (when present)
+  - `context` (when present)
+
+Every line has `level`, an ISO `time`, `name` and `message`.
+
+| Event                                                                                                     | Level                           | Fields                                                                            |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| `Request completed`                                                                                       | `info`, `warn` 4xx, `error` 5xx | `http: { method, path, statusCode, durationMs, location, aborted }`, `clientIp`   |
+| `API response`                                                                                            | `info`, `warn` when not 2xx     | `api: { method, path, timeoutMs, statusCode, durationMs }`                        |
+| `API request failed`                                                                                      | `error`                         | `api: { method, path, timeoutMs, durationMs }`, `error`, `http: { method, path }` |
+| `API request DNS resolution failure`                                                                      | `error`                         | As above, plus `dns: { code, syscall, hostname }`                                 |
+| `Unable to parse HTTP response body as JSON`                                                              | `warn`                          | Request context only                                                              |
+| `Request error`, or `Error after response` when the response has already been sent                        | `error`, `warn` for 4xx         | `error`, `http: { method, path }`                                                 |
+| `Redirecting to callback with error`                                                                      | `error`, `warn` for 4xx         | `error`, `oauthError: { code, description }`, `http: { method, path }`            |
+| `Session created`                                                                                         | `info`                          | Request context only                                                              |
+| `No session ID in session response`, `No redirect URI in session response`                                | `warn`                          | Request context only                                                              |
+| `Redirecting to callback`                                                                                 | `info`                          | Request context only                                                              |
+| `Error saving session before redirect to callback`, `Error saving session before redirect to entry point` | `error`                         | `error`, `http: { method, path }`                                                 |
+
+Errors are logged under `error` with `name`, `code`, `status`, `message`, `stack` and `cause`.
+
+Removed log lines:
+
+- `REQUEST RECEIVED`: the `Request completed` line covers each request
+- `API request`: now logged at `debug`
+- `Handling error in redirectAsErrorToCallback`: errors that are redirected are logged once as `Redirecting to callback with error`, and errors that are passed on are logged by the error handler
+
+Request logging no longer uses `pino-http`, so `req.log` is no longer available. Use `getLogger()` instead, which adds the request context automatically.
+
+`logError()`'s `messagePrefix` option has been replaced by `message`, which sets the whole message, and `fields`, for additional fields to log:
+
+```js
+// Before
+logError(req, err, { messagePrefix: "Error after response" });
+
+// After
+logError(req, err, { message: "Error after response" });
+```
+
 ### Nunjucks templates
 
 The adjusted packaging of the module now means that Nunjucks templates need to be imported slightly differently. The updated path to provide in `appSetup({ views: [] })` should be:
@@ -188,7 +239,7 @@ The `setup` function has been removed. It was previously used to configure `hmpo
 
 ##### New path
 
-`@govuk-one-login/di-ipv-cri-common-express/bootstrap/lib/logger.js`
+`@govuk-one-login/di-ipv-cri-common-express/lib/logger.js`
 
 ##### Export names
 

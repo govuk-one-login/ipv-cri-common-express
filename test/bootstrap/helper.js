@@ -1,7 +1,8 @@
 import { vi } from "vitest";
 import { setupConfig } from "../../src/bootstrap/lib/config.js";
 import { resolve } from "node:path";
-import * as loggerModule from "../../src/bootstrap/lib/logger.js";
+import * as loggerModule from "../../src/lib/logger.js";
+import { PACKAGE_NAME } from "../../src/lib/constants.js";
 
 global.APP_ROOT = resolve(__dirname, "..", "..");
 
@@ -28,6 +29,10 @@ global.LOGGER_RESET = () => {
 
   if (vi.isMockFunction(loggerModule.getLogger)) {
     loggerModule.getLogger.mockRestore();
+  }
+  const packageLogger = loggerModule.getLogger(PACKAGE_NAME);
+  for (const level of Object.keys(loggerStub)) {
+    vi.spyOn(packageLogger, level).mockImplementation(loggerStub[level]);
   }
   vi.spyOn(loggerModule, "getLogger").mockReturnValue(loggerStub);
 

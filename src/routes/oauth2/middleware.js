@@ -1,7 +1,7 @@
 import { buildRedirectUrl } from "../../lib/oauth.js";
 import { PACKAGE_NAME } from "../../lib/constants.js";
 import { createPersonalDataHeaders } from "@govuk-one-login/frontend-passthrough-headers";
-import { getLogger } from "../../bootstrap/lib/logger.js";
+import { getLogger, logError } from "../../lib/logger.js";
 
 const logger = getLogger(PACKAGE_NAME);
 
@@ -61,6 +61,8 @@ export const initSessionWithJWT = async (req, res, next) => {
       req.session.authParams.state = apiBody.state;
       req.session.authParams.redirect_uri = apiBody.redirect_uri;
       req.session.govuk_signin_journey_id = apiBody["govuk_signin_journey_id"];
+
+      logger.info("Session created");
     }
     return next();
   } catch (error) {
@@ -137,10 +139,9 @@ export const redirectToCallback = async (req, res, next) => {
     if (req.session?.save) {
       req.session.save((err) => {
         if (err) {
-          logger.error(
-            { error: err.message },
-            "Error saving session before redirect to callback",
-          );
+          logError(req, err, {
+            message: "Error saving session before redirect to callback",
+          });
         }
         res.redirect(redirectUrl.toString());
       });
@@ -161,10 +162,9 @@ export const redirectToEntryPoint = async (req, res, next) => {
   if (req.session?.save) {
     req.session.save((err) => {
       if (err) {
-        logger.error(
-          { error: err.message },
-          "Error saving session before redirect to entry point",
-        );
+        logError(req, err, {
+          message: "Error saving session before redirect to entry point",
+        });
       }
       res.redirect(entryPointPath);
     });

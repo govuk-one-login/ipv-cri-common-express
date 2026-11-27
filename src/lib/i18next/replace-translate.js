@@ -1,5 +1,5 @@
 import { PACKAGE_NAME } from "../constants.js";
-import { getLogger } from "../../bootstrap/lib/logger.js";
+import { getLogger } from "../logger.js";
 
 let divergenceWarningLogged = false;
 

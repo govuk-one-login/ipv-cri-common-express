@@ -2,7 +2,7 @@ import { getRedisClient } from "../lib/redis-client.js";
 import onFinished from "on-finished";
 import { add, del, get } from "./linked-files-utils.js";
 import { PACKAGE_NAME } from "../../lib/constants.js";
-import { getLogger } from "../lib/logger.js";
+import { getLogger } from "../../lib/logger.js";
 
 // redis records are stored as the uuid prefixed with this:
 const PREFIX = "file:";

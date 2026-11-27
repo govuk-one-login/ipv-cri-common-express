@@ -1,6 +1,6 @@
 import HmpoConfig from "hmpo-config";
 import { PACKAGE_NAME } from "../../lib/constants.js";
-import { getLogger } from "./logger.js";
+import { getLogger } from "../../lib/logger.js";
 
 const logger = getLogger(PACKAGE_NAME);
 
