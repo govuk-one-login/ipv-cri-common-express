@@ -26,16 +26,14 @@ jobs:
           echo "Identified latest release tag: '$TAG'"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Build package
-        uses: govuk-one-login/github-actions/node/run-script@b5f4f92a0692bf297b08c43745e545e45631f0ee
-        with:
-          node-version: 24.x
-          registry-url: https://registry.npmjs.org
-          script: npm run build
-
       - name: Publish
         uses: govuk-one-login/github-actions/node/run-script@b5f4f92a0692bf297b08c43745e545e45631f0ee
         with:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
-          script: npm publish --provenance --access public --tag ${{ steps.get-latest-tag.outputs.tag == github.ref_name && github.ref_type == 'tag' && 'latest' || 'legacy' }}
+          script: |
+            npm run build && \
+            npm publish \
+              --provenance \
+              --access public \
+              --tag ${{ steps.get-latest-tag.outputs.tag == github.ref_name && github.ref_type == 'tag' && 'latest' || 'legacy' }}
