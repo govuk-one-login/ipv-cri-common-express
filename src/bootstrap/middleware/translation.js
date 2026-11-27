@@ -2,7 +2,7 @@ import { getConfig } from "../lib/config.js";
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 import { PACKAGE_NAME } from "../../lib/constants.js";
-import { getLogger } from "../lib/logger.js";
+import { getLogger } from "../../lib/logger.js";
 
 export async function loadI18n() {
   return (await import("hmpo-i18n")).default;

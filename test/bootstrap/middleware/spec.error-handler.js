@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import reqRes from "hmpo-reqres";
-import * as loggerModule from "../../../src/bootstrap/lib/logger.js";
+import * as loggerModule from "../../../src/lib/logger.js";
 
 import { errorHandlerMiddleware } from "../../../src/bootstrap/middleware/error-handler.js";
 
@@ -281,7 +281,7 @@ describe("Error Handler", () => {
         errorhandler(err, req, res, next);
         expect(loggerModule.logError).toHaveBeenCalledTimes(1);
         expect(loggerModule.logError).toHaveBeenCalledWith(req, err, {
-          messagePrefix: "Error after response",
+          message: "Error after response",
         });
         expect(res.render).not.toHaveBeenCalled();
         expect(next).not.toHaveBeenCalled();

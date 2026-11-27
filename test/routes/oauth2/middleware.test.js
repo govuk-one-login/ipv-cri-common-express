@@ -7,6 +7,7 @@ import {
   redirectToCallback,
   redirectToEntryPoint,
 } from "../../../src/routes/oauth2/middleware.js";
+import { getLogger } from "../../../src/lib/logger.js";
 
 const exampleJwt =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
@@ -204,6 +205,9 @@ describe("oauth middleware", () => {
           expect(req.session.govuk_signin_journey_id).toEqual(
             "test-journey-id",
           );
+        });
+        it("should log that the session was created", () => {
+          expect(getLogger().info).toHaveBeenCalledWith("Session created");
         });
         it("should call next", function () {
           expect(next).toHaveBeenCalled();
@@ -450,6 +454,18 @@ describe("oauth middleware", () => {
 
         expect(res.redirect).toHaveBeenCalledTimes(1);
       });
+
+      it("logs a failed session save as a request error", async () => {
+        await redirectToCallback(req, res, next);
+        notifySessionSaved(new Error("session save failed"));
+
+        expect(getLogger().error).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error: expect.objectContaining({ message: "session save failed" }),
+          }),
+          "Error saving session before redirect to callback",
+        );
+      });
     });
   });
 
@@ -501,6 +517,18 @@ describe("oauth middleware", () => {
         notifySessionSaved(new Error("session save failed"));
 
         expect(res.redirect).toHaveBeenCalledTimes(1);
+      });
+
+      it("logs a failed session save as a request error", async () => {
+        await redirectToEntryPoint(req, res, next);
+        notifySessionSaved(new Error("session save failed"));
+
+        expect(getLogger().error).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error: expect.objectContaining({ message: "session save failed" }),
+          }),
+          "Error saving session before redirect to entry point",
+        );
       });
 
       describe("with missing APP.PATHS.ENTRYPOINT", () => {

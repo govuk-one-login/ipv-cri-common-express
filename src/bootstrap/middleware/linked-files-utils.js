@@ -1,6 +1,6 @@
 import { getRedisClient } from "../lib/redis-client.js";
 import { randomUUID } from "node:crypto";
-import { getLogger } from "../lib/logger.js";
+import { getLogger } from "../../lib/logger.js";
 import { PACKAGE_NAME } from "../../lib/constants.js";
 
 const logger = getLogger(PACKAGE_NAME);

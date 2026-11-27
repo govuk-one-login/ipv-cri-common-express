@@ -34,7 +34,7 @@ describe("custom-fetch.js with global.fetch mock", () => {
     const res = {};
     const next = vi.fn();
 
-    const fetchResponse = { ok: true, statusCode: 200, text: () => "hello" };
+    const fetchResponse = { ok: true, status: 200, text: () => "hello" };
 
     global.fetch = vi.fn().mockReturnValue(fetchResponse);
 
@@ -120,23 +120,67 @@ describe("custom-fetch.js with global.fetch mock", () => {
         expect(errorThrown).toEqual(true);
       });
 
-      it("logs the correct request information", async () => {
+      it("logs the request at debug level", async () => {
         await dummyReq.customFetch("/path/something/here", {
           method: "GET",
           timeoutMs: 10000,
         });
 
-        const logInfo = loggerStub.info;
-        expect(logInfo).toHaveBeenCalledWith(
+        expect(loggerStub.debug).toHaveBeenCalledWith(
           {
-            config: {
-              baseURL: "https://gov.uk",
+            api: {
               method: "GET",
-              timeout: 10000,
+              path: "/path/something/here",
+              timeoutMs: 10000,
             },
-            req: dummyReq,
           },
           "API request",
+        );
+      });
+
+      it("redacts sensitive query parameters from the logged path", async () => {
+        await dummyReq.customFetch("/token?code=secret&other=fine");
+
+        expect(loggerStub.info).toHaveBeenCalledWith(
+          expect.objectContaining({
+            api: expect.objectContaining({
+              path: "/token?code=hidden&other=fine",
+            }),
+          }),
+          "API response",
+        );
+      });
+
+      it("logs the response status and duration", async () => {
+        await dummyReq.customFetch("/path/something/here", { method: "POST" });
+
+        expect(loggerStub.info).toHaveBeenCalledWith(
+          {
+            api: {
+              method: "POST",
+              path: "/path/something/here",
+              statusCode: 200,
+              durationMs: expect.any(Number),
+            },
+          },
+          "API response",
+        );
+      });
+
+      it("logs a non-OK response as a warning", async () => {
+        global.fetch = vi.fn().mockResolvedValue(badResponse);
+
+        await expect(
+          dummyReq.customFetch("/path/something/here"),
+        ).rejects.toBeInstanceOf(CustomFetchHttpError);
+
+        global.fetch = vi.fn().mockResolvedValue(fetchResponse);
+
+        expect(loggerStub.warn).toHaveBeenCalledWith(
+          expect.objectContaining({
+            api: expect.objectContaining({ statusCode: 418 }),
+          }),
+          "API response",
         );
       });
 
@@ -185,10 +229,13 @@ describe("custom-fetch.js with global.fetch mock", () => {
         const buildFetchFailure = (cause) =>
           Object.assign(new TypeError("fetch failed"), { cause });
 
-        const expectDnsErrorLogged = (expectedProperties) => {
+        const expectDnsErrorLogged = (expectedDns, expectedApi = {}) => {
           expect(loggerStub.error).toHaveBeenCalledTimes(1);
           expect(loggerStub.error).toHaveBeenCalledWith(
-            expect.objectContaining(expectedProperties),
+            expect.objectContaining({
+              api: expect.objectContaining(expectedApi),
+              dns: expect.objectContaining(expectedDns),
+            }),
             DNS_ERROR_LOG_MESSAGE,
           );
         };
@@ -214,15 +261,25 @@ describe("custom-fetch.js with global.fetch mock", () => {
             ),
           );
 
-          expectDnsErrorLogged({
-            errorCode: "ENOTFOUND",
-            errorMessage: "getaddrinfo ENOTFOUND api.gov.uk",
-            syscall: "getaddrinfo",
-            hostname: "api.gov.uk",
-            method: "GET",
-            url: "https://gov.uk/path/something/here",
-            req: dummyReq,
-          });
+          expectDnsErrorLogged(
+            {
+              code: "ENOTFOUND",
+              syscall: "getaddrinfo",
+              hostname: "api.gov.uk",
+            },
+            {
+              method: "GET",
+              path: "/path/something/here",
+              durationMs: expect.any(Number),
+            },
+          );
+          expect(loggerStub.error.mock.calls[0][0].error).toEqual(
+            expect.objectContaining({
+              name: "TypeError",
+              message: "fetch failed",
+              cause: expect.objectContaining({ code: "ENOTFOUND" }),
+            }),
+          );
         });
 
         it("logs an identifiable entry for a temporary resolver failure", async () => {
@@ -234,7 +291,7 @@ describe("custom-fetch.js with global.fetch mock", () => {
             ),
           );
 
-          expectDnsErrorLogged({ errorCode: "EAI_AGAIN" });
+          expectDnsErrorLogged({ code: "EAI_AGAIN" });
         });
 
         it("finds a DNS error nested in an AggregateError", async () => {
@@ -251,33 +308,15 @@ describe("custom-fetch.js with global.fetch mock", () => {
             ),
           );
 
-          expectDnsErrorLogged({
-            errorCode: "ENOTFOUND",
-            errorMessage: "getaddrinfo ENOTFOUND api.gov.uk",
-          });
+          expectDnsErrorLogged({ code: "ENOTFOUND" });
         });
 
-        it("redacts sensitive query parameters from the logged url", async () => {
-          global.fetch = vi.fn().mockRejectedValue(
-            buildFetchFailure(
-              Object.assign(new Error("getaddrinfo ENOTFOUND api.gov.uk"), {
-                code: "ENOTFOUND",
-              }),
-            ),
-          );
-
-          await expect(
-            dummyReq.customFetch("/token?code=secret&other=fine"),
-          ).rejects.toBeInstanceOf(TypeError);
-
-          global.fetch = vi.fn().mockResolvedValue(fetchResponse);
-
-          expectDnsErrorLogged({
-            url: "https://gov.uk/token?code=hidden&other=fine",
+        it("logs other network failures without DNS details", async () => {
+          Object.assign(dummyReq, {
+            method: "POST",
+            originalUrl: "/choose-bank",
           });
-        });
 
-        it("does not log a DNS error for other network failures", async () => {
           await expectRethrown(
             buildFetchFailure(
               Object.assign(new Error("connect ECONNREFUSED"), {
@@ -286,7 +325,15 @@ describe("custom-fetch.js with global.fetch mock", () => {
             ),
           );
 
-          expect(loggerStub.error).not.toHaveBeenCalled();
+          expect(loggerStub.error).toHaveBeenCalledTimes(1);
+          const [logObject, message] = loggerStub.error.mock.calls[0];
+          expect(message).toEqual("API request failed");
+          expect(logObject).not.toHaveProperty("dns");
+          expect(logObject.error.cause.code).toEqual("ECONNREFUSED");
+          expect(logObject.http).toEqual({
+            method: "POST",
+            path: "/choose-bank",
+          });
         });
 
         it("does not follow a cycle in the error cause chain", async () => {
@@ -298,7 +345,10 @@ describe("custom-fetch.js with global.fetch mock", () => {
 
           await expectRethrown(error);
 
-          expect(loggerStub.error).not.toHaveBeenCalled();
+          expect(loggerStub.error).toHaveBeenCalledWith(
+            expect.not.objectContaining({ dns: expect.anything() }),
+            "API request failed",
+          );
         });
       });
 

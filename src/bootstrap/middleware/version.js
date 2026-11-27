@@ -1,7 +1,7 @@
 import { getConfig } from "../lib/config.js";
 import { resolve } from "node:path";
 import { PACKAGE_NAME } from "../../lib/constants.js";
-import { getLogger } from "../lib/logger.js";
+import { getLogger } from "../../lib/logger.js";
 
 export async function versionMiddleware({ versionFile = "version.json" } = {}) {
   let versionJSON = {};

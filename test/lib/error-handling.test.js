@@ -4,7 +4,7 @@ import { CustomFetchHttpError } from "../../src/lib/custom-fetch.js";
 import { redirectAsErrorToCallback } from "../../src/lib/error-handling.js";
 vi.mock("../../src/lib/oauth.js", () => ({ buildRedirectUrl: vi.fn() }));
 import { buildRedirectUrl } from "../../src/lib/oauth.js";
-import { getLogger } from "../../src/bootstrap/lib/logger.js";
+import { getLogger } from "../../src/lib/logger.js";
 
 const warn = vi.mocked(getLogger().warn);
 
@@ -442,6 +442,41 @@ describe("error-handling", () => {
       });
       it("should call next with err", () => {
         expect(next).toHaveBeenCalledWith(err);
+      });
+    });
+
+    describe("logging", () => {
+      let loggerStub;
+
+      beforeEach(() => {
+        loggerStub = LOGGER_RESET();
+      });
+
+      it("logs a redirected error once with the OAuth error sent to the callback", async () => {
+        err = new Error("error message");
+        buildRedirectUrl.mockReturnValue("http://example.org");
+
+        await redirectAsErrorToCallback(err, req, res, next);
+
+        expect(loggerStub.error).toHaveBeenCalledTimes(1);
+        expect(loggerStub.error).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error: expect.objectContaining({ message: "error message" }),
+            oauthError: { code: "server_error", description: "general error" },
+          }),
+          "Redirecting to callback with error",
+        );
+      });
+
+      it("leaves errors that are passed on for the error handler to log", async () => {
+        err = new Error("error message");
+        req.session = { authParams: undefined };
+
+        await redirectAsErrorToCallback(err, req, res, next);
+
+        expect(next).toHaveBeenCalled();
+        expect(loggerStub.error).not.toHaveBeenCalled();
+        expect(loggerStub.warn).not.toHaveBeenCalled();
       });
     });
 

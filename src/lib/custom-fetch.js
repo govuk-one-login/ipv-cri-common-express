@@ -1,5 +1,5 @@
 import { PACKAGE_NAME } from "./constants.js";
-import { getLogger, redactQueryParams } from "../bootstrap/lib/logger.js";
+import { getLogger, logError, redactQueryParams } from "./logger.js";
 import { extractIpAddress } from "./user-ip-address.js";
 
 export const DNS_ERROR_LOG_MESSAGE = "API request DNS resolution failure";
@@ -27,20 +27,21 @@ function findDnsError(error) {
   return undefined;
 }
 
-function logDnsError(dnsError, error, { req, method, url }) {
-  const details = {
-    errorCode: dnsError.code,
-    errorMessage: dnsError.message,
-    syscall: dnsError.syscall,
-    hostname: dnsError.hostname,
-    method,
-    url: redactQueryParams(url),
-  };
-
-  getLogger(PACKAGE_NAME).error(
-    { ...details, req, err: error },
-    DNS_ERROR_LOG_MESSAGE,
-  );
+function logRequestFailure(req, error, api) {
+  const dnsError = findDnsError(error);
+  logError(req, error, {
+    message: dnsError ? DNS_ERROR_LOG_MESSAGE : "API request failed",
+    fields: {
+      api,
+      ...(dnsError && {
+        dns: {
+          code: dnsError.code,
+          syscall: dnsError.syscall,
+          hostname: dnsError.hostname,
+        },
+      }),
+    },
+  });
 }
 
 export class CustomFetchHttpError extends Error {
@@ -73,17 +74,14 @@ function buildFetchWithReq(req) {
 
     const method = options?.method ?? "GET";
 
-    getLogger(PACKAGE_NAME).info(
-      {
-        config: {
-          baseURL: baseUrl,
-          method,
-          timeout: options?.timeoutMs,
-        },
-        req,
-      },
-      "API request",
-    );
+    const logger = getLogger(PACKAGE_NAME);
+    const api = {
+      method,
+      path: redactQueryParams(path),
+      timeoutMs: options?.timeoutMs,
+    };
+
+    logger.debug({ api }, "API request");
 
     const fetchOptions = {
       ...options,
@@ -105,6 +103,8 @@ function buildFetchWithReq(req) {
 
     const url = `${baseUrl}${path}`;
 
+    const startTime = performance.now();
+    const getDurationMs = () => Math.round(performance.now() - startTime);
     let response;
     try {
       response = await fetch(url, {
@@ -112,10 +112,23 @@ function buildFetchWithReq(req) {
         headers: { ...fetchOptions?.headers, ...reqDerivedHeaders },
       });
     } catch (error) {
-      const dnsError = findDnsError(error);
-      if (dnsError) logDnsError(dnsError, error, { req, method, url });
+      logRequestFailure(req, error, {
+        ...api,
+        durationMs: getDurationMs(),
+      });
       throw error;
     }
+
+    logger[response.ok ? "info" : "warn"](
+      {
+        api: {
+          ...api,
+          statusCode: response.status,
+          durationMs: getDurationMs(),
+        },
+      },
+      "API response",
+    );
 
     if (!response.ok) {
       const body = await response.text();

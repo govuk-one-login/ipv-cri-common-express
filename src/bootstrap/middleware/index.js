@@ -1,7 +1,6 @@
 import express from "express";
-import pinoHttp from "pino-http";
 import bodyParser from "body-parser";
-import { getLogger } from "../lib/logger.js";
+import { getLogger } from "../../lib/logger.js";
 import { PACKAGE_NAME } from "../../lib/constants.js";
 import { featureFlagMiddleware } from "./feature-flag.js";
 import { healthcheckMiddleware } from "./healthcheck.js";
@@ -12,6 +11,10 @@ import { linkedFilesMiddleware } from "./linked-files.js";
 import { pageNotFoundMiddleware } from "./page-not-found.js";
 import { errorHandlerMiddleware } from "./error-handler.js";
 import { versionMiddleware } from "./version.js";
+import {
+  requestContextMiddleware,
+  requestLoggingMiddleware,
+} from "./request-logging.js";
 import { setupTranslation } from "./translation.js";
 import { setupNunjucks } from "./nunjucks.js";
 import { setupHeaders } from "./headers.js";
@@ -22,71 +25,6 @@ import { dirname, posix } from "node:path";
 const requiredArgument = (argName) => {
   throw new Error(`Argument '${argName}' must be specified`);
 };
-
-const HANDLED_ERROR = new Error(
-  "Placeholder errors that do not require additional logging",
-);
-
-const generateRequestId = (req, res) => {
-  const existingId = req?.id ?? req?.get?.("x-request-id");
-  if (existingId) {
-    return existingId;
-  }
-  if (!res) return undefined;
-  // Not securely random, but this is just used for request correlation
-  const newId = Math.random().toString(36).slice(2);
-  // guard res.header existence
-  if (typeof res.header === "function") {
-    res.header("x-request-id", newId);
-  } else if (typeof res.setHeader === "function") {
-    res.setHeader("x-request-id", newId);
-  }
-  return newId;
-};
-
-const addRequestContext = (req, res, val) => {
-  const safeReq = req || {};
-  const safeVal = val || {};
-  return {
-    ...safeVal,
-    requestId: safeReq.id ?? undefined,
-    ipvSessionId: safeReq.session?.ipvSessionId,
-    sessionId: safeReq.session?.id,
-    context: safeReq.session?.context ?? undefined,
-    govuk_signin_journey_id: safeReq.session?.govuk_signin_journey_id,
-  };
-};
-
-const loggerMiddleware = (name = PACKAGE_NAME) =>
-  pinoHttp({
-    // Reuse an existing logger instance
-    logger: getLogger(name),
-    // Define a custom request id function, this will be assigned to req.id
-    genReqId: generateRequestId,
-    // Set to `false` to prevent standard serializers from being wrapped.
-    wrapSerializers: false,
-    // Define a custom receive message
-    customReceivedMessage: (req) => `REQUEST RECEIVED: ${req.method}`,
-    customReceivedObject: addRequestContext,
-    customErrorMessage: (req, res) =>
-      `REQUEST FAILED WITH STATUS CODE: ${res.statusCode}`,
-    customErrorObject: (req, res, error, val) => {
-      // Ignore errors that have already been handled by the error handler
-      if (val.err === HANDLED_ERROR) {
-        delete val.err;
-      }
-
-      return addRequestContext(req, res, val);
-    },
-    customSuccessMessage: (req, res) =>
-      `REQUEST ${res.statusCode >= 400 ? "FAILED" : "COMPLETED"} WITH STATUS CODE OF: ${res.statusCode}`,
-    customSuccessObject: addRequestContext,
-    customAttributeKeys: {
-      responseTime: "timeTaken",
-    },
-    // Define a custom logger level
-    customLogLevel: () => "info",
-  });
 
 export async function setupMiddlewares({
   env = process.env.NODE_ENV,
@@ -172,8 +110,9 @@ export async function setupMiddlewares({
   app.use(bodyParser.urlencoded({ extended: true }));
 
   // logging
+  app.use(requestContextMiddleware);
   if (requestLogging) {
-    app.use(loggerMiddleware());
+    app.use(requestLoggingMiddleware);
   }
 
   Object.assign(app.locals, {
@@ -241,10 +180,10 @@ export function listen(
   { port = 3000, host = "0.0.0.0" } = {},
 ) {
   app.listen(port, host, () => {
-    getLogger(PACKAGE_NAME).info("Listening on http://:listen", {
-      bind: host,
-      port,
-      listen: (host === "0.0.0.0" ? "localhost" : host) + ":" + port,
-    });
+    const address = (host === "0.0.0.0" ? "localhost" : host) + ":" + port;
+    getLogger(PACKAGE_NAME).info(
+      { bind: host, port },
+      `Listening on http://${address}`,
+    );
   });
 }

@@ -4,7 +4,7 @@ import { getConfig } from "../lib/config.js";
 import nunjucks from "nunjucks";
 import { addFrontendUiGlobals } from "@govuk-one-login/frontend-ui";
 import { fileURLToPath } from "node:url";
-import { getLogger } from "../lib/logger.js";
+import { getLogger } from "../../lib/logger.js";
 import { PACKAGE_NAME } from "../../lib/constants.js";
 
 export const setupNunjucks = (
