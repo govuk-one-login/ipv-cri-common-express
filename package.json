@@ -22,7 +22,7 @@
   "scripts": {
     "build:cjs": "npx tsc --outDir dist/cjs --module commonjs --moduleResolution node10",
     "build:esm": "npx tsc --outDir dist/esm",
-    "build": "npm run build:esm && npm run build:cjs",
+    "build": "rm -rf dist && npm run build:esm && npm run build:cjs && cp -r src/components dist/components",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "lint": "eslint .",
