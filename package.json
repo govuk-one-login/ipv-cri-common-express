@@ -1,6 +1,6 @@
 {
   "name": "@govuk-one-login/di-ipv-cri-common-express",
-  "version": "19.0.0",
+  "version": "19.0.1",
   "description": "Express libraries and utilities for use building GOV.UK One Login Credential Issuers",
   "publishConfig": {
     "access": "public"
@@ -22,7 +22,7 @@
   "scripts": {
     "build:cjs": "npx tsc --outDir dist/cjs --module commonjs --moduleResolution node10",
     "build:esm": "npx tsc --outDir dist/esm",
-    "build": "npm run build:esm && npm run build:cjs",
+    "build": "rm -rf dist && npm run build:esm && npm run build:cjs && cp -r src/components dist/components",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "lint": "eslint .",
